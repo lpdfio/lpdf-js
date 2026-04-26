@@ -1,5 +1,5 @@
 name: Release
-run-name: "Release ${{ github.event.client_payload.version || github.ref_name }} to npm"
+run-name: "Release ${{ github.event.client_payload.version || github.ref_name }} to npm (${{ github.event_name == 'repository_dispatch' && 'core' || 'adapter' }})"
 
 on:
   repository_dispatch:
@@ -12,7 +12,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -93,3 +93,15 @@ jobs:
         run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Create GitHub Release (core-triggered only) ──────────────────────────
+      - name: Create GitHub Release
+        if: github.event_name == 'repository_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag "$ADAPTER_TAG"
+          git push origin "$ADAPTER_TAG"
+          gh release create "$ADAPTER_TAG" \
+            --title "$ADAPTER_TAG" \
+            --generate-notes
