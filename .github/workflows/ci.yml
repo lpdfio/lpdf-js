@@ -48,4 +48,16 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+
+      # ── Fetch test fixtures and snapshots from core ──────────────────────────
+      - name: Fetch test fixtures and snapshots from core
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            https://github.com/lpdfio/lpdf.git _core
+          git -C _core sparse-checkout set test/fixtures test/snapshots
+          mkdir -p test/fixtures test/snapshots
+          cp -r _core/test/fixtures/. test/fixtures/
+          cp -r _core/test/snapshots/. test/snapshots/
+          rm -rf _core
+
       - run: npm test

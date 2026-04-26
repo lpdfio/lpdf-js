@@ -9,7 +9,13 @@ import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const ROOT      = path.resolve(__dirname, '../../../../');
+// In the monorepo, this file is at src/adapters/node/test/ — 4 levels up is
+// the monorepo root (where Cargo.toml lives).  In a standalone adapter repo
+// checkout the test/ directory is at the root, so fall back one level up.
+const _monoroot = path.resolve(__dirname, '../../../../');
+export const ROOT      = existsSync(path.join(_monoroot, 'Cargo.toml'))
+  ? _monoroot
+  : path.resolve(__dirname, '../');
 export const FIXTURES  = path.join(ROOT, 'test/fixtures');
 export const SNAPSHOTS = path.join(ROOT, 'test/snapshots');
 export const UPDATE    = !!process.env.UPDATE_SNAPSHOTS;
