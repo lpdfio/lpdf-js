@@ -16,7 +16,7 @@
  * Custom fonts must be pre-loaded via `loadFont()` or the deprecated
  * `fontBytes` option; there is no automatic filesystem fallback in the browser.
  */
-import initWasm, { LpdfEngine as WasmEngine } from '../../../../dist/web/lpdf.js';
+import initWasm, { LpdfEngine as WasmEngine } from '../wasm/lpdf-web.js';
 import { RenderOptions } from './_shared';
 
 export type { RenderOptions } from './_shared';

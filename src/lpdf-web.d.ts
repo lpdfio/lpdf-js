@@ -3,7 +3,7 @@
  * Used by src/browser.ts so the import is typed without needing to reference
  * the actual generated dist file from TypeScript.
  */
-declare module '../../../../dist/web/lpdf.js' {
+declare module '../wasm/lpdf-web.js' {
   export class LpdfEngine {
     constructor(license_key: string): LpdfEngine;
     /** Register raw font bytes for a custom font name. */

@@ -1,4 +1,4 @@
-// ../../../dist/web/lpdf.js
+// wasm/lpdf-web.js
 var LpdfEngine = class {
   __destroy_into_raw() {
     const ptr = this.__wbg_ptr;
