@@ -20,7 +20,7 @@ const { LpdfEngine: WasmEngine } = require('../../../../dist/node/lpdf.js');
 
 (async () => {
   const __root   = resolve(__dirname, '../../../../example/');
-  const xmlFile  = resolve(__dirname, '../../../../docs/examples/showcase-encryption.xml');
+  const xmlFile  = resolve(__dirname, '../../../../test/fixtures/showcase-encryption.xml');
   const outputFile = 'encrypt-permissions-only-node.pdf';
 
   const xml = readFileSync(xmlFile, 'utf8');
