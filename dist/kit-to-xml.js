@@ -21,7 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.kitToXml = kitToXml;
 // Load the standalone kit_to_xml export from the compiled WASM module.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { kit_to_xml: wasmKitToXml } = require('../../../../dist/node/lpdf.js');
+const { kit_to_xml: wasmKitToXml } = require('./wasm/lpdf.js');
 /**
  * Convert an `LpdfDocument` tree (built with `LpdfKit`) into an lpdf XML
  * string.

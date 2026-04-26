@@ -21,7 +21,7 @@ import type { LpdfDocument } from './kit';
 
 // Load the standalone kit_to_xml export from the compiled WASM module.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { kit_to_xml: wasmKitToXml } = require('../../../../dist/node/lpdf.js') as {
+const { kit_to_xml: wasmKitToXml } = require('./wasm/lpdf.js') as {
   kit_to_xml: (json: string) => string;
 };
 
