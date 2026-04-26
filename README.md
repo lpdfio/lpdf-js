@@ -1,6 +1,6 @@
 # @lpdfio/lpdf
 
-Node.js adapter for [lpdf](https://lpdf.io) — pixel-perfect, lightweight, and consistent PDF rendering.
+Node.js adapter for [lpdf](https://lpdf.io) — an accurate, efficient, and cross-platform PDF engine.
 
 ## Installation
 
@@ -14,7 +14,7 @@ npm install @lpdfio/lpdf
 import { LpdfEngine } from '@lpdfio/lpdf';
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const engine = new LpdfEngine('');          // empty key → free tier (watermark)
+const engine = new LpdfEngine('');
 
 engine.loadFont('montserrat', readFileSync('fonts/Montserrat-Regular.ttf'));
 engine.loadImage('logo', readFileSync('images/logo.png'));
