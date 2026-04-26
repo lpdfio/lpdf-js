@@ -3,7 +3,7 @@
 // render.test.mjs only contains test setup and engine invocations.
 
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -13,6 +13,9 @@ export const ROOT      = path.resolve(__dirname, '../../../../');
 export const FIXTURES  = path.join(ROOT, 'test/fixtures');
 export const SNAPSHOTS = path.join(ROOT, 'test/snapshots');
 export const UPDATE    = !!process.env.UPDATE_SNAPSHOTS;
+
+/** True when the fixtures directory exists (monorepo; false in standalone CI). */
+export const HAS_FIXTURES = existsSync(FIXTURES);
 
 export const EXAMPLES = [
   'example1', 'example2', 'example3', 'example4',  'example5',

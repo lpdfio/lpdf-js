@@ -172,7 +172,7 @@ describe('LpdfEngine', () => {
 // Normal run (CI):
 //   node --test test/render.test.mjs
 
-import { EXAMPLES, readFixture, compareOrUpdate } from './snapshot_helper.mjs';
+import { EXAMPLES, HAS_FIXTURES, readFixture, compareOrUpdate } from './snapshot_helper.mjs';
 
 // ── kitToXml ──────────────────────────────────────────────────────────────────
 
@@ -309,7 +309,11 @@ describe('kitToXml', () => {
 
 describe('PDF snapshots (fixture XMLs)', () => {
   for (const name of EXAMPLES) {
-    it(`${name} matches stored hash`, async () => {
+    it(`${name} matches stored hash`, async (t) => {
+      if (!HAS_FIXTURES) {
+        t.skip('fixture files not available outside monorepo');
+        return;
+      }
       const xml   = readFixture(name);
       const lpdf  = new LpdfEngine('test-key');
       const bytes = await lpdf.renderPdf(xml);
