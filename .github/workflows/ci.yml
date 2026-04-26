@@ -35,11 +35,13 @@ jobs:
             --repo lpdfio/lpdf \
             --pattern "lpdf.js" \
             --pattern "lpdf_bg.wasm" \
+            --pattern "lpdf-web.js" \
             --dir wasm \
           || gh release download \
             --repo lpdfio/lpdf \
             --pattern "lpdf.js" \
             --pattern "lpdf_bg.wasm" \
+            --pattern "lpdf-web.js" \
             --dir wasm
 
       - run: npm ci

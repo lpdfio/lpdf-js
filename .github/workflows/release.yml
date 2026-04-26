@@ -40,6 +40,7 @@ jobs:
               --repo lpdfio/lpdf \
               --pattern "lpdf.js" \
               --pattern "lpdf_bg.wasm" \
+              --pattern "lpdf-web.js" \
               --dir wasm && break
             echo "Attempt $attempt failed — retrying in 10s..."
             sleep 10
