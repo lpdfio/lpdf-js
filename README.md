@@ -1,6 +1,6 @@
 # @lpdfio/lpdf
 
-Node.js adapter for [lpdf](https://lpdf.io) — an accurate, efficient, and cross-platform PDF engine.
+Node.js adapter for [Lpdf](https://lpdf.io) — an accurate, efficient, and cross-platform PDF engine.
 
 ## Installation
 
@@ -32,7 +32,7 @@ import { LpdfEngine } from '@lpdfio/lpdf/browser';
 
 const engine = new LpdfEngine('');
 
-const xml = `<stack><text>Hello, lpdf</text></stack>`;
+const xml = `<stack><text>Hello, Lpdf</text></stack>`;
 const pdf = await engine.renderPdf(xml);
 
 const blob = new Blob([pdf], { type: 'application/pdf' });
@@ -41,7 +41,7 @@ window.open(URL.createObjectURL(blob));
 
 ## XML format
 
-Documents are defined in a layout XML format. See the [lpdf documentation](https://lpdf.io/docs) and [examples](https://github.com/lpdfio/lpdf/tree/main/docs/examples) for the full schema.
+Documents are defined in a layout XML format. See the [Lpdf documentation](https://lpdf.io/docs) and [examples](https://github.com/lpdfio/lpdf/tree/main/docs/examples) for the full schema.
 
 ```xml
 <stack spacing="m" padding="l">
