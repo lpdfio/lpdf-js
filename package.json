@@ -1,7 +1,7 @@
 {
   "name": "@lpdfio/lpdf",
   "version": "0.0.0",
-  "description": "Node.js adapter for Lpdf — an accurate, efficient, and cross-platform PDF engine",
+  "description": "Node.js adapter for Lpdf — PDF as Code, on every platform. Describe your document structure in code using the programming Kit, or XML. Every PDF is compact, pixel-perfect, and identical across platforms.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
