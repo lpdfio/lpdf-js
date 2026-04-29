@@ -11,7 +11,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LpdfEngine } from '../dist/index.js';
+import { Pdf } from '../dist/index.js';
 
 (async () => {
   const __root = resolve(__dirname, '../../../../example/');
@@ -23,18 +23,18 @@ import { LpdfEngine } from '../dist/index.js';
   ];
 
   // init engine
-  const engine = new LpdfEngine('');       // empty key → free tier (watermark)
+  const engine = Pdf.engine();       // empty key → free tier (watermark)
 
   // load assets (only used if referenced in xml/layout)
   engine.loadFont('montserrat', readFileSync(resolve(__root, 'assets/fonts/Montserrat-Regular.ttf')));
-  engine.loadImage('logo', readFileSync(resolve(__root, 'assets/images/logo-lpdf.png')));
+  engine.loadImage('logo', readFileSync(resolve(__dirname, '../lpdf-light.png')));
 
   for (const example of examples) {
     // load xml from file
     const xml = readFileSync(resolve(__root, 'xml', `${example}.xml`), 'utf8');
 
     // render pdf from xml
-    const bytes = await engine.renderPdf(xml);
+    const bytes = await engine.render(xml);
 
     // define output file name
     const outputFile = `${example}-node.pdf`;

@@ -12,11 +12,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
-// Access the raw WASM engine directly — the high-level LpdfEngine wrapper does not
-// yet expose setEncryption, so we go one level down (same module index.ts uses).
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { LpdfEngine: WasmEngine } = require('../../../../dist/node/lpdf.js');
+import { Pdf } from '../dist/index.js';
 
 (async () => {
   const __root   = resolve(__dirname, '../../../../example/');
@@ -25,14 +21,15 @@ const { LpdfEngine: WasmEngine } = require('../../../../dist/node/lpdf.js');
 
   const xml = readFileSync(xmlFile, 'utf8');
 
-  const engine = new WasmEngine('');  // empty key → free tier (watermark)
-
   // Permissions only — no open password.
   // File opens freely; cooperative viewers enforce print: false, copy: false.
-  engine.set_encryption('', 's3cr3t', JSON.stringify({ print: false, copy: false }));
+  const engine = Pdf.engine().setEncryption({
+    userPassword:  '',
+    ownerPassword: 's3cr3t',
+    permissions:   { print: false, copy: false },
+  });
 
-  const bytes: Uint8Array = engine.render_pdf(xml);
-  engine.free();
+  const bytes = await engine.render(xml);
 
   writeFileSync(resolve(__root, 'result', outputFile), bytes);
   console.log(`output: ${outputFile} (${bytes.length.toLocaleString()} bytes)`);
