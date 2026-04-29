@@ -40,33 +40,33 @@ function buildAttrs(options) {
     return result;
 }
 // ── Factory functions ─────────────────────────────────────────────────────────
-function layout(nodes = []) {
+function layout(_attrs, nodes) {
     return { type: 'layout', nodes };
 }
-function canvas(layers = []) {
+function canvas(_attrs, layers) {
     return { type: 'canvas', nodes: layers };
 }
-function section(input = {}) {
+function section(attrs, nodes) {
     return {
         type: 'section',
-        attrs: buildAttrs((input.options ?? {})),
-        nodes: input.nodes ?? [],
+        attrs: buildAttrs((attrs ?? {})),
+        nodes,
     };
 }
-function document(input = {}) {
-    const { tokens, meta, ...restOpts } = input.options ?? {};
-    const attrs = {
+function document(attrs, nodes) {
+    const { tokens, meta, ...restOpts } = attrs ?? {};
+    const attrsObj = {
         ...buildAttrs(restOpts),
     };
     if (tokens !== undefined)
-        attrs['tokens'] = tokens;
+        attrsObj['tokens'] = tokens;
     if (meta !== undefined)
-        attrs['meta'] = meta;
+        attrsObj['meta'] = meta;
     return {
         version: 1,
         type: 'document',
-        attrs,
-        nodes: input.sections ?? [],
+        attrs: attrsObj,
+        nodes,
     };
 }
 // ── LpdfKit export ────────────────────────────────────────────────────────────

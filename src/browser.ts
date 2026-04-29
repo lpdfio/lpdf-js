@@ -9,43 +9,54 @@
  *   import { initLpdf } from 'lpdf/browser'
  *
  *   const lpdf = await initLpdf(new URL('./lpdf_bg.wasm', import.meta.url), licenseKey)
- *   const pdfBytes = await lpdf.renderPdf(xmlString)
+ *   const pdfBytes = await lpdf.render(xmlString)
  *   lpdf.loadFont('Inter', interFontBytes)
- *   const pdfBytes2 = await lpdf.renderPdf(xmlString2)
+ *   const pdfBytes2 = await lpdf.render(xmlString2)
  *
- * Custom fonts must be pre-loaded via `loadFont()` or the deprecated
- * `fontBytes` option; there is no automatic filesystem fallback in the browser.
+ * Custom fonts must be pre-loaded via `loadFont()`; there is no automatic
+ * filesystem fallback in the browser.
  */
 import initWasm, { LpdfEngine as WasmEngine } from '../wasm/lpdf-web.js';
-import { RenderOptions } from './_shared';
+import type { RenderOptions } from './_shared';
+import type { PdfDocument } from './kit';
 
 export type { RenderOptions } from './_shared';
-export type { LpdfDocument, LpdfPageNode, LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
-              LpdfImgNode, LpdfBarcodeNode,
-              LpdfTokens, LpdfFontDef, LpdfMeta,
-              StackInput, FlankInput, SplitInput, ClusterInput, GridInput, FrameInput, LinkInput,
-              TextInput, SpanInput, DividerInput, ImgInput, BarcodeInput, PageInput, DocumentInput,
-              StackOptions, FlankOptions, SplitOptions, ClusterOptions, GridOptions, FrameOptions, LinkOptions,
-              TextOptions, SpanOptions, DividerOptions, ImgOptions, BarcodeOptions, PageOptions, DocumentOptions } from './kit';
-export { LpdfKit } from './kit';
+export type {
+    PdfDocument, LpdfSectionNode, LpdfLayoutBlock, LpdfCanvasBlock,
+    LpdfTokens, LpdfFontDef, LpdfMeta, SectionAttr, DocumentAttr,
+} from './kit';
+export type {
+    StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
+    TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
+    ImgAttr, BarcodeAttr, RegionAttr,
+    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
+    LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
+    LpdfTdNode, LpdfRegionNode,
+} from './layout';
+export type {
+    LayerAttr, LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode,
+} from './canvas';
+
+/** Pass as `attrs` when a node has no attributes. Equivalent to `null`. */
+export const NoAttr = null;
 
 export interface LpdfBrowser {
-  /**
-   * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
-   * Call before `renderPdf`. Mutates the renderer in-place.
-   */
-  loadFont(name: string, bytes: Uint8Array): void;
-  /**
-   * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
-   * Call before `renderPdf`. Mutates the renderer in-place.
-   */
-  loadImage(name: string, bytes: Uint8Array): void;
-  /**
-   * Render an lpdf XML document to PDF bytes.
-   * Custom fonts must be registered via `loadFont()` or the deprecated
-   * `fontBytes` option; src-path loading is not available in the browser.
-   */
-  renderPdf(xml: string, options?: RenderOptions): Promise<Uint8Array>;
+    /**
+     * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
+     * Call before `render`. Mutates the renderer in-place.
+     */
+    loadFont(name: string, bytes: Uint8Array): void;
+    /**
+     * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
+     * Call before `render`. Mutates the renderer in-place.
+     */
+    loadImage(name: string, bytes: Uint8Array): void;
+    /**
+     * Render an lpdf XML document or `PdfDocument` tree to PDF bytes.
+     * Custom fonts must be registered via `loadFont()`; src-path loading is
+     * not available in the browser.
+     */
+    render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
 }
 
 /**
@@ -56,55 +67,58 @@ export interface LpdfBrowser {
  *                      `new URL('./lpdf_bg.wasm', import.meta.url)`
  * @param licenseKey  - License key. Omit or pass empty string for free tier
  *                      (watermark applied).
- * @param initOptions - Optional long-lived config (e.g. shared `fontBytes`).
  */
 export async function initLpdf(
-  wasmSource:  Parameters<typeof initWasm>[0],
-  licenseKey = '',
-  initOptions: RenderOptions = {},
+    wasmSource: Parameters<typeof initWasm>[0],
+    licenseKey = '',
 ): Promise<LpdfBrowser> {
-  await initWasm(wasmSource);
+    await initWasm(wasmSource);
 
-  const fontMap  = new Map<string, Uint8Array>();
-  const imageMap = new Map<string, Uint8Array>();
+    const fontMap  = new Map<string, Uint8Array>();
+    const imageMap = new Map<string, Uint8Array>();
 
-  // Seed with any fonts supplied at init time (deprecated fontBytes path).
-  if (initOptions.fontBytes) {
-    for (const [name, bytes] of Object.entries(initOptions.fontBytes)) {
-      fontMap.set(name, bytes);
-    }
-  }
+    return {
+        loadFont(name: string, bytes: Uint8Array): void {
+            fontMap.set(name, bytes);
+        },
 
-  return {
-    loadFont(name: string, bytes: Uint8Array): void {
-      fontMap.set(name, bytes);
-    },
+        loadImage(name: string, bytes: Uint8Array): void {
+            imageMap.set(name, bytes);
+        },
 
-    loadImage(name: string, bytes: Uint8Array): void {
-      imageMap.set(name, bytes);
-    },
+        async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
+            const engine = new WasmEngine(licenseKey);
 
-    async renderPdf(xml: string, callOptions: RenderOptions = {}): Promise<Uint8Array> {
-      const engine = new WasmEngine(licenseKey);
+            for (const [name, bytes] of fontMap) {
+                engine.load_font(name, bytes);
+            }
+            for (const [name, bytes] of imageMap) {
+                engine.load_image(name, bytes);
+            }
 
-      for (const [name, bytes] of fontMap) {
-        engine.load_font(name, bytes);
-      }
-      // Per-call fontBytes (deprecated) take lower precedence than loadFont().
-      if (callOptions.fontBytes) {
-        for (const [name, bytes] of Object.entries(callOptions.fontBytes)) {
-          if (!fontMap.has(name)) engine.load_font(name, bytes);
-        }
-      }
+            if (callOptions.createdOn) {
+                engine.set_created_on(callOptions.createdOn);
+            }
 
-      for (const [name, bytes] of imageMap) {
-        engine.load_image(name, bytes);
-      }
-
-      const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-      const pdf = engine.render_pdf(xml, dataJson);
-      engine.free();
-      return pdf;
-    },
-  };
+            let pdf: Uint8Array;
+            if (typeof input === 'string') {
+                const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
+                pdf = engine.render_pdf(input, dataJson);
+            } else {
+                // PdfDocument — serialise to JSON and use render_tree_pdf
+                const wasmExt = engine as typeof engine & { render_tree_pdf?(json: string): Uint8Array };
+                if (typeof wasmExt.render_tree_pdf === 'function') {
+                    pdf = wasmExt.render_tree_pdf(JSON.stringify(input));
+                } else {
+                    // Fallback: convert to XML via kit_to_xml module-level export
+                    const mod = engine as unknown as { constructor: { kit_to_xml?: (json: string) => string } };
+                    const xml = mod.constructor.kit_to_xml?.(JSON.stringify(input)) ?? '';
+                    pdf = engine.render_pdf(xml, null);
+                }
+            }
+            engine.free();
+            return pdf;
+        },
+    };
 }
+

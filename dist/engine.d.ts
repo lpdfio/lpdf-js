@@ -1,5 +1,5 @@
 import type { RenderOptions } from './_shared';
-import type { LpdfDocument } from './kit';
+import type { PdfDocument } from './kit';
 /** Thrown when the lpdf engine returns a layout or parse error. */
 export declare class LpdfRenderError extends Error {
     constructor(message: string);
@@ -15,7 +15,7 @@ export interface EncryptPermissions {
     assemble?: boolean;
     print_hq?: boolean;
 }
-/** RC4-128 encryption options passed to {@link LpdfEngine.setEncryption}. */
+/** RC4-128 encryption options passed to {@link PdfEngine.setEncryption}. */
 export interface EncryptOptions {
     /** Open password shown to readers. Empty string = no open password required. */
     userPassword: string;
@@ -24,26 +24,29 @@ export interface EncryptOptions {
     /** Permission flags applied to the document. Omitted flags default to `true`. */
     permissions?: EncryptPermissions;
 }
-export declare class LpdfEngine {
-    private readonly _licenseKey;
-    private readonly _opts;
+export declare class PdfEngine {
+    private _licenseKey;
     private readonly _fonts;
     private readonly _images;
     private _disposed;
     private _encrypt;
-    constructor(licenseKey: string, options?: RenderOptions);
+    constructor();
+    /**
+     * Set the license key. Returns `this` for chaining.
+     */
+    setLicenseKey(key: string): this;
     /**
      * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
-     * Call before `renderPdf`. Returns `this` for chaining.
+     * Call before `render`. Returns `this` for chaining.
      */
     loadFont(name: string, bytes: Uint8Array): this;
     /**
      * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
-     * Call before `renderPdf`. Returns `this` for chaining.
+     * Call before `render`. Returns `this` for chaining.
      */
     loadImage(name: string, bytes: Uint8Array): this;
     /**
-     * Configure RC4-128 encryption for all subsequent `renderPdf` calls.
+     * Configure RC4-128 encryption for all subsequent `render` calls.
      * Returns `this` for chaining.
      */
     setEncryption(options: EncryptOptions): this;
@@ -53,7 +56,7 @@ export declare class LpdfEngine {
      */
     clearEncryption(): this;
     /**
-     * Release held resources. Idempotent. Subsequent `renderPdf` / `loadFont`
+     * Release held resources. Idempotent. Subsequent `render` / `loadFont`
      * calls after disposal will throw.
      */
     dispose(): void;
@@ -62,9 +65,9 @@ export declare class LpdfEngine {
     /**
      * Render an lpdf XML string to PDF bytes (Node.js).
      */
-    renderPdf(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
+    render(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
     /**
-     * Render an `LpdfDocument` tree (built with `LpdfKit`) to PDF bytes (Node.js).
+     * Render a `PdfDocument` tree (built with `Pdf.document`) to PDF bytes (Node.js).
      */
-    renderPdf(input: LpdfDocument, callOptions?: RenderOptions): Promise<Uint8Array>;
+    render(input: PdfDocument, callOptions?: RenderOptions): Promise<Uint8Array>;
 }

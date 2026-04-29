@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { RenderOptions } from './_shared';
-import type { LpdfDocument } from './kit';
+import type { PdfDocument } from './kit';
 
 // The WASM CJS module is loaded at runtime; we declare only what we use.
 interface IWasmEngine {
@@ -44,7 +44,7 @@ export interface EncryptPermissions {
   print_hq?:      boolean;
 }
 
-/** RC4-128 encryption options passed to {@link LpdfEngine.setEncryption}. */
+/** RC4-128 encryption options passed to {@link PdfEngine.setEncryption}. */
 export interface EncryptOptions {
   /** Open password shown to readers. Empty string = no open password required. */
   userPassword:  string;
@@ -54,22 +54,27 @@ export interface EncryptOptions {
   permissions?:  EncryptPermissions;
 }
 
-export class LpdfEngine {
-  private readonly _licenseKey: string;
-  private readonly _opts:   RenderOptions;
+export class PdfEngine {
+  private _licenseKey = '';
   private readonly _fonts:  Map<string, Uint8Array> = new Map();
   private readonly _images: Map<string, Uint8Array> = new Map();
   private _disposed = false;
   private _encrypt: EncryptOptions | null = null;
 
-  constructor(licenseKey: string, options: RenderOptions = {}) {
-    this._licenseKey = licenseKey;
-    this._opts = options;
+  constructor() {}
+
+  /**
+   * Set the license key. Returns `this` for chaining.
+   */
+  setLicenseKey(key: string): this {
+    this._throwIfDisposed();
+    this._licenseKey = key;
+    return this;
   }
 
   /**
    * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
-   * Call before `renderPdf`. Returns `this` for chaining.
+   * Call before `render`. Returns `this` for chaining.
    */
   loadFont(name: string, bytes: Uint8Array): this {
     this._throwIfDisposed();
@@ -79,7 +84,7 @@ export class LpdfEngine {
 
   /**
    * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
-   * Call before `renderPdf`. Returns `this` for chaining.
+   * Call before `render`. Returns `this` for chaining.
    */
   loadImage(name: string, bytes: Uint8Array): this {
     this._throwIfDisposed();
@@ -88,7 +93,7 @@ export class LpdfEngine {
   }
 
   /**
-   * Configure RC4-128 encryption for all subsequent `renderPdf` calls.
+   * Configure RC4-128 encryption for all subsequent `render` calls.
    * Returns `this` for chaining.
    */
   setEncryption(options: EncryptOptions): this {
@@ -108,7 +113,7 @@ export class LpdfEngine {
   }
 
   /**
-   * Release held resources. Idempotent. Subsequent `renderPdf` / `loadFont`
+   * Release held resources. Idempotent. Subsequent `render` / `loadFont`
    * calls after disposal will throw.
    */
   dispose(): void {
@@ -118,33 +123,24 @@ export class LpdfEngine {
   [Symbol.dispose](): void { this.dispose(); }
 
   private _throwIfDisposed(): void {
-    if (this._disposed) throw new Error('LpdfEngine has been disposed.');
+    if (this._disposed) throw new Error('PdfEngine has been disposed.');
   }
 
   /**
    * Render an lpdf XML string to PDF bytes (Node.js).
    */
-  async renderPdf(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
+  async render(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
   /**
-   * Render an `LpdfDocument` tree (built with `LpdfKit`) to PDF bytes (Node.js).
+   * Render a `PdfDocument` tree (built with `Pdf.document`) to PDF bytes (Node.js).
    */
-  async renderPdf(input: LpdfDocument, callOptions?: RenderOptions): Promise<Uint8Array>;
-  async renderPdf(input: string | LpdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
+  async render(input: PdfDocument, callOptions?: RenderOptions): Promise<Uint8Array>;
+  async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
     this._throwIfDisposed();
-
-    // Merge fonts: instance-level loadFont() calls take precedence over the
-    // deprecated fontBytes option, which is kept for one-version compat.
-    const allFonts = new Map<string, Uint8Array>(this._fonts);
-    const extraBytes = { ...this._opts.fontBytes, ...callOptions.fontBytes };
-    for (const [name, bytes] of Object.entries(extraBytes)) {
-      if (!allFonts.has(name)) allFonts.set(name, bytes);
-    }
 
     const engine = new WasmEngine(this._licenseKey);
 
-    const createdOn = callOptions.createdOn ?? this._opts.createdOn;
-    if (createdOn) {
-      engine.set_created_on(createdOn);
+    if (callOptions.createdOn) {
+      engine.set_created_on(callOptions.createdOn);
     }
 
     let pdf: Uint8Array;
@@ -152,6 +148,7 @@ export class LpdfEngine {
       if (typeof input === 'string') {
         // XML path — auto-load fonts and images declared via src="…".
         const xml = input;
+        const allFonts = new Map<string, Uint8Array>(this._fonts);
         for (const [key, src] of extractAssetSrcs(xml, 'font')) {
           if (!allFonts.has(key)) {
             try { allFonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
@@ -178,6 +175,7 @@ export class LpdfEngine {
       } else {
         // JSON (Kit tree) path — pass JSON directly to render_tree_pdf.
         const json = JSON.stringify(input);
+        const allFonts = new Map<string, Uint8Array>(this._fonts);
         for (const [key, src] of extractFontSrcsFromJson(json)) {
           if (!allFonts.has(key)) {
             try { allFonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }

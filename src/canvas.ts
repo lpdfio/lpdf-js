@@ -161,7 +161,10 @@ export type LpdfCanvasPrimitiveNode =
 
 // ── Layer ─────────────────────────────────────────────────────────────────────
 
-export interface CanvasLayerOptions {
+/** @deprecated Use {@link LayerAttr} */
+export type CanvasLayerOptions = LayerAttr;
+
+export interface LayerAttr {
   page?:      PageScope | string;
   opacity?:   number;
   transform?: CanvasTransform;
@@ -234,7 +237,7 @@ function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode {
   return { type: 'canvas-path', attrs };
 }
 
-function canvasText(
+function textAt(
   x: number, y: number, content: string,
   style?: CanvasTextStyle,
   runs?: CanvasRun[],
@@ -260,19 +263,19 @@ function canvasText(
   return node;
 }
 
-function img(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode {
+function imgAt(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode {
   return {
     type:  'canvas-img',
     attrs: { x: String(x), y: String(y), w: String(w), h: String(h), name },
   };
 }
 
-function layer(nodes: LpdfCanvasPrimitiveNode[], options?: CanvasLayerOptions): LpdfCanvasLayerNode {
-  const attrs: Record<string, string> = {};
-  if (options?.page      !== undefined) attrs['page']      = options.page;
-  if (options?.opacity   !== undefined) attrs['opacity']   = String(options.opacity);
-  if (options?.transform !== undefined) attrs['transform'] = options.transform.toString();
-  return { type: 'canvas-layer', attrs, nodes };
+function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode {
+  const a: Record<string, string> = {};
+  if (attrs?.page      !== undefined) a['page']      = attrs.page;
+  if (attrs?.opacity   !== undefined) a['opacity']   = String(attrs.opacity);
+  if (attrs?.transform !== undefined) a['transform'] = attrs.transform.toString();
+  return { type: 'canvas-layer', attrs: a, nodes };
 }
 
 export const LpdfCanvas = Object.freeze({
@@ -281,7 +284,7 @@ export const LpdfCanvas = Object.freeze({
   ellipse,
   circle,
   path,
-  text: canvasText,
-  img,
+  textAt,
+  imgAt,
   layer,
 });

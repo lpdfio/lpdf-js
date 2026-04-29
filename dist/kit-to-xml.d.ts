@@ -16,7 +16,7 @@
  * console.log(xml);
  * ```
  */
-import type { LpdfDocument } from './kit';
+import type { PdfDocument } from './kit';
 /**
  * Convert an `LpdfDocument` tree (built with `LpdfKit`) into an lpdf XML
  * string.
@@ -27,4 +27,4 @@ import type { LpdfDocument } from './kit';
  * @param doc - The document tree returned by `LpdfKit.document(...)`.
  * @returns A well-formed XML string with an `<?xml ...?>` declaration.
  */
-export declare function kitToXml(doc: LpdfDocument): string;
+export declare function kitToXml(doc: PdfDocument): string;

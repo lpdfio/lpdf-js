@@ -378,63 +378,12 @@ async function __wbg_init(module_or_path) {
   return __wbg_finalize_init(instance, module);
 }
 
-// src/kit.ts
-function attrKey(camel) {
-  return camel.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
-}
-function buildAttrs(options) {
-  const result = {};
-  for (const [key, val] of Object.entries(options)) {
-    if (val !== void 0) {
-      result[attrKey(key)] = val;
-    }
-  }
-  return result;
-}
-function layout(nodes = []) {
-  return { type: "layout", nodes };
-}
-function canvas(layers = []) {
-  return { type: "canvas", nodes: layers };
-}
-function section(input = {}) {
-  return {
-    type: "section",
-    attrs: buildAttrs(input.options ?? {}),
-    nodes: input.nodes ?? []
-  };
-}
-function document(input = {}) {
-  const { tokens, meta, ...restOpts } = input.options ?? {};
-  const attrs = {
-    ...buildAttrs(restOpts)
-  };
-  if (tokens !== void 0) attrs["tokens"] = tokens;
-  if (meta !== void 0) attrs["meta"] = meta;
-  return {
-    version: 1,
-    type: "document",
-    attrs,
-    nodes: input.sections ?? []
-  };
-}
-var LpdfKit = Object.freeze({
-  layout,
-  canvas,
-  section,
-  document
-});
-
 // src/browser.ts
-async function initLpdf(wasmSource, licenseKey = "", initOptions = {}) {
+var NoAttr = null;
+async function initLpdf(wasmSource, licenseKey = "") {
   await __wbg_init(wasmSource);
   const fontMap = /* @__PURE__ */ new Map();
   const imageMap = /* @__PURE__ */ new Map();
-  if (initOptions.fontBytes) {
-    for (const [name, bytes] of Object.entries(initOptions.fontBytes)) {
-      fontMap.set(name, bytes);
-    }
-  }
   return {
     loadFont(name, bytes) {
       fontMap.set(name, bytes);
@@ -442,27 +391,37 @@ async function initLpdf(wasmSource, licenseKey = "", initOptions = {}) {
     loadImage(name, bytes) {
       imageMap.set(name, bytes);
     },
-    async renderPdf(xml, callOptions = {}) {
+    async render(input, callOptions = {}) {
       const engine = new LpdfEngine(licenseKey);
       for (const [name, bytes] of fontMap) {
         engine.load_font(name, bytes);
       }
-      if (callOptions.fontBytes) {
-        for (const [name, bytes] of Object.entries(callOptions.fontBytes)) {
-          if (!fontMap.has(name)) engine.load_font(name, bytes);
-        }
-      }
       for (const [name, bytes] of imageMap) {
         engine.load_image(name, bytes);
       }
-      const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-      const pdf = engine.render_pdf(xml, dataJson);
+      if (callOptions.createdOn) {
+        engine.set_created_on(callOptions.createdOn);
+      }
+      let pdf;
+      if (typeof input === "string") {
+        const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
+        pdf = engine.render_pdf(input, dataJson);
+      } else {
+        const wasmExt = engine;
+        if (typeof wasmExt.render_tree_pdf === "function") {
+          pdf = wasmExt.render_tree_pdf(JSON.stringify(input));
+        } else {
+          const mod = engine;
+          const xml = mod.constructor.kit_to_xml?.(JSON.stringify(input)) ?? "";
+          pdf = engine.render_pdf(xml, null);
+        }
+      }
       engine.free();
       return pdf;
     }
   };
 }
 export {
-  LpdfKit,
+  NoAttr,
   initLpdf
 };

@@ -1,5 +1,5 @@
 import type { PageScope } from './_shared';
-export interface StackOptions {
+export interface StackAttr {
     gap?: string;
     padding?: string;
     background?: string;
@@ -11,7 +11,7 @@ export interface StackOptions {
     radius?: string;
     debug?: string;
 }
-export interface FlankOptions {
+export interface FlankAttr {
     gap?: string;
     padding?: string;
     background?: string;
@@ -24,7 +24,7 @@ export interface FlankOptions {
     radius?: string;
     debug?: string;
 }
-export interface SplitOptions {
+export interface SplitAttr {
     gap?: string;
     padding?: string;
     background?: string;
@@ -36,7 +36,7 @@ export interface SplitOptions {
     radius?: string;
     debug?: string;
 }
-export interface ClusterOptions {
+export interface ClusterAttr {
     gap?: string;
     padding?: string;
     background?: string;
@@ -48,7 +48,7 @@ export interface ClusterOptions {
     radius?: string;
     debug?: string;
 }
-export interface GridOptions {
+export interface GridAttr {
     cols?: string;
     colWidth?: string;
     gap?: string;
@@ -61,7 +61,7 @@ export interface GridOptions {
     radius?: string;
     debug?: string;
 }
-export interface FrameOptions {
+export interface FrameAttr {
     width?: string;
     height?: string;
     padding?: string;
@@ -71,13 +71,13 @@ export interface FrameOptions {
     align?: string;
     debug?: string;
 }
-export interface LinkOptions {
+export interface LinkAttr {
     url?: string;
     width?: string;
     height?: string;
     debug?: string;
 }
-export interface TableOptions {
+export interface TableAttr {
     cols: string;
     border?: string;
     stripe?: string;
@@ -89,13 +89,13 @@ export interface TableOptions {
     repeat?: string;
     debug?: string;
 }
-export interface TheadOptions {
+export interface TheadAttr {
     background?: string;
 }
-export interface TrOptions {
+export interface TrAttr {
     background?: string;
 }
-export interface TdOptions {
+export interface TdAttr {
     padding?: string;
     background?: string;
     align?: string;
@@ -105,7 +105,7 @@ export interface TdOptions {
     gap?: string;
     debug?: string;
 }
-export interface TextOptions {
+export interface TextAttr {
     font?: string;
     fontSize?: string;
     textAlign?: string;
@@ -121,7 +121,7 @@ export interface TextOptions {
     repeat?: string;
     debug?: string;
 }
-export interface SpanOptions {
+export interface SpanAttr {
     font?: string;
     fontSize?: string;
     color?: string;
@@ -130,13 +130,13 @@ export interface SpanOptions {
     underline?: string;
     strike?: string;
 }
-export interface DividerOptions {
+export interface DividerAttr {
     color?: string;
     thickness?: string;
     direction?: string;
     debug?: string;
 }
-export interface ImgOptions {
+export interface ImgAttr {
     name: string;
     height?: string;
     width?: string;
@@ -150,7 +150,7 @@ export interface ImgOptions {
     repeat?: string;
     debug?: string;
 }
-export interface BarcodeOptions {
+export interface BarcodeAttr {
     type: string;
     data: string;
     size?: string;
@@ -163,7 +163,8 @@ export interface BarcodeOptions {
     repeat?: string;
     debug?: string;
 }
-export interface RegionOptions {
+export interface RegionAttr {
+    pin: string;
     page?: PageScope | string;
     w?: string;
     debug?: string;
@@ -221,23 +222,23 @@ export interface LpdfRegionNode {
     nodes: LpdfNode[];
 }
 export type LpdfNode = LpdfContainerNode | LpdfTextNode | LpdfDividerNode | LpdfTableNode | LpdfImgNode | LpdfBarcodeNode | LpdfRegionNode;
-declare function stack(nodes?: LpdfNode[], options?: StackOptions): LpdfContainerNode;
-declare function flank(nodes?: LpdfNode[], options?: FlankOptions): LpdfContainerNode;
-declare function split(nodes?: LpdfNode[], options?: SplitOptions): LpdfContainerNode;
-declare function cluster(nodes?: LpdfNode[], options?: ClusterOptions): LpdfContainerNode;
-declare function grid(nodes?: LpdfNode[], options?: GridOptions): LpdfContainerNode;
-declare function frame(nodes?: LpdfNode[], options?: FrameOptions): LpdfContainerNode;
-declare function link(nodes?: LpdfNode[], options?: LinkOptions): LpdfContainerNode;
-declare function table(options: TableOptions, nodes?: (LpdfTheadNode | LpdfTrNode)[]): LpdfTableNode;
-declare function thead(nodes?: LpdfTdNode[], options?: TheadOptions): LpdfTheadNode;
-declare function tr(nodes?: LpdfTdNode[], options?: TrOptions): LpdfTrNode;
-declare function td(nodes?: LpdfNode[], options?: TdOptions): LpdfTdNode;
-declare function text(nodes?: (string | LpdfSpanNode)[], options?: TextOptions): LpdfTextNode;
-declare function span(nodes?: string[], options?: SpanOptions): LpdfSpanNode;
-declare function divider(options?: DividerOptions): LpdfDividerNode;
-declare function img(options: ImgOptions): LpdfImgNode;
-declare function barcode(options: BarcodeOptions): LpdfBarcodeNode;
-declare function region(pin: string, nodes?: LpdfNode[], options?: RegionOptions): LpdfRegionNode;
+declare function stack(attrs: StackAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function flank(attrs: FlankAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function split(attrs: SplitAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function cluster(attrs: ClusterAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function grid(attrs: GridAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function frame(attrs: FrameAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function link(attrs: LinkAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
+declare function table(attrs: TableAttr, nodes: (LpdfTheadNode | LpdfTrNode)[]): LpdfTableNode;
+declare function thead(attrs: TheadAttr | null, nodes: LpdfTdNode[]): LpdfTheadNode;
+declare function tr(attrs: TrAttr | null, nodes: LpdfTdNode[]): LpdfTrNode;
+declare function td(attrs: TdAttr | null, nodes: LpdfNode[]): LpdfTdNode;
+declare function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode)[]): LpdfTextNode;
+declare function span(attrs: SpanAttr | null, nodes: string[]): LpdfSpanNode;
+declare function divider(attrs: DividerAttr | null): LpdfDividerNode;
+declare function img(attrs: ImgAttr): LpdfImgNode;
+declare function barcode(attrs: BarcodeAttr): LpdfBarcodeNode;
+declare function region(attrs: RegionAttr, nodes: LpdfNode[]): LpdfRegionNode;
 export declare const LpdfLayout: Readonly<{
     stack: typeof stack;
     flank: typeof flank;

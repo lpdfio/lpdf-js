@@ -124,7 +124,7 @@ function path(d, style) {
         attrs['line-join'] = style.lineJoin;
     return { type: 'canvas-path', attrs };
 }
-function canvasText(x, y, content, style, runs) {
+function textAt(x, y, content, style, runs) {
     const attrs = { x: String(x), y: String(y) };
     if (style?.font !== undefined)
         attrs['font'] = style.font;
@@ -153,21 +153,21 @@ function canvasText(x, y, content, style, runs) {
     }
     return node;
 }
-function img(x, y, w, h, name) {
+function imgAt(x, y, w, h, name) {
     return {
         type: 'canvas-img',
         attrs: { x: String(x), y: String(y), w: String(w), h: String(h), name },
     };
 }
-function layer(nodes, options) {
-    const attrs = {};
-    if (options?.page !== undefined)
-        attrs['page'] = options.page;
-    if (options?.opacity !== undefined)
-        attrs['opacity'] = String(options.opacity);
-    if (options?.transform !== undefined)
-        attrs['transform'] = options.transform.toString();
-    return { type: 'canvas-layer', attrs, nodes };
+function layer(attrs, nodes) {
+    const a = {};
+    if (attrs?.page !== undefined)
+        a['page'] = attrs.page;
+    if (attrs?.opacity !== undefined)
+        a['opacity'] = String(attrs.opacity);
+    if (attrs?.transform !== undefined)
+        a['transform'] = attrs.transform.toString();
+    return { type: 'canvas-layer', attrs: a, nodes };
 }
 exports.LpdfCanvas = Object.freeze({
     rect,
@@ -175,7 +175,7 @@ exports.LpdfCanvas = Object.freeze({
     ellipse,
     circle,
     path,
-    text: canvasText,
-    img,
+    textAt,
+    imgAt,
     layer,
 });

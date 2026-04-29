@@ -16,9 +16,9 @@ function buildAttrs(options: Record<string, string | undefined>): Record<string,
   return result;
 }
 
-// ── Options interfaces ────────────────────────────────────────────────────────
+// ── Attr interfaces ───────────────────────────────────────────────────────────
 
-export interface StackOptions {
+export interface StackAttr {
   gap?:        string;
   padding?:    string;
   background?: string;
@@ -31,7 +31,7 @@ export interface StackOptions {
   debug?:      string;
 }
 
-export interface FlankOptions {
+export interface FlankAttr {
   gap?:        string;
   padding?:    string;
   background?: string;
@@ -45,7 +45,7 @@ export interface FlankOptions {
   debug?:      string;
 }
 
-export interface SplitOptions {
+export interface SplitAttr {
   gap?:        string;
   padding?:    string;
   background?: string;
@@ -58,7 +58,7 @@ export interface SplitOptions {
   debug?:      string;
 }
 
-export interface ClusterOptions {
+export interface ClusterAttr {
   gap?:        string;
   padding?:    string;
   background?: string;
@@ -71,7 +71,7 @@ export interface ClusterOptions {
   debug?:      string;
 }
 
-export interface GridOptions {
+export interface GridAttr {
   cols?:       string;
   colWidth?:   string;
   gap?:        string;
@@ -85,7 +85,7 @@ export interface GridOptions {
   debug?:      string;
 }
 
-export interface FrameOptions {
+export interface FrameAttr {
   width?:      string;
   height?:     string;
   padding?:    string;
@@ -96,14 +96,14 @@ export interface FrameOptions {
   debug?:      string;
 }
 
-export interface LinkOptions {
+export interface LinkAttr {
   url?:    string;
   width?:  string;
   height?: string;
   debug?:  string;
 }
 
-export interface TableOptions {
+export interface TableAttr {
   cols:        string;
   border?:     string;
   stripe?:     string;
@@ -116,15 +116,15 @@ export interface TableOptions {
   debug?:      string;
 }
 
-export interface TheadOptions {
+export interface TheadAttr {
   background?: string;
 }
 
-export interface TrOptions {
+export interface TrAttr {
   background?: string;
 }
 
-export interface TdOptions {
+export interface TdAttr {
   padding?:    string;
   background?: string;
   align?:      string;
@@ -135,7 +135,7 @@ export interface TdOptions {
   debug?:      string;
 }
 
-export interface TextOptions {
+export interface TextAttr {
   font?:       string;
   fontSize?:   string;
   textAlign?:  string;
@@ -152,7 +152,7 @@ export interface TextOptions {
   debug?:      string;
 }
 
-export interface SpanOptions {
+export interface SpanAttr {
   font?:       string;
   fontSize?:   string;
   color?:      string;
@@ -162,14 +162,14 @@ export interface SpanOptions {
   strike?:     string;
 }
 
-export interface DividerOptions {
+export interface DividerAttr {
   color?:      string;
   thickness?:  string;
   direction?:  string;
   debug?:      string;
 }
 
-export interface ImgOptions {
+export interface ImgAttr {
   name:        string;
   height?:     string;
   width?:      string;
@@ -184,7 +184,7 @@ export interface ImgOptions {
   debug?:      string;
 }
 
-export interface BarcodeOptions {
+export interface BarcodeAttr {
   type:        string;
   data:        string;
   size?:       string;
@@ -198,7 +198,8 @@ export interface BarcodeOptions {
   debug?:      string;
 }
 
-export interface RegionOptions {
+export interface RegionAttr {
+  pin:    string;
   page?:  PageScope | string;
   w?:     string;
   debug?: string;
@@ -282,117 +283,117 @@ export type LpdfNode =
 
 function makeContainer(
   type: LpdfContainerNode['type'],
+  attrs: Record<string, string | undefined> | null,
   nodes: LpdfNode[],
-  options?: Record<string, string | undefined>,
 ): LpdfContainerNode {
-  return { type, attrs: buildAttrs(options ?? {}), nodes };
+  return { type, attrs: buildAttrs(attrs ?? {}), nodes };
 }
 
 // ── LpdfLayout factory ────────────────────────────────────────────────────────
 
-function stack(nodes: LpdfNode[] = [], options?: StackOptions): LpdfContainerNode {
-  return makeContainer('stack', nodes, options as Record<string, string | undefined>);
+function stack(attrs: StackAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('stack', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function flank(nodes: LpdfNode[] = [], options?: FlankOptions): LpdfContainerNode {
-  return makeContainer('flank', nodes, options as Record<string, string | undefined>);
+function flank(attrs: FlankAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('flank', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function split(nodes: LpdfNode[] = [], options?: SplitOptions): LpdfContainerNode {
-  return makeContainer('split', nodes, options as Record<string, string | undefined>);
+function split(attrs: SplitAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('split', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function cluster(nodes: LpdfNode[] = [], options?: ClusterOptions): LpdfContainerNode {
-  return makeContainer('cluster', nodes, options as Record<string, string | undefined>);
+function cluster(attrs: ClusterAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('cluster', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function grid(nodes: LpdfNode[] = [], options?: GridOptions): LpdfContainerNode {
-  return makeContainer('grid', nodes, options as Record<string, string | undefined>);
+function grid(attrs: GridAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('grid', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function frame(nodes: LpdfNode[] = [], options?: FrameOptions): LpdfContainerNode {
-  return makeContainer('frame', nodes, options as Record<string, string | undefined>);
+function frame(attrs: FrameAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('frame', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function link(nodes: LpdfNode[] = [], options?: LinkOptions): LpdfContainerNode {
-  return makeContainer('link', nodes, options as Record<string, string | undefined>);
+function link(attrs: LinkAttr | null, nodes: LpdfNode[]): LpdfContainerNode {
+  return makeContainer('link', attrs as Record<string, string | undefined> | null, nodes);
 }
 
-function table(options: TableOptions, nodes: (LpdfTheadNode | LpdfTrNode)[] = []): LpdfTableNode {
+function table(attrs: TableAttr, nodes: (LpdfTheadNode | LpdfTrNode)[]): LpdfTableNode {
   return {
     type:  'table',
-    attrs: buildAttrs(options as unknown as Record<string, string | undefined>),
+    attrs: buildAttrs(attrs as unknown as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function thead(nodes: LpdfTdNode[] = [], options?: TheadOptions): LpdfTheadNode {
+function thead(attrs: TheadAttr | null, nodes: LpdfTdNode[]): LpdfTheadNode {
   return {
     type:  'thead',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function tr(nodes: LpdfTdNode[] = [], options?: TrOptions): LpdfTrNode {
+function tr(attrs: TrAttr | null, nodes: LpdfTdNode[]): LpdfTrNode {
   return {
     type:  'tr',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function td(nodes: LpdfNode[] = [], options?: TdOptions): LpdfTdNode {
+function td(attrs: TdAttr | null, nodes: LpdfNode[]): LpdfTdNode {
   return {
     type:  'td',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function text(nodes: (string | LpdfSpanNode)[] = [], options?: TextOptions): LpdfTextNode {
+function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode)[]): LpdfTextNode {
   return {
     type:  'text',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function span(nodes: string[] = [], options?: SpanOptions): LpdfSpanNode {
+function span(attrs: SpanAttr | null, nodes: string[]): LpdfSpanNode {
   return {
     type:  'span',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
     nodes,
   };
 }
 
-function divider(options?: DividerOptions): LpdfDividerNode {
+function divider(attrs: DividerAttr | null): LpdfDividerNode {
   return {
     type:  'divider',
-    attrs: buildAttrs((options ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
   };
 }
 
-function img(options: ImgOptions): LpdfImgNode {
+function img(attrs: ImgAttr): LpdfImgNode {
   return {
     type:  'img',
-    attrs: buildAttrs(options as unknown as Record<string, string | undefined>),
+    attrs: buildAttrs(attrs as unknown as Record<string, string | undefined>),
   };
 }
 
-function barcode(options: BarcodeOptions): LpdfBarcodeNode {
+function barcode(attrs: BarcodeAttr): LpdfBarcodeNode {
   return {
     type:  'barcode',
-    attrs: buildAttrs(options as unknown as Record<string, string | undefined>),
+    attrs: buildAttrs(attrs as unknown as Record<string, string | undefined>),
   };
 }
 
-function region(pin: string, nodes: LpdfNode[] = [], options?: RegionOptions): LpdfRegionNode {
-  const attrs: Record<string, string> = { pin };
-  if (options?.page  !== undefined) attrs['page']  = options.page;
-  if (options?.w     !== undefined) attrs['w']     = options.w;
-  if (options?.debug !== undefined) attrs['debug'] = options.debug;
-  return { type: 'layout-region', attrs, nodes };
+function region(attrs: RegionAttr, nodes: LpdfNode[]): LpdfRegionNode {
+  const a: Record<string, string> = { pin: attrs.pin };
+  if (attrs.page  !== undefined) a['page']  = attrs.page;
+  if (attrs.w     !== undefined) a['w']     = attrs.w;
+  if (attrs.debug !== undefined) a['debug'] = attrs.debug;
+  return { type: 'layout-region', attrs: a, nodes };
 }
 
 export const LpdfLayout = Object.freeze({

@@ -49,7 +49,7 @@ export interface LpdfMeta {
     keywords?: string;
     creator?: string;
 }
-export interface SectionOptions {
+export interface SectionAttr {
     size?: string;
     orientation?: string;
     margin?: string;
@@ -57,7 +57,7 @@ export interface SectionOptions {
     title?: string;
     debug?: string;
 }
-export interface DocumentOptions {
+export interface DocumentAttr {
     size?: string;
     orientation?: string;
     margin?: string;
@@ -81,25 +81,16 @@ export interface LpdfSectionNode {
     attrs: Record<string, string>;
     nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[];
 }
-export interface LpdfDocument {
+export interface PdfDocument {
     version: 1;
     type: 'document';
     attrs: Record<string, unknown>;
     nodes: LpdfSectionNode[];
 }
-export interface SectionInput {
-    nodes?: (LpdfLayoutBlock | LpdfCanvasBlock)[];
-    options?: SectionOptions;
-}
-export interface DocumentInput {
-    /** Sections — serialised as `nodes` on the wire (matching kit_to_xml and parse_tree). */
-    sections?: LpdfSectionNode[];
-    options?: DocumentOptions;
-}
-declare function layout(nodes?: LpdfNode[]): LpdfLayoutBlock;
-declare function canvas(layers?: LpdfCanvasLayerNode[]): LpdfCanvasBlock;
-declare function section(input?: SectionInput): LpdfSectionNode;
-declare function document(input?: DocumentInput): LpdfDocument;
+declare function layout(_attrs: null, nodes: LpdfNode[]): LpdfLayoutBlock;
+declare function canvas(_attrs: null, layers: LpdfCanvasLayerNode[]): LpdfCanvasBlock;
+declare function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[]): LpdfSectionNode;
+declare function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[]): PdfDocument;
 export declare const LpdfKit: Readonly<{
     layout: typeof layout;
     canvas: typeof canvas;

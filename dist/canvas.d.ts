@@ -100,7 +100,9 @@ export interface LpdfCanvasImgNode {
     attrs: Record<string, string>;
 }
 export type LpdfCanvasPrimitiveNode = LpdfCanvasRectNode | LpdfCanvasLineNode | LpdfCanvasEllipseNode | LpdfCanvasCircleNode | LpdfCanvasPathNode | LpdfCanvasTextNode | LpdfCanvasImgNode;
-export interface CanvasLayerOptions {
+/** @deprecated Use {@link LayerAttr} */
+export type CanvasLayerOptions = LayerAttr;
+export interface LayerAttr {
     page?: PageScope | string;
     opacity?: number;
     transform?: CanvasTransform;
@@ -115,17 +117,17 @@ declare function line(x1: number, y1: number, x2: number, y2: number, style?: Ca
 declare function ellipse(cx: number, cy: number, rx: number, ry: number, style?: CanvasEllipseStyle): LpdfCanvasEllipseNode;
 declare function circle(cx: number, cy: number, r: number, style?: CanvasEllipseStyle): LpdfCanvasCircleNode;
 declare function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode;
-declare function canvasText(x: number, y: number, content: string, style?: CanvasTextStyle, runs?: CanvasRun[]): LpdfCanvasTextNode;
-declare function img(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode;
-declare function layer(nodes: LpdfCanvasPrimitiveNode[], options?: CanvasLayerOptions): LpdfCanvasLayerNode;
+declare function textAt(x: number, y: number, content: string, style?: CanvasTextStyle, runs?: CanvasRun[]): LpdfCanvasTextNode;
+declare function imgAt(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode;
+declare function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode;
 export declare const LpdfCanvas: Readonly<{
     rect: typeof rect;
     line: typeof line;
     ellipse: typeof ellipse;
     circle: typeof circle;
     path: typeof path;
-    text: typeof canvasText;
-    img: typeof img;
+    textAt: typeof textAt;
+    imgAt: typeof imgAt;
     layer: typeof layer;
 }>;
 export {};

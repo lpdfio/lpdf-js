@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LpdfEngine = exports.LpdfRenderError = void 0;
+exports.PdfEngine = exports.LpdfRenderError = void 0;
 const node_fs_1 = require("node:fs");
 // require() path is relative to the compiled output at dist/engine.js.
 // In the published package, wasm-pack artifacts live in dist/wasm/.
@@ -16,18 +16,25 @@ class LpdfRenderError extends Error {
     }
 }
 exports.LpdfRenderError = LpdfRenderError;
-class LpdfEngine {
-    constructor(licenseKey, options = {}) {
+class PdfEngine {
+    constructor() {
+        this._licenseKey = '';
         this._fonts = new Map();
         this._images = new Map();
         this._disposed = false;
         this._encrypt = null;
-        this._licenseKey = licenseKey;
-        this._opts = options;
+    }
+    /**
+     * Set the license key. Returns `this` for chaining.
+     */
+    setLicenseKey(key) {
+        this._throwIfDisposed();
+        this._licenseKey = key;
+        return this;
     }
     /**
      * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
-     * Call before `renderPdf`. Returns `this` for chaining.
+     * Call before `render`. Returns `this` for chaining.
      */
     loadFont(name, bytes) {
         this._throwIfDisposed();
@@ -36,7 +43,7 @@ class LpdfEngine {
     }
     /**
      * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
-     * Call before `renderPdf`. Returns `this` for chaining.
+     * Call before `render`. Returns `this` for chaining.
      */
     loadImage(name, bytes) {
         this._throwIfDisposed();
@@ -44,7 +51,7 @@ class LpdfEngine {
         return this;
     }
     /**
-     * Configure RC4-128 encryption for all subsequent `renderPdf` calls.
+     * Configure RC4-128 encryption for all subsequent `render` calls.
      * Returns `this` for chaining.
      */
     setEncryption(options) {
@@ -62,7 +69,7 @@ class LpdfEngine {
         return this;
     }
     /**
-     * Release held resources. Idempotent. Subsequent `renderPdf` / `loadFont`
+     * Release held resources. Idempotent. Subsequent `render` / `loadFont`
      * calls after disposal will throw.
      */
     dispose() {
@@ -71,28 +78,20 @@ class LpdfEngine {
     [Symbol.dispose]() { this.dispose(); }
     _throwIfDisposed() {
         if (this._disposed)
-            throw new Error('LpdfEngine has been disposed.');
+            throw new Error('PdfEngine has been disposed.');
     }
-    async renderPdf(input, callOptions = {}) {
+    async render(input, callOptions = {}) {
         this._throwIfDisposed();
-        // Merge fonts: instance-level loadFont() calls take precedence over the
-        // deprecated fontBytes option, which is kept for one-version compat.
-        const allFonts = new Map(this._fonts);
-        const extraBytes = { ...this._opts.fontBytes, ...callOptions.fontBytes };
-        for (const [name, bytes] of Object.entries(extraBytes)) {
-            if (!allFonts.has(name))
-                allFonts.set(name, bytes);
-        }
         const engine = new WasmEngine(this._licenseKey);
-        const createdOn = callOptions.createdOn ?? this._opts.createdOn;
-        if (createdOn) {
-            engine.set_created_on(createdOn);
+        if (callOptions.createdOn) {
+            engine.set_created_on(callOptions.createdOn);
         }
         let pdf;
         try {
             if (typeof input === 'string') {
                 // XML path — auto-load fonts and images declared via src="…".
                 const xml = input;
+                const allFonts = new Map(this._fonts);
                 for (const [key, src] of extractAssetSrcs(xml, 'font')) {
                     if (!allFonts.has(key)) {
                         try {
@@ -126,6 +125,7 @@ class LpdfEngine {
             else {
                 // JSON (Kit tree) path — pass JSON directly to render_tree_pdf.
                 const json = JSON.stringify(input);
+                const allFonts = new Map(this._fonts);
                 for (const [key, src] of extractFontSrcsFromJson(json)) {
                     if (!allFonts.has(key)) {
                         try {
@@ -156,7 +156,7 @@ class LpdfEngine {
         return pdf;
     }
 }
-exports.LpdfEngine = LpdfEngine;
+exports.PdfEngine = PdfEngine;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 /** Extract `ref??name → src` pairs from `<font>` or `<image>` tags in XML. */
 function extractAssetSrcs(xml, tag) {

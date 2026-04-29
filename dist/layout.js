@@ -15,100 +15,100 @@ function buildAttrs(options) {
     return result;
 }
 // ── Helper ────────────────────────────────────────────────────────────────────
-function makeContainer(type, nodes, options) {
-    return { type, attrs: buildAttrs(options ?? {}), nodes };
+function makeContainer(type, attrs, nodes) {
+    return { type, attrs: buildAttrs(attrs ?? {}), nodes };
 }
 // ── LpdfLayout factory ────────────────────────────────────────────────────────
-function stack(nodes = [], options) {
-    return makeContainer('stack', nodes, options);
+function stack(attrs, nodes) {
+    return makeContainer('stack', attrs, nodes);
 }
-function flank(nodes = [], options) {
-    return makeContainer('flank', nodes, options);
+function flank(attrs, nodes) {
+    return makeContainer('flank', attrs, nodes);
 }
-function split(nodes = [], options) {
-    return makeContainer('split', nodes, options);
+function split(attrs, nodes) {
+    return makeContainer('split', attrs, nodes);
 }
-function cluster(nodes = [], options) {
-    return makeContainer('cluster', nodes, options);
+function cluster(attrs, nodes) {
+    return makeContainer('cluster', attrs, nodes);
 }
-function grid(nodes = [], options) {
-    return makeContainer('grid', nodes, options);
+function grid(attrs, nodes) {
+    return makeContainer('grid', attrs, nodes);
 }
-function frame(nodes = [], options) {
-    return makeContainer('frame', nodes, options);
+function frame(attrs, nodes) {
+    return makeContainer('frame', attrs, nodes);
 }
-function link(nodes = [], options) {
-    return makeContainer('link', nodes, options);
+function link(attrs, nodes) {
+    return makeContainer('link', attrs, nodes);
 }
-function table(options, nodes = []) {
+function table(attrs, nodes) {
     return {
         type: 'table',
-        attrs: buildAttrs(options),
+        attrs: buildAttrs(attrs),
         nodes,
     };
 }
-function thead(nodes = [], options) {
+function thead(attrs, nodes) {
     return {
         type: 'thead',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
         nodes,
     };
 }
-function tr(nodes = [], options) {
+function tr(attrs, nodes) {
     return {
         type: 'tr',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
         nodes,
     };
 }
-function td(nodes = [], options) {
+function td(attrs, nodes) {
     return {
         type: 'td',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
         nodes,
     };
 }
-function text(nodes = [], options) {
+function text(attrs, nodes) {
     return {
         type: 'text',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
         nodes,
     };
 }
-function span(nodes = [], options) {
+function span(attrs, nodes) {
     return {
         type: 'span',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
         nodes,
     };
 }
-function divider(options) {
+function divider(attrs) {
     return {
         type: 'divider',
-        attrs: buildAttrs((options ?? {})),
+        attrs: buildAttrs((attrs ?? {})),
     };
 }
-function img(options) {
+function img(attrs) {
     return {
         type: 'img',
-        attrs: buildAttrs(options),
+        attrs: buildAttrs(attrs),
     };
 }
-function barcode(options) {
+function barcode(attrs) {
     return {
         type: 'barcode',
-        attrs: buildAttrs(options),
+        attrs: buildAttrs(attrs),
     };
 }
-function region(pin, nodes = [], options) {
-    const attrs = { pin };
-    if (options?.page !== undefined)
-        attrs['page'] = options.page;
-    if (options?.w !== undefined)
-        attrs['w'] = options.w;
-    if (options?.debug !== undefined)
-        attrs['debug'] = options.debug;
-    return { type: 'layout-region', attrs, nodes };
+function region(attrs, nodes) {
+    const a = { pin: attrs.pin };
+    if (attrs.page !== undefined)
+        a['page'] = attrs.page;
+    if (attrs.w !== undefined)
+        a['w'] = attrs.w;
+    if (attrs.debug !== undefined)
+        a['debug'] = attrs.debug;
+    return { type: 'layout-region', attrs: a, nodes };
 }
 exports.LpdfLayout = Object.freeze({
     stack,

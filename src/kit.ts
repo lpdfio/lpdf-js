@@ -68,7 +68,7 @@ export interface LpdfMeta {
   creator?:  string;
 }
 
-export interface SectionOptions {
+export interface SectionAttr {
   size?:        string;
   orientation?: string;
   margin?:      string;
@@ -77,7 +77,7 @@ export interface SectionOptions {
   debug?:       string;
 }
 
-export interface DocumentOptions {
+export interface DocumentAttr {
   size?:        string;
   orientation?: string;
   margin?:      string;
@@ -109,56 +109,43 @@ export interface LpdfSectionNode {
   nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[];
 }
 
-export interface LpdfDocument {
+export interface PdfDocument {
   version:  1;
   type:     'document';
   attrs:    Record<string, unknown>;
   nodes:    LpdfSectionNode[];
 }
 
-// ── Input interfaces ──────────────────────────────────────────────────────────
-
-export interface SectionInput {
-  nodes?:   (LpdfLayoutBlock | LpdfCanvasBlock)[];
-  options?: SectionOptions;
-}
-
-export interface DocumentInput {
-  /** Sections — serialised as `nodes` on the wire (matching kit_to_xml and parse_tree). */
-  sections?: LpdfSectionNode[];
-  options?:  DocumentOptions;
-}
-
 // ── Factory functions ─────────────────────────────────────────────────────────
 
-function layout(nodes: LpdfNode[] = []): LpdfLayoutBlock {
+function layout(_attrs: null, nodes: LpdfNode[]): LpdfLayoutBlock {
   return { type: 'layout', nodes };
 }
 
-function canvas(layers: LpdfCanvasLayerNode[] = []): LpdfCanvasBlock {
+function canvas(_attrs: null, layers: LpdfCanvasLayerNode[]): LpdfCanvasBlock {
   return { type: 'canvas', nodes: layers };
 }
 
-function section(input: SectionInput = {}): LpdfSectionNode {
+function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[]): LpdfSectionNode {
   return {
     type:  'section',
-    attrs: buildAttrs((input.options ?? {}) as Record<string, string | undefined>),
-    nodes: input.nodes ?? [],
+    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
+    nodes,
   };
 }
 
-function document(input: DocumentInput = {}): LpdfDocument {
-  const { tokens, meta, ...restOpts } = input.options ?? {};
-  const attrs: Record<string, unknown> = {
+function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[]): PdfDocument {
+  const { tokens, meta, ...restOpts } = attrs ?? {};
+  const attrsObj: Record<string, unknown> = {
     ...buildAttrs(restOpts as Record<string, string | undefined>),
   };
-  if (tokens !== undefined) attrs['tokens'] = tokens;
-  if (meta   !== undefined) attrs['meta']   = meta;
+  if (tokens !== undefined) attrsObj['tokens'] = tokens;
+  if (meta   !== undefined) attrsObj['meta']   = meta;
   return {
     version: 1,
     type:    'document',
-    attrs,
-    nodes:   input.sections ?? [],
+    attrs:   attrsObj,
+    nodes,
   };
 }
 
