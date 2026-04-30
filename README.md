@@ -2,9 +2,9 @@
 
 # @lpdfio/lpdf
 
-Node.js adapter for [Lpdf](https://lpdf.io) — PDF as Code, on every platform. 
+**Node.js SDK for [Lpdf](https://lpdf.io) — PDF as Code on every platform**
 
-Describe your document structure in code using the programming Kit or XML. Every PDF is compact, pixel-perfect, and identical across platforms.
+You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
 
 ## Installation
 
@@ -15,48 +15,41 @@ npm install @lpdfio/lpdf
 ## Usage — Node.js
 
 ```ts
-import { LpdfEngine } from '@lpdfio/lpdf';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { L, NoAttr } from 'lpdf'
 
-const engine = new LpdfEngine('');
+const engine = L.engine()
 
-engine.loadFont('montserrat', readFileSync('fonts/Montserrat-Regular.ttf'));
-engine.loadImage('logo', readFileSync('images/logo.png'));
+const doc = L.document({ size: 'letter', margin: '48pt' }, [
+    L.section(NoAttr, [
+        L.layout(NoAttr, [
+            L.stack({ gap: '24pt' }, [
+                L.split(NoAttr, [
+                    L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),
+                    L.text({ fontSize: '22pt', bold: 'true' }, ['Project Proposal']),
+                ]),
+                L.divider({ thickness: 'xs' }),
+                L.text({ fontSize: '13pt', bold: 'true' }, ['Scope of Work']),
+                L.flank({ gap: '12pt', align: 'start' }, [
+                    L.text({ color: '#888888', width: '24pt' }, ['01']),
+                    L.text(NoAttr, ['Discovery & Research']),
+                ]),
+            ]),
+        ]),
+    ]),
+])
 
-const xml = readFileSync('document.xml', 'utf8');
-const pdf = await engine.renderPdf(xml);
-
-writeFileSync('output.pdf', pdf);
+const pdf = await engine.render(doc)
 ```
 
-## Usage — Browser
+## Requirements
 
-```ts
-import { LpdfEngine } from '@lpdfio/lpdf/browser';
+- Node.js 16+
+- No external runtime dependencies — the WASM engine is embedded in the package.
 
-const engine = new LpdfEngine('');
+## Docs
 
-const xml = `<stack><text>Hello, Lpdf</text></stack>`;
-const pdf = await engine.renderPdf(xml);
+[lpdf.io/docs/js](https://lpdf.io/docs/js)
 
-const blob = new Blob([pdf], { type: 'application/pdf' });
-window.open(URL.createObjectURL(blob));
-```
-
-## XML format
-
-Documents are defined in a layout XML format. See the [Lpdf documentation](https://lpdf.io/docs) and [examples](https://github.com/lpdfio/lpdf/tree/main/docs/examples) for the full schema.
-
-```xml
-<stack spacing="m" padding="l">
-  <text font-size="xl" font="Montserrat-Bold">Invoice #1001</text>
-  <grid columns="2">
-    <text>Date</text>      <text>2026-04-25</text>
-    <text>Due</text>       <text>2026-05-25</text>
-  </grid>
-</stack>
-```
-
-## License
+--
 
 Dual-licensed: Community License (free) and Commercial License (paid). See [LICENSE](LICENSE) for full terms.

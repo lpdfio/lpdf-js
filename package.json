@@ -1,7 +1,7 @@
 {
   "name": "@lpdfio/lpdf",
   "version": "0.0.0",
-  "description": "Node.js adapter for Lpdf — PDF as Code, on every platform. Describe your document structure in code using the programming Kit, or XML. Every PDF is compact, pixel-perfect, and identical across platforms.",
+  "description": "Node.js SDK for Lpdf — PDF as Code on every platform. You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
