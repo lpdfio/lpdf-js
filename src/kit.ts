@@ -52,7 +52,7 @@ export interface LpdfTokens {
   border?:  Record<string, string>;
   radius?:  Record<string, string>;
   width?:   Record<string, string>;
-  text?:    Record<string, string>;
+  textSize?: Record<string, string>;
   fonts?:   Record<string, LpdfFontDef>;
 }
 
@@ -139,7 +139,10 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[]): PdfDocu
   const attrsObj: Record<string, unknown> = {
     ...buildAttrs(restOpts as Record<string, string | undefined>),
   };
-  if (tokens !== undefined) attrsObj['tokens'] = tokens;
+  if (tokens !== undefined) {
+    const { textSize, ...rest } = tokens;
+    attrsObj['tokens'] = textSize !== undefined ? { 'text-size': textSize, ...rest } : rest;
+  }
   if (meta   !== undefined) attrsObj['meta']   = meta;
   return {
     version: 1,

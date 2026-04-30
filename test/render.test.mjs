@@ -211,12 +211,12 @@ describe('kitToXml', () => {
 
   it('emits text tokens inside <tokens>', () => {
     const document = L.document(
-      { tokens: { text: { body: '12pt', heading: '20pt' } } },
+      { tokens: { textSize: { body: '12pt', heading: '20pt' } } },
       [L.section(null, [L.layout(null, [])])],
     );
     const xml = L.toXml(document);
     assert(xml.includes('<tokens>'), 'missing <tokens>');
-    assert(xml.includes('<text '), 'missing <text> token element');
+    assert(xml.includes('<text-size '), 'missing <text-size> token element');
   });
 
   it('produced XML renders to a valid PDF', async () => {

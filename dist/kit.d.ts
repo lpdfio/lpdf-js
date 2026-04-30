@@ -32,7 +32,7 @@ export interface LpdfTokens {
     border?: Record<string, string>;
     radius?: Record<string, string>;
     width?: Record<string, string>;
-    text?: Record<string, string>;
+    textSize?: Record<string, string>;
     fonts?: Record<string, LpdfFontDef>;
 }
 export type LpdfFontDef = {

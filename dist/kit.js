@@ -58,8 +58,10 @@ function document(attrs, nodes) {
     const attrsObj = {
         ...buildAttrs(restOpts),
     };
-    if (tokens !== undefined)
-        attrsObj['tokens'] = tokens;
+    if (tokens !== undefined) {
+        const { textSize, ...rest } = tokens;
+        attrsObj['tokens'] = textSize !== undefined ? { 'text-size': textSize, ...rest } : rest;
+    }
     if (meta !== undefined)
         attrsObj['meta'] = meta;
     return {
