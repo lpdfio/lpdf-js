@@ -38,5 +38,5 @@ export type {
 } from './canvas';
 
 // ── Facade ────────────────────────────────────────────────────────────────────
-export { Pdf, NoAttr } from './pdf';
+export { L, NoAttr } from './pdf';
 

@@ -11,7 +11,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Pdf } from '../dist/index.js';
+import { L } from '../dist/index.js';
 
 (async () => {
   const __root     = resolve(__dirname, '../../../../example/');
@@ -22,7 +22,7 @@ import { Pdf } from '../dist/index.js';
   const xml  = readFileSync(xmlFile, 'utf8');
   const data = JSON.parse(readFileSync(jsonFile, 'utf8'));
 
-  const engine = Pdf.engine();  // empty key → free tier (watermark)
+  const engine = L.engine();  // empty key → free tier (watermark)
 
   const bytes = await engine.render(xml, { data });
 

@@ -13,24 +13,24 @@ export const NoAttr = null;
  *
  * All document, layout, and canvas factory methods are available as flat
  * properties on this object. Construction-time configuration is handled via
- * `Pdf.engine()`.
+ * `L.engine()`.
  *
  * @example
  * ```ts
- * import { Pdf, NoAttr } from 'lpdf';
+ * import { L, NoAttr } from 'lpdf';
  *
- * const engine = Pdf.engine().setLicenseKey(process.env.LPDF_KEY);
+ * const engine = L.engine().setLicenseKey(process.env.LPDF_KEY);
  *
- * const doc = Pdf.document(NoAttr, [
- *   Pdf.section(NoAttr, [
- *     Pdf.layout(null, [ Pdf.text(NoAttr, ['Hello']) ]),
+ * const doc = L.document(NoAttr, [
+ *   L.section(NoAttr, [
+ *     L.layout(null, [ L.text(NoAttr, ['Hello']) ]),
  *   ]),
  * ]);
  *
  * const pdf = await engine.render(doc);
  * ```
  */
-export const Pdf = Object.freeze({
+export const L = Object.freeze({
     /** Create a new {@link PdfEngine} instance. Call `.setLicenseKey()` to configure. */
     engine: (): PdfEngine => new PdfEngine(),
 

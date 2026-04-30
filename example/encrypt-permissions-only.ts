@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Pdf } from '../dist/index.js';
+import { L } from '../dist/index.js';
 
 (async () => {
   const __root   = resolve(__dirname, '../../../../example/');
@@ -23,7 +23,7 @@ import { Pdf } from '../dist/index.js';
 
   // Permissions only — no open password.
   // File opens freely; cooperative viewers enforce print: false, copy: false.
-  const engine = Pdf.engine().setEncryption({
+  const engine = L.engine().setEncryption({
     userPassword:  '',
     ownerPassword: 's3cr3t',
     permissions:   { print: false, copy: false },

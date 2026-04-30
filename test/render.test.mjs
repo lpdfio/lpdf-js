@@ -6,7 +6,7 @@
 
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
-import { PdfEngine, Pdf, LpdfRenderError, CanvasTransform } from '../dist/index.js';
+import { PdfEngine, L, LpdfRenderError, CanvasTransform } from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -18,8 +18,8 @@ function doc(body) {
 
 /** Build a minimal LpdfDocument using the kit API. */
 function kitDoc(layoutNodes = []) {
-  return Pdf.document(null, [
-    Pdf.section(null, [Pdf.layout(null, layoutNodes)]),
+  return L.document(null, [
+    L.section(null, [L.layout(null, layoutNodes)]),
   ]);
 }
 
@@ -93,7 +93,7 @@ describe('LpdfEngine', () => {
   });
 
   it('accepts an LpdfDocument tree directly (JSON path)', async () => {
-    const document = kitDoc([Pdf.text(null, ['Hello PDF'])]);
+    const document = kitDoc([L.text(null, ['Hello PDF'])]);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const bytes = await lpdf.render(document);
     const header = Buffer.from(bytes.slice(0, 5)).toString('ascii');
@@ -124,12 +124,12 @@ describe('LpdfEngine', () => {
   });
 
   it('renders canvas layer with a rect via JSON path', async () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.canvas(null, [
-          Pdf.layer(null, [Pdf.rect(0, 0, 595, 842, { fill: '#eeeeee' })]),
+    const document = L.document(null, [
+      L.section(null, [
+        L.canvas(null, [
+          L.layer(null, [L.rect(0, 0, 595, 842, { fill: '#eeeeee' })]),
         ]),
-        Pdf.layout(null, [Pdf.text(null, ['Canvas underlay'])]),
+        L.layout(null, [L.text(null, ['Canvas underlay'])]),
       ]),
     ]);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
@@ -139,15 +139,15 @@ describe('LpdfEngine', () => {
   });
 
   it('kitToXml canvas text content appears in XML output', () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.canvas(null, [
-          Pdf.layer(null, [Pdf.textAt(10, 20, 'Hello canvas')]),
+    const document = L.document(null, [
+      L.section(null, [
+        L.canvas(null, [
+          L.layer(null, [L.textAt(10, 20, 'Hello canvas')]),
         ]),
-        Pdf.layout(null, [Pdf.text(null, ['x'])]),
+        L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('Hello canvas'), `text content missing from XML:\n${xml}`);
   });
 
@@ -170,23 +170,23 @@ describe('kitToXml', () => {
 
   it('returns a string starting with the XML declaration', () => {
     const document = kitDoc([]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(typeof xml === 'string');
     assert(xml.startsWith('<?xml version="1.0"'), `unexpected start: ${xml.slice(0, 50)}`);
   });
 
   it('contains <lpdf version="1">', () => {
     const document = kitDoc([]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<lpdf version="1">'), 'missing <lpdf version="1">');
   });
 
   it('places builtin font in <assets> (flat) with core= attribute', () => {
-    const document = Pdf.document(
+    const document = L.document(
       { tokens: { fonts: { heading: { builtin: 'Helvetica-Bold' } } } },
-      [Pdf.section(null, [Pdf.layout(null, [])])],
+      [L.section(null, [L.layout(null, [])])],
     );
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<assets>'), 'missing <assets>');
     assert(!xml.includes('<fonts>'), '<fonts> wrapper must not appear in flat structure');
     assert(xml.includes('<font '), 'missing <font> element');
@@ -200,28 +200,28 @@ describe('kitToXml', () => {
   });
 
   it('places custom font src in <assets> (flat) with ref= and src= attributes', () => {
-    const document = Pdf.document(
+    const document = L.document(
       { tokens: { fonts: { body: { src: '/fonts/MyFont.ttf' } } } },
-      [Pdf.section(null, [Pdf.layout(null, [])])],
+      [L.section(null, [L.layout(null, [])])],
     );
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('ref="body"'), 'custom font should use alias name as ref=');
     assert(xml.includes('src='), 'src= path should appear in XML');
   });
 
   it('emits text tokens inside <tokens>', () => {
-    const document = Pdf.document(
+    const document = L.document(
       { tokens: { text: { body: '12pt', heading: '20pt' } } },
-      [Pdf.section(null, [Pdf.layout(null, [])])],
+      [L.section(null, [L.layout(null, [])])],
     );
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<tokens>'), 'missing <tokens>');
     assert(xml.includes('<text '), 'missing <text> token element');
   });
 
   it('produced XML renders to a valid PDF', async () => {
-    const document = kitDoc([Pdf.text(null, ['Hello from kitToXml'])]);
-    const xml  = Pdf.toXml(document);
+    const document = kitDoc([L.text(null, ['Hello from kitToXml'])]);
+    const xml  = L.toXml(document);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const bytes = await lpdf.render(xml);
     const header = Buffer.from(bytes.slice(0, 5)).toString('ascii');
@@ -229,13 +229,13 @@ describe('kitToXml', () => {
   });
 
   it('emits section with layout and canvas blocks', () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.canvas(null, [Pdf.layer(null, [Pdf.rect(0, 0, 10, 10)])]),
-        Pdf.layout(null, [Pdf.text(null, ['hello'])]),
+    const document = L.document(null, [
+      L.section(null, [
+        L.canvas(null, [L.layer(null, [L.rect(0, 0, 10, 10)])]),
+        L.layout(null, [L.text(null, ['hello'])]),
       ]),
     ]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<canvas>'), 'missing <canvas> block');
     assert(xml.includes('<layout>'), 'missing <layout> block');
     assert(xml.includes('<layer'), 'missing <layer> element');
@@ -243,31 +243,31 @@ describe('kitToXml', () => {
   });
 
   it('canvas text node emits text content at top level', () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.canvas(null, [Pdf.layer(null, [Pdf.textAt(5, 5, 'Test text')])]),
-        Pdf.layout(null, [Pdf.text(null, ['x'])]),
+    const document = L.document(null, [
+      L.section(null, [
+        L.canvas(null, [L.layer(null, [L.textAt(5, 5, 'Test text')])]),
+        L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('Test text'), 'canvas text content missing from XML');
   });
 
   it('canvas text node with runs emits span elements', () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.canvas(null, [
-          Pdf.layer(null, [
-            Pdf.textAt(5, 5, 'ignored', undefined, [
+    const document = L.document(null, [
+      L.section(null, [
+        L.canvas(null, [
+          L.layer(null, [
+            L.textAt(5, 5, 'ignored', undefined, [
               { text: 'bold part', font: 'Helvetica-Bold', size: 14 },
               { text: 'normal part', color: '#333333' },
             ]),
           ]),
         ]),
-        Pdf.layout(null, [Pdf.text(null, ['x'])]),
+        L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<span'), 'missing <span> for runs');
     assert(xml.includes('bold part'), 'run text missing');
     assert(xml.includes('font="Helvetica-Bold"'), 'run font attr missing');
@@ -297,7 +297,7 @@ describe('PDF snapshots (fixture XMLs)', () => {
 describe('LpdfCanvas serialization', () => {
 
   it('rect emits correct type and string attrs', () => {
-    const node = Pdf.rect(10, 20, 100, 50);
+    const node = L.rect(10, 20, 100, 50);
     assert.equal(node.type, 'canvas-rect');
     assert.equal(node.attrs.x, '10');
     assert.equal(node.attrs.y, '20');
@@ -306,7 +306,7 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('rect style attrs emitted as strings', () => {
-    const node = Pdf.rect(0, 0, 10, 10, {
+    const node = L.rect(0, 0, 10, 10, {
       fill: '#ff0000', stroke: '#000', strokeWidth: 2,
       strokeDash: [4, 2], borderRadius: 5,
     });
@@ -318,7 +318,7 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('line emits correct type and coords as strings', () => {
-    const node = Pdf.line(0, 0, 100, 100, { stroke: '#000', strokeWidth: 1 });
+    const node = L.line(0, 0, 100, 100, { stroke: '#000', strokeWidth: 1 });
     assert.equal(node.type, 'canvas-line');
     assert.equal(node.attrs.x1, '0');
     assert.equal(node.attrs.y1, '0');
@@ -328,33 +328,33 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('ellipse emits correct type', () => {
-    const node = Pdf.ellipse(50, 50, 30, 20);
+    const node = L.ellipse(50, 50, 30, 20);
     assert.equal(node.type, 'canvas-ellipse');
     assert.equal(node.attrs.cx, '50');
     assert.equal(node.attrs.ry, '20');
   });
 
   it('circle emits correct type', () => {
-    const node = Pdf.circle(50, 50, 25);
+    const node = L.circle(50, 50, 25);
     assert.equal(node.type, 'canvas-circle');
     assert.equal(node.attrs.r, '25');
   });
 
   it('path emits correct type', () => {
-    const node = Pdf.path('M 0 0 L 100 100');
+    const node = L.path('M 0 0 L 100 100');
     assert.equal(node.type, 'canvas-path');
     assert.equal(node.attrs.d, 'M 0 0 L 100 100');
   });
 
   it('path fillRuleEvenodd → fill-rule attr', () => {
-    const even = Pdf.path('M 0 0', { fillRuleEvenodd: true });
-    const nonz = Pdf.path('M 0 0', { fillRuleEvenodd: false });
+    const even = L.path('M 0 0', { fillRuleEvenodd: true });
+    const nonz = L.path('M 0 0', { fillRuleEvenodd: false });
     assert.equal(even.attrs['fill-rule'], 'evenodd');
     assert.equal(nonz.attrs['fill-rule'], 'nonzero');
   });
 
   it('text emits text at top-level and string attrs', () => {
-    const node = Pdf.textAt(10, 20, 'Hello', { font: 'Helvetica', size: 12, color: '#000' });
+    const node = L.textAt(10, 20, 'Hello', { font: 'Helvetica', size: 12, color: '#000' });
     assert.equal(node.type, 'canvas-text');
     assert.equal(node.text, 'Hello');
     assert.equal(node.attrs.x, '10');
@@ -366,7 +366,7 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('text with runs emits nested attrs format', () => {
-    const node = Pdf.textAt(0, 0, 'base', undefined, [
+    const node = L.textAt(0, 0, 'base', undefined, [
       { text: 'bold', font: 'Helvetica-Bold', size: 14 },
       { text: 'plain', color: '#333' },
     ]);
@@ -378,7 +378,7 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('img emits name attr', () => {
-    const node = Pdf.imgAt(0, 0, 100, 80, 'logo');
+    const node = L.imgAt(0, 0, 100, 80, 'logo');
     assert.equal(node.type, 'canvas-img');
     assert.equal(node.attrs.name, 'logo');
     assert.equal(node.attrs.w, '100');
@@ -386,30 +386,30 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('layer without options emits empty attrs', () => {
-    const node = Pdf.layer(null, [Pdf.rect(0, 0, 10, 10)]);
+    const node = L.layer(null, [L.rect(0, 0, 10, 10)]);
     assert.equal(node.type, 'canvas-layer');
     assert.deepEqual(node.attrs, {});
     assert.equal(node.nodes.length, 1);
   });
 
   it('layer opacity emitted as string', () => {
-    const node = Pdf.layer({ opacity: 0.5 }, []);
+    const node = L.layer({ opacity: 0.5 }, []);
     assert.equal(node.attrs.opacity, '0.5');
   });
 
   it('layer page scope emitted', () => {
-    const node = Pdf.layer({ page: 'first' }, []);
+    const node = L.layer({ page: 'first' }, []);
     assert.equal(node.attrs.page, 'first');
   });
 
   it('layer transform emitted as matrix(...) string', () => {
     const t = CanvasTransform.translate(10, 20);
-    const node = Pdf.layer({ transform: t }, []);
+    const node = L.layer({ transform: t }, []);
     assert.equal(node.attrs.transform, 'matrix(1,0,0,1,10,20)');
   });
 
   it('null/undefined style fields omitted from attrs', () => {
-    const node = Pdf.rect(0, 0, 10, 10, { fill: undefined });
+    const node = L.rect(0, 0, 10, 10, { fill: undefined });
     assert(!('fill' in node.attrs), 'undefined fill should be omitted');
   });
 
@@ -460,34 +460,34 @@ describe('CanvasTransform', () => {
 describe('LpdfKit section model', () => {
 
   it('LpdfKit.layout wraps nodes in a layout block', () => {
-    const textNode = Pdf.text(null, ['hello']);
-    const block = Pdf.layout(null, [textNode]);
+    const textNode = L.text(null, ['hello']);
+    const block = L.layout(null, [textNode]);
     assert.equal(block.type, 'layout');
     assert.equal(block.nodes.length, 1);
     assert.equal(block.nodes[0].type, 'text');
   });
 
   it('LpdfKit.canvas wraps layers in a canvas block', () => {
-    const layer = Pdf.layer(null, [Pdf.rect(0, 0, 10, 10)]);
-    const block = Pdf.canvas(null, [layer]);
+    const layer = L.layer(null, [L.rect(0, 0, 10, 10)]);
+    const block = L.canvas(null, [layer]);
     assert.equal(block.type, 'canvas');
     assert.equal(block.nodes.length, 1);
     assert.equal(block.nodes[0].type, 'canvas-layer');
   });
 
   it('LpdfKit.section preserves block order, no implicit wrapping', () => {
-    const layoutBlock = Pdf.layout(null, [Pdf.text(null, ['text'])]);
-    const canvasBlock = Pdf.canvas(null, [Pdf.layer(null, [])]);
-    const sec = Pdf.section(null, [canvasBlock, layoutBlock]);
+    const layoutBlock = L.layout(null, [L.text(null, ['text'])]);
+    const canvasBlock = L.canvas(null, [L.layer(null, [])]);
+    const sec = L.section(null, [canvasBlock, layoutBlock]);
     assert.equal(sec.type, 'section');
     assert.equal(sec.nodes[0].type, 'canvas');
     assert.equal(sec.nodes[1].type, 'layout');
   });
 
   it('LpdfKit.section options are serialised to attrs', () => {
-    const sec = Pdf.section(
+    const sec = L.section(
       { size: 'a4', margin: '20pt', title: 'My Page' },
-      [Pdf.layout(null, [])],
+      [L.layout(null, [])],
     );
     assert.equal(sec.attrs.size, 'a4');
     assert.equal(sec.attrs.margin, '20pt');
@@ -495,8 +495,8 @@ describe('LpdfKit section model', () => {
   });
 
   it('LpdfKit.document serialises sections as nodes wire key', () => {
-    const sec = Pdf.section(null, [Pdf.layout(null, [])]);
-    const document = Pdf.document(null, [sec]);
+    const sec = L.section(null, [L.layout(null, [])]);
+    const document = L.document(null, [sec]);
     assert.equal(document.version, 1);
     assert.equal(document.type, 'document');
     assert.equal(document.nodes.length, 1);
@@ -510,28 +510,28 @@ describe('LpdfKit section model', () => {
 describe('LpdfLayout region', () => {
 
   it('region emits correct type with pin in attrs', () => {
-    const node = Pdf.region({ pin: 'top' }, [Pdf.text(null, ['header'])]);
+    const node = L.region({ pin: 'top' }, [L.text(null, ['header'])]);
     assert.equal(node.type, 'layout-region');
     assert.equal(node.attrs.pin, 'top');
     assert.equal(node.nodes.length, 1);
   });
 
   it('region options serialised to attrs', () => {
-    const node = Pdf.region({ pin: 'bottom', page: 'first', w: '100pt' }, []);
+    const node = L.region({ pin: 'bottom', page: 'first', w: '100pt' }, []);
     assert.equal(node.attrs.pin, 'bottom');
     assert.equal(node.attrs.page, 'first');
     assert.equal(node.attrs.w, '100pt');
   });
 
   it('kitToXml emits layout-region element', () => {
-    const document = Pdf.document(null, [
-      Pdf.section(null, [
-        Pdf.layout(null, [
-          Pdf.region({ pin: 'top' }, [Pdf.text(null, ['header'])]),
+    const document = L.document(null, [
+      L.section(null, [
+        L.layout(null, [
+          L.region({ pin: 'top' }, [L.text(null, ['header'])]),
         ]),
       ]),
     ]);
-    const xml = Pdf.toXml(document);
+    const xml = L.toXml(document);
     assert(xml.includes('<region '), 'missing <region> element');
     assert(xml.includes('pin="top"'), 'missing pin attribute');
     assert(xml.includes('header'), 'region text content missing');

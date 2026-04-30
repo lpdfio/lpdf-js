@@ -6,4 +6,4 @@ export type { StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr,
 export type { LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode, LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode, LpdfTdNode, LpdfRegionNode, } from './layout';
 export { CanvasTransform } from './canvas';
 export type { LineCap, LineJoin, TextAlign, LayerAttr, CanvasRun, CanvasRectStyle, CanvasLineStyle, CanvasEllipseStyle, CanvasPathStyle, CanvasTextStyle, LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode, LpdfCanvasRectNode, LpdfCanvasLineNode, LpdfCanvasEllipseNode, LpdfCanvasCircleNode, LpdfCanvasPathNode, LpdfCanvasTextNode, LpdfCanvasImgNode, } from './canvas';
-export { Pdf, NoAttr } from './pdf';
+export { L, NoAttr } from './pdf';

@@ -11,7 +11,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Pdf } from '../dist/index.js';
+import { L } from '../dist/index.js';
 
 (async () => {
   const __root = resolve(__dirname, '../../../../example/');
@@ -23,7 +23,7 @@ import { Pdf } from '../dist/index.js';
   ];
 
   // init engine
-  const engine = Pdf.engine();       // empty key → free tier (watermark)
+  const engine = L.engine();       // empty key → free tier (watermark)
 
   // load assets (only used if referenced in xml/layout)
   engine.loadFont('montserrat', readFileSync(resolve(__root, 'assets/fonts/Montserrat-Regular.ttf')));

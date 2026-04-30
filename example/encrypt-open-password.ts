@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Pdf } from '../dist/index.js';
+import { L } from '../dist/index.js';
 
 (async () => {
   const __root   = resolve(__dirname, '../../../../example/');
@@ -22,7 +22,7 @@ import { Pdf } from '../dist/index.js';
   const xml = readFileSync(xmlFile, 'utf8');
 
   // With open password — viewers prompt for 'password' before displaying content.
-  const engine = Pdf.engine().setEncryption({
+  const engine = L.engine().setEncryption({
     userPassword:  'password',
     ownerPassword: 'owner',
     permissions:   { copy: false },
