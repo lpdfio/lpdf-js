@@ -110,6 +110,12 @@ function region(attrs, nodes) {
         a['debug'] = attrs.debug;
     return { type: 'layout-region', attrs: a, nodes };
 }
+function field(type, name, attrs) {
+    const a = { type, name };
+    if (attrs)
+        Object.assign(a, buildAttrs(attrs));
+    return { type: 'field', attrs: a };
+}
 exports.LpdfLayout = Object.freeze({
     stack,
     flank,
@@ -128,4 +134,5 @@ exports.LpdfLayout = Object.freeze({
     tr,
     td,
     region,
+    field,
 });

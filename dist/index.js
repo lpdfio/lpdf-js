@@ -9,6 +9,6 @@ Object.defineProperty(exports, "LpdfRenderError", { enumerable: true, get: funct
 var canvas_1 = require("./canvas");
 Object.defineProperty(exports, "CanvasTransform", { enumerable: true, get: function () { return canvas_1.CanvasTransform; } });
 // ── Facade ────────────────────────────────────────────────────────────────────
-var pdf_1 = require("./pdf");
-Object.defineProperty(exports, "L", { enumerable: true, get: function () { return pdf_1.L; } });
-Object.defineProperty(exports, "NoAttr", { enumerable: true, get: function () { return pdf_1.NoAttr; } });
+var L_1 = require("./L");
+Object.defineProperty(exports, "L", { enumerable: true, get: function () { return L_1.L; } });
+Object.defineProperty(exports, "NoAttr", { enumerable: true, get: function () { return L_1.NoAttr; } });

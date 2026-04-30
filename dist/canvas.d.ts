@@ -8,6 +8,8 @@ export interface CanvasRectStyle {
     strokeWidth?: number;
     strokeDash?: number[];
     borderRadius?: number;
+    opacity?: number;
+    anchor?: string;
 }
 export interface CanvasLineStyle {
     stroke?: string;
@@ -21,6 +23,8 @@ export interface CanvasEllipseStyle {
     stroke?: string;
     strokeWidth?: number;
     strokeDash?: number[];
+    opacity?: number;
+    anchor?: string;
 }
 export interface CanvasPathStyle {
     fill?: string;
@@ -30,6 +34,7 @@ export interface CanvasPathStyle {
     fillRuleEvenodd?: boolean;
     lineCap?: LineCap;
     lineJoin?: LineJoin;
+    opacity?: number;
 }
 export interface CanvasTextStyle {
     font?: string;
@@ -38,6 +43,8 @@ export interface CanvasTextStyle {
     align?: TextAlign;
     lineHeight?: number;
     width?: number;
+    opacity?: number;
+    anchor?: string;
 }
 export interface CanvasRun {
     text: string;
@@ -118,7 +125,7 @@ declare function ellipse(cx: number, cy: number, rx: number, ry: number, style?:
 declare function circle(cx: number, cy: number, r: number, style?: CanvasEllipseStyle): LpdfCanvasCircleNode;
 declare function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode;
 declare function textAt(x: number, y: number, content: string, style?: CanvasTextStyle, runs?: CanvasRun[]): LpdfCanvasTextNode;
-declare function imgAt(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode;
+declare function imgAt(x: number, y: number, w: number, h: number, name: string, anchor?: string): LpdfCanvasImgNode;
 declare function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode;
 export declare const LpdfCanvas: Readonly<{
     rect: typeof rect;

@@ -98,6 +98,7 @@ export interface FrameAttr {
 
 export interface LinkAttr {
   url?:    string;
+  gap?:    string;
   width?:  string;
   height?: string;
   debug?:  string;
@@ -198,6 +199,21 @@ export interface BarcodeAttr {
   debug?:      string;
 }
 
+export interface FieldAttr {
+  label?:      string;
+  value?:      string;
+  options?:    string;
+  group?:      string;
+  checked?:    string;
+  required?:   string;
+  readonly?:   string;
+  maxLen?:     string;
+  actionUrl?:  string;
+  width?:      string;
+  height?:     string;
+  debug?:      string;
+}
+
 export interface RegionAttr {
   pin:    string;
   page?:  PageScope | string;
@@ -270,6 +286,11 @@ export interface LpdfRegionNode {
   nodes: LpdfNode[];
 }
 
+export interface LpdfFieldNode {
+  type:  'field';
+  attrs: Record<string, string>;
+}
+
 export type LpdfNode =
   | LpdfContainerNode
   | LpdfTextNode
@@ -277,7 +298,8 @@ export type LpdfNode =
   | LpdfTableNode
   | LpdfImgNode
   | LpdfBarcodeNode
-  | LpdfRegionNode;
+  | LpdfRegionNode
+  | LpdfFieldNode;
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -396,6 +418,12 @@ function region(attrs: RegionAttr, nodes: LpdfNode[]): LpdfRegionNode {
   return { type: 'layout-region', attrs: a, nodes };
 }
 
+function field(type: string, name: string, attrs?: FieldAttr | null): LpdfFieldNode {
+  const a: Record<string, string> = { type, name };
+  if (attrs) Object.assign(a, buildAttrs(attrs as Record<string, string | undefined>));
+  return { type: 'field', attrs: a };
+}
+
 export const LpdfLayout = Object.freeze({
   stack,
   flank,
@@ -414,4 +442,5 @@ export const LpdfLayout = Object.freeze({
   tr,
   td,
   region,
+  field,
 });

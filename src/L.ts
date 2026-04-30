@@ -1,4 +1,4 @@
-import type { PdfDocument } from './kit';
+import type { LpdfTokens, PdfDocument } from './kit';
 import { LpdfKit } from './kit';
 import { LpdfLayout } from './layout';
 import { LpdfCanvas } from './canvas';
@@ -42,6 +42,7 @@ export const L = Object.freeze({
     section:  LpdfKit.section,
     layout:   LpdfKit.layout,
     canvas:   LpdfKit.canvas,
+    tokens:   (attrs: LpdfTokens): LpdfTokens => attrs,
 
     // ── Layout ────────────────────────────────────────────────────────────────
     stack:   LpdfLayout.stack,
@@ -61,6 +62,7 @@ export const L = Object.freeze({
     img:     LpdfLayout.img,
     barcode: LpdfLayout.barcode,
     region:  LpdfLayout.region,
+    field:   LpdfLayout.field,
 
     // ── Canvas ────────────────────────────────────────────────────────────────
     layer:   LpdfCanvas.layer,

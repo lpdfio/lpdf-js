@@ -73,6 +73,7 @@ export interface FrameAttr {
 }
 export interface LinkAttr {
     url?: string;
+    gap?: string;
     width?: string;
     height?: string;
     debug?: string;
@@ -163,6 +164,20 @@ export interface BarcodeAttr {
     repeat?: string;
     debug?: string;
 }
+export interface FieldAttr {
+    label?: string;
+    value?: string;
+    options?: string;
+    group?: string;
+    checked?: string;
+    required?: string;
+    readonly?: string;
+    maxLen?: string;
+    actionUrl?: string;
+    width?: string;
+    height?: string;
+    debug?: string;
+}
 export interface RegionAttr {
     pin: string;
     page?: PageScope | string;
@@ -221,7 +236,11 @@ export interface LpdfRegionNode {
     attrs: Record<string, string>;
     nodes: LpdfNode[];
 }
-export type LpdfNode = LpdfContainerNode | LpdfTextNode | LpdfDividerNode | LpdfTableNode | LpdfImgNode | LpdfBarcodeNode | LpdfRegionNode;
+export interface LpdfFieldNode {
+    type: 'field';
+    attrs: Record<string, string>;
+}
+export type LpdfNode = LpdfContainerNode | LpdfTextNode | LpdfDividerNode | LpdfTableNode | LpdfImgNode | LpdfBarcodeNode | LpdfRegionNode | LpdfFieldNode;
 declare function stack(attrs: StackAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
 declare function flank(attrs: FlankAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
 declare function split(attrs: SplitAttr | null, nodes: LpdfNode[]): LpdfContainerNode;
@@ -239,6 +258,7 @@ declare function divider(attrs: DividerAttr | null): LpdfDividerNode;
 declare function img(attrs: ImgAttr): LpdfImgNode;
 declare function barcode(attrs: BarcodeAttr): LpdfBarcodeNode;
 declare function region(attrs: RegionAttr, nodes: LpdfNode[]): LpdfRegionNode;
+declare function field(type: string, name: string, attrs?: FieldAttr | null): LpdfFieldNode;
 export declare const LpdfLayout: Readonly<{
     stack: typeof stack;
     flank: typeof flank;
@@ -257,5 +277,6 @@ export declare const LpdfLayout: Readonly<{
     tr: typeof tr;
     td: typeof td;
     region: typeof region;
+    field: typeof field;
 }>;
 export {};

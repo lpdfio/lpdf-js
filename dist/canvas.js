@@ -60,6 +60,10 @@ function rect(x, y, w, h, style) {
         attrs['stroke-dash'] = style.strokeDash.join(' ');
     if (style?.borderRadius !== undefined)
         attrs['radius'] = String(style.borderRadius);
+    if (style?.opacity !== undefined)
+        attrs['opacity'] = String(style.opacity);
+    if (style?.anchor !== undefined)
+        attrs['anchor'] = style.anchor;
     return { type: 'canvas-rect', attrs };
 }
 function line(x1, y1, x2, y2, style) {
@@ -90,6 +94,10 @@ function ellipse(cx, cy, rx, ry, style) {
         attrs['stroke-width'] = String(style.strokeWidth);
     if (style?.strokeDash !== undefined)
         attrs['stroke-dash'] = style.strokeDash.join(' ');
+    if (style?.opacity !== undefined)
+        attrs['opacity'] = String(style.opacity);
+    if (style?.anchor !== undefined)
+        attrs['anchor'] = style.anchor;
     return { type: 'canvas-ellipse', attrs };
 }
 function circle(cx, cy, r, style) {
@@ -104,6 +112,10 @@ function circle(cx, cy, r, style) {
         attrs['stroke-width'] = String(style.strokeWidth);
     if (style?.strokeDash !== undefined)
         attrs['stroke-dash'] = style.strokeDash.join(' ');
+    if (style?.opacity !== undefined)
+        attrs['opacity'] = String(style.opacity);
+    if (style?.anchor !== undefined)
+        attrs['anchor'] = style.anchor;
     return { type: 'canvas-circle', attrs };
 }
 function path(d, style) {
@@ -122,6 +134,8 @@ function path(d, style) {
         attrs['line-cap'] = style.lineCap;
     if (style?.lineJoin !== undefined)
         attrs['line-join'] = style.lineJoin;
+    if (style?.opacity !== undefined)
+        attrs['opacity'] = String(style.opacity);
     return { type: 'canvas-path', attrs };
 }
 function textAt(x, y, content, style, runs) {
@@ -138,6 +152,10 @@ function textAt(x, y, content, style, runs) {
         attrs['line-height'] = String(style.lineHeight);
     if (style?.width !== undefined)
         attrs['w'] = String(style.width);
+    if (style?.opacity !== undefined)
+        attrs['opacity'] = String(style.opacity);
+    if (style?.anchor !== undefined)
+        attrs['anchor'] = style.anchor;
     const node = { type: 'canvas-text', text: content, attrs };
     if (runs && runs.length > 0) {
         node.runs = runs.map(r => {
@@ -153,11 +171,11 @@ function textAt(x, y, content, style, runs) {
     }
     return node;
 }
-function imgAt(x, y, w, h, name) {
-    return {
-        type: 'canvas-img',
-        attrs: { x: String(x), y: String(y), w: String(w), h: String(h), name },
-    };
+function imgAt(x, y, w, h, name, anchor) {
+    const attrs = { x: String(x), y: String(y), w: String(w), h: String(h), name };
+    if (anchor !== undefined)
+        attrs['anchor'] = anchor;
+    return { type: 'canvas-img', attrs };
 }
 function layer(attrs, nodes) {
     const a = {};

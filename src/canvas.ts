@@ -14,6 +14,8 @@ export interface CanvasRectStyle {
   strokeWidth?:  number;
   strokeDash?:   number[];
   borderRadius?: number;
+  opacity?:      number;
+  anchor?:       string;
 }
 
 export interface CanvasLineStyle {
@@ -29,6 +31,8 @@ export interface CanvasEllipseStyle {
   stroke?:      string;
   strokeWidth?: number;
   strokeDash?:  number[];
+  opacity?:     number;
+  anchor?:      string;
 }
 
 export interface CanvasPathStyle {
@@ -39,6 +43,7 @@ export interface CanvasPathStyle {
   fillRuleEvenodd?: boolean;
   lineCap?:         LineCap;
   lineJoin?:        LineJoin;
+  opacity?:         number;
 }
 
 export interface CanvasTextStyle {
@@ -48,6 +53,8 @@ export interface CanvasTextStyle {
   align?:      TextAlign;
   lineHeight?: number;
   width?:      number;
+  opacity?:    number;
+  anchor?:     string;
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
@@ -188,6 +195,8 @@ function rect(x: number, y: number, w: number, h: number, style?: CanvasRectStyl
   if (style?.strokeWidth  !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
   if (style?.strokeDash   !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
   if (style?.borderRadius !== undefined) attrs['radius']       = String(style.borderRadius);
+  if (style?.opacity      !== undefined) attrs['opacity']      = String(style.opacity);
+  if (style?.anchor       !== undefined) attrs['anchor']       = style.anchor;
   return { type: 'canvas-rect', attrs };
 }
 
@@ -211,6 +220,8 @@ function ellipse(cx: number, cy: number, rx: number, ry: number, style?: CanvasE
   if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
   if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
   if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
+  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
+  if (style?.anchor      !== undefined) attrs['anchor']       = style.anchor;
   return { type: 'canvas-ellipse', attrs };
 }
 
@@ -222,6 +233,8 @@ function circle(cx: number, cy: number, r: number, style?: CanvasEllipseStyle): 
   if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
   if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
   if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
+  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
+  if (style?.anchor      !== undefined) attrs['anchor']       = style.anchor;
   return { type: 'canvas-circle', attrs };
 }
 
@@ -234,6 +247,7 @@ function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode {
   if (style?.fillRuleEvenodd !== undefined) attrs['fill-rule'] = style.fillRuleEvenodd ? 'evenodd' : 'nonzero';
   if (style?.lineCap     !== undefined) attrs['line-cap']     = style.lineCap;
   if (style?.lineJoin    !== undefined) attrs['line-join']    = style.lineJoin;
+  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
   return { type: 'canvas-path', attrs };
 }
 
@@ -249,6 +263,8 @@ function textAt(
   if (style?.align      !== undefined) attrs['align']       = style.align;
   if (style?.lineHeight !== undefined) attrs['line-height'] = String(style.lineHeight);
   if (style?.width      !== undefined) attrs['w']           = String(style.width);
+  if (style?.opacity    !== undefined) attrs['opacity']     = String(style.opacity);
+  if (style?.anchor     !== undefined) attrs['anchor']      = style.anchor;
 
   const node: LpdfCanvasTextNode = { type: 'canvas-text', text: content, attrs };
   if (runs && runs.length > 0) {
@@ -263,11 +279,10 @@ function textAt(
   return node;
 }
 
-function imgAt(x: number, y: number, w: number, h: number, name: string): LpdfCanvasImgNode {
-  return {
-    type:  'canvas-img',
-    attrs: { x: String(x), y: String(y), w: String(w), h: String(h), name },
-  };
+function imgAt(x: number, y: number, w: number, h: number, name: string, anchor?: string): LpdfCanvasImgNode {
+  const attrs: Record<string, string> = { x: String(x), y: String(y), w: String(w), h: String(h), name };
+  if (anchor !== undefined) attrs['anchor'] = anchor;
+  return { type: 'canvas-img', attrs };
 }
 
 function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode {

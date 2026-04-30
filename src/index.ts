@@ -17,14 +17,14 @@ export type {
 export type {
     StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-    ImgAttr, BarcodeAttr, RegionAttr,
+    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr,
 } from './layout';
 
 // ── Layout node types ─────────────────────────────────────────────────────────
 export type {
     LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
     LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
-    LpdfTdNode, LpdfRegionNode,
+    LpdfTdNode, LpdfRegionNode, LpdfFieldNode,
 } from './layout';
 
 // ── Canvas types ──────────────────────────────────────────────────────────────
@@ -38,5 +38,5 @@ export type {
 } from './canvas';
 
 // ── Facade ────────────────────────────────────────────────────────────────────
-export { L, NoAttr } from './pdf';
+export { L, NoAttr } from './L';
 
