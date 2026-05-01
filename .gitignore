@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 dist/
 
 # Generated WASM artifacts (wasm-pack output)
