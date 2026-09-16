@@ -90,8 +90,6 @@ jobs:
       # ── Publish to npm ───────────────────────────────────────────────────────
       - name: Publish to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ── Create GitHub Release (core-triggered only) ──────────────────────────
       - name: Create GitHub Release
