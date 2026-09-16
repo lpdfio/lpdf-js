@@ -91,7 +91,85 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public --provenance
 
+      # ── Changelog ────────────────────────────────────────────────────────────
+      # Writes this release's notes into CHANGELOG.md on main, and hands the
+      # same text to the release step below so the file and the Releases page
+      # can't disagree.
+      #
+      # Runs BEFORE the tag is created, so the tag contains its own entry.
+      #
+      # Fails the job on error, deliberately — this path is unproven. Relax to
+      # warn-only once a core release has exercised it (changelog-plan.md,
+      # "Rollout").
+      - name: Update CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            # Core cascade. Nobody types notes on this path — nobody can — so
+            # copy core's verbatim. Core publishes its release before
+            # dispatching, so the body is always readable by now.
+            BODY=$(gh release view "$CORE_TAG" --repo lpdfio/lpdf --json body -q .body | tr -d '\r')
+            HEADER="## $ADAPTER_TAG (core) — $(date -u +%F)"
+          else
+            # Adapter-only patch: the notes typed on this repo's own release.
+            BODY=$(gh release view "$ADAPTER_TAG" --json body        -q .body        | tr -d '\r')
+            DATE=$(gh release view "$ADAPTER_TAG" --json publishedAt -q .publishedAt | cut -c1-10)
+            if [ -z "$DATE" ]; then
+              echo "::error::$ADAPTER_TAG has no published release — was the tag pushed without one?"
+              exit 1
+            fi
+            HEADER="## $ADAPTER_TAG — $DATE"
+          fi
+
+          # Hand the body to the release step below (multi-line safe).
+          {
+            echo 'RELEASE_BODY<<__LPDF_BODY__'
+            printf '%s\n' "$BODY"
+            echo '__LPDF_BODY__'
+          } >> "$GITHUB_ENV"
+
+          # Drop the in-job version bump — it is deliberately never committed,
+          # and it would block the branch switch below.
+          git checkout -- .
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --depth=1 origin main
+          git checkout -B main FETCH_HEAD
+
+          if ! head -n 1 CHANGELOG.md | grep -qx '# Changelog'; then
+            echo "::error::CHANGELOG.md must start with a '# Changelog' line"
+            exit 1
+          fi
+
+          # Re-runs must not duplicate an entry.
+          if grep -q "^## $ADAPTER_TAG " CHANGELOG.md; then
+            echo "$ADAPTER_TAG is already in CHANGELOG.md — nothing to do"
+            exit 0
+          fi
+
+          # Prepend only. Never reformat or reorder what is already there —
+          # the file is hand-editable by design.
+          {
+            echo "# Changelog"
+            echo
+            echo "$HEADER"
+            if [ -n "$BODY" ]; then printf '%s\n' "$BODY"; fi
+            tail -n +2 CHANGELOG.md
+          } > CHANGELOG.next
+          mv CHANGELOG.next CHANGELOG.md
+
+          git add CHANGELOG.md
+          git diff --cached --quiet || git commit -m "changelog: $ADAPTER_TAG"
+          git push origin main
+
       # ── Create GitHub Release (core-triggered only) ──────────────────────────
+      # --notes carries core's text onto this repo's Releases page, which
+      # otherwise shows a bare "Full Changelog" compare link. --generate-notes
+      # remains the fallback for an empty core body.
       - name: Create GitHub Release
         if: github.event_name == 'repository_dispatch'
         env:
@@ -99,6 +177,12 @@ jobs:
         run: |
           git tag "$ADAPTER_TAG"
           git push origin "$ADAPTER_TAG"
-          gh release create "$ADAPTER_TAG" \
-            --title "$ADAPTER_TAG" \
-            --generate-notes
+          if [ -n "${RELEASE_BODY:-}" ]; then
+            gh release create "$ADAPTER_TAG" \
+              --title "$ADAPTER_TAG" \
+              --notes "$RELEASE_BODY"
+          else
+            gh release create "$ADAPTER_TAG" \
+              --title "$ADAPTER_TAG" \
+              --generate-notes
+          fi
