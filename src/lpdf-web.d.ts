@@ -12,6 +12,8 @@ declare module '../wasm/lpdf-web.js' {
     load_image(name: string, bytes: Uint8Array): void;
     /** Set an optional ISO 8601 creation timestamp for /CreationDate. */
     set_created_on(iso: string): void;
+    /** Set the host's clock, in Unix seconds, so the key's expiry can be checked. */
+    set_now(unix: bigint): void;
     /** Configure RC4-128 encryption. */
     set_encryption(user_password: string, owner_password: string, permissions_json: string): void;
     /** Remove any previously configured encryption. */
@@ -21,6 +23,8 @@ declare module '../wasm/lpdf-web.js' {
     free(): void;
     [Symbol.dispose](): void;
   }
+  /** What this build makes of a license key, as the JSON report described in `LicenseCheck`. */
+  export function check_license(token: string, now_unix: bigint): string;
   export function initSync(module: unknown): void;
   export default function init(
     source?: string | URL | Response | BufferSource | null,

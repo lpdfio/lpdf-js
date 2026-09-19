@@ -8,6 +8,18 @@ const node_fs_1 = require("node:fs");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const wasmModule = require('./wasm/lpdf.js');
 const WasmEngine = wasmModule.LpdfEngine;
+/**
+ * The clock the engine checks a key's expiry against.
+ *
+ * WebAssembly has no clock of its own, so an engine that is not told the time skips the expiry
+ * check altogether — which is how an expired key used to render without the attribution line.
+ *
+ * A `bigint`, because the engine takes the seconds as an `i64` and wasm-bindgen accepts nothing
+ * narrower on that boundary.
+ */
+function nowUnix() {
+    return BigInt(Math.floor(Date.now() / 1000));
+}
 /** Thrown when the lpdf engine returns a layout or parse error. */
 class LpdfRenderError extends Error {
     constructor(message) {
@@ -31,6 +43,21 @@ class PdfEngine {
         this._throwIfDisposed();
         this._licenseKey = key;
         return this;
+    }
+    /**
+     * Ask the engine what a license key is: valid, expired, for another product, and which
+     * license and key it is.
+     *
+     * This is the engine's own verdict, from the same code a render runs — so `licensed` here
+     * means PDFs come out without the attribution line here. A key the portal considers perfectly
+     * good still reads `unknown_key` in a build that does not trust the key it was signed with,
+     * which is the answer worth having.
+     *
+     * @param key - The key to check. Defaults to the one set on this engine.
+     */
+    checkLicenseKey(key) {
+        this._throwIfDisposed();
+        return JSON.parse(wasmModule.check_license(key ?? this._licenseKey, nowUnix()));
     }
     /**
      * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
@@ -83,6 +110,9 @@ class PdfEngine {
     async render(input, callOptions = {}) {
         this._throwIfDisposed();
         const engine = new WasmEngine(this._licenseKey);
+        // Without a clock the engine cannot check the key's expiry, and an expired key renders as
+        // though it were current.
+        engine.set_now(nowUnix());
         if (callOptions.createdOn) {
             engine.set_created_on(callOptions.createdOn);
         }

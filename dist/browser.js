@@ -203,6 +203,20 @@ var LpdfEngine = class {
   }
 };
 if (Symbol.dispose) LpdfEngine.prototype[Symbol.dispose] = LpdfEngine.prototype.free;
+function check_license(token, now_unix) {
+  let deferred2_0;
+  let deferred2_1;
+  try {
+    const ptr0 = passStringToWasm0(token, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.check_license(ptr0, len0, now_unix);
+    deferred2_0 = ret[0];
+    deferred2_1 = ret[1];
+    return getStringFromWasm0(ret[0], ret[1]);
+  } finally {
+    wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+  }
+}
 function __wbg_get_imports() {
   const import0 = {
     __proto__: null,
@@ -380,6 +394,9 @@ async function __wbg_init(module_or_path) {
 
 // src/browser.ts
 var NoAttr = null;
+function nowUnix() {
+  return BigInt(Math.floor(Date.now() / 1e3));
+}
 async function initLpdf(wasmSource, licenseKey = "") {
   await __wbg_init(wasmSource);
   const fontMap = /* @__PURE__ */ new Map();
@@ -391,8 +408,12 @@ async function initLpdf(wasmSource, licenseKey = "") {
     loadImage(name, bytes) {
       imageMap.set(name, bytes);
     },
+    checkLicenseKey(key) {
+      return JSON.parse(check_license(key ?? licenseKey, nowUnix()));
+    },
     async render(input, callOptions = {}) {
       const engine = new LpdfEngine(licenseKey);
+      engine.set_now(nowUnix());
       for (const [name, bytes] of fontMap) {
         engine.load_font(name, bytes);
       }

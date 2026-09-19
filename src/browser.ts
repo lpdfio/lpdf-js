@@ -16,9 +16,10 @@
  * Custom fonts must be pre-loaded via `loadFont()`; there is no automatic
  * filesystem fallback in the browser.
  */
-import initWasm, { LpdfEngine as WasmEngine } from '../wasm/lpdf-web.js';
+import initWasm, { LpdfEngine as WasmEngine, check_license } from '../wasm/lpdf-web.js';
 import type { RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
+import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
 export type {
@@ -40,6 +41,17 @@ export type {
 /** Pass as `attrs` when a node has no attributes. Equivalent to `null`. */
 export const NoAttr = null;
 
+export type { LicenseCheck, LicenseStatus } from './engine';
+
+/**
+ * The clock the engine checks a key's expiry against. WebAssembly has none of its own, and an
+ * engine that is not told the time skips the check entirely. A `bigint` because the engine takes
+ * the seconds as an `i64`.
+ */
+function nowUnix(): bigint {
+    return BigInt(Math.floor(Date.now() / 1000));
+}
+
 export interface LpdfBrowser {
     /**
      * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
@@ -57,6 +69,14 @@ export interface LpdfBrowser {
      * not available in the browser.
      */
     render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
+    /**
+     * Ask the engine what a license key is: valid, expired, for another product, and which
+     * license and key it is. Defaults to the key this renderer was created with.
+     *
+     * The engine's own verdict, from the same code a render runs, so `licensed` here means
+     * PDFs come out without the attribution line here.
+     */
+    checkLicenseKey(key?: string): LicenseCheck;
 }
 
 /**
@@ -86,8 +106,15 @@ export async function initLpdf(
             imageMap.set(name, bytes);
         },
 
+        checkLicenseKey(key?: string): LicenseCheck {
+            return JSON.parse(check_license(key ?? licenseKey, nowUnix())) as LicenseCheck;
+        },
+
         async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
             const engine = new WasmEngine(licenseKey);
+            // Without a clock the engine cannot check the key's expiry, and an expired key
+            // renders as though it were current.
+            engine.set_now(nowUnix());
 
             for (const [name, bytes] of fontMap) {
                 engine.load_font(name, bytes);

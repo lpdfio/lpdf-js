@@ -9,6 +9,7 @@ interface IWasmEngine {
   load_font(name: string, bytes: Uint8Array): void;
   load_image(name: string, bytes: Uint8Array): void;
   set_created_on(iso: string): void;
+  set_now(unix: bigint): void;
   set_encryption(user_password: string, owner_password: string, permissions_json: string): void;
   clear_encryption(): void;
   free(): void;
@@ -16,6 +17,7 @@ interface IWasmEngine {
 interface IWasmModule {
   LpdfEngine: new (licenseKey: string) => IWasmEngine;
   kit_to_xml: (json: string) => string;
+  check_license: (token: string, now_unix: bigint) => string;
 }
 // require() path is relative to the compiled output at dist/engine.js.
 // In the published package, wasm-pack artifacts live in dist/wasm/.
@@ -23,6 +25,51 @@ interface IWasmModule {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const wasmModule = require('./wasm/lpdf.js') as IWasmModule;
 const WasmEngine = wasmModule.LpdfEngine;
+
+/** How a license key stands with this build of the engine. */
+export type LicenseStatus =
+  | 'licensed'
+  | 'free'
+  | 'expired'
+  | 'version_mismatch'
+  | 'wrong_product'
+  | 'unknown_key'
+  | 'bad_signature'
+  | 'malformed';
+
+/**
+ * What the engine makes of a license key — see {@link PdfEngine.checkLicenseKey}.
+ *
+ * Everything but `status` is present only once the key's signature verified, so an expired or
+ * wrong-version key still names its license while an unreadable one says nothing further: an
+ * unverified token's contents are its author's claims, not facts.
+ */
+export interface LicenseCheck {
+  status: LicenseStatus;
+  /** Which Codesense product the key was issued for. */
+  product?: string;
+  /** `community`, `professional` or `enterprise`. */
+  tier?: string;
+  /** When the key stops validating, ISO 8601 UTC. Absent on a version-locked key. */
+  expires?: string;
+  /** The license number, as the customer reads it: `L-7K3M9Q`. */
+  license?: string;
+  /** Which key this is on its license — 1, 2, 3 in issue order. */
+  key?: number;
+}
+
+/**
+ * The clock the engine checks a key's expiry against.
+ *
+ * WebAssembly has no clock of its own, so an engine that is not told the time skips the expiry
+ * check altogether — which is how an expired key used to render without the attribution line.
+ *
+ * A `bigint`, because the engine takes the seconds as an `i64` and wasm-bindgen accepts nothing
+ * narrower on that boundary.
+ */
+function nowUnix(): bigint {
+  return BigInt(Math.floor(Date.now() / 1000));
+}
 
 /** Thrown when the lpdf engine returns a layout or parse error. */
 export class LpdfRenderError extends Error {
@@ -70,6 +117,22 @@ export class PdfEngine {
     this._throwIfDisposed();
     this._licenseKey = key;
     return this;
+  }
+
+  /**
+   * Ask the engine what a license key is: valid, expired, for another product, and which
+   * license and key it is.
+   *
+   * This is the engine's own verdict, from the same code a render runs — so `licensed` here
+   * means PDFs come out without the attribution line here. A key the portal considers perfectly
+   * good still reads `unknown_key` in a build that does not trust the key it was signed with,
+   * which is the answer worth having.
+   *
+   * @param key - The key to check. Defaults to the one set on this engine.
+   */
+  checkLicenseKey(key?: string): LicenseCheck {
+    this._throwIfDisposed();
+    return JSON.parse(wasmModule.check_license(key ?? this._licenseKey, nowUnix())) as LicenseCheck;
   }
 
   /**
@@ -138,6 +201,9 @@ export class PdfEngine {
     this._throwIfDisposed();
 
     const engine = new WasmEngine(this._licenseKey);
+    // Without a clock the engine cannot check the key's expiry, and an expired key renders as
+    // though it were current.
+    engine.set_now(nowUnix());
 
     if (callOptions.createdOn) {
       engine.set_created_on(callOptions.createdOn);
