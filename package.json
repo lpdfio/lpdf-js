@@ -26,6 +26,9 @@
     "type": "git",
     "url": "https://github.com/lpdfio/lpdf-js"
   },
+  "bugs": {
+    "url": "https://github.com/lpdfio/lpdf/issues"
+  },
   "keywords": ["pdf", "wasm", "xml", "document", "lpdf"],
   "license": "SEE LICENSE IN LICENSE",
   "files": [
