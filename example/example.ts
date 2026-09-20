@@ -23,7 +23,7 @@ import { L } from '../dist/index.js';
   ];
 
   // init engine
-  const engine = L.engine();       // empty key → free tier (watermark)
+  const engine = L.engine();       // no key → renders with the attribution line
 
   // load assets (only used if referenced in xml/layout)
   engine.loadFont('montserrat', readFileSync(resolve(__root, 'assets/fonts/Montserrat-Regular.ttf')));

@@ -29,7 +29,7 @@ const WasmEngine = wasmModule.LpdfEngine;
 /** How a license key stands with this build of the engine. */
 export type LicenseStatus =
   | 'licensed'
-  | 'free'
+  | 'no_key'
   | 'expired'
   | 'version_mismatch'
   | 'wrong_product'

@@ -22,7 +22,7 @@ import { L } from '../dist/index.js';
   const xml  = readFileSync(xmlFile, 'utf8');
   const data = JSON.parse(readFileSync(jsonFile, 'utf8'));
 
-  const engine = L.engine();  // empty key → free tier (watermark)
+  const engine = L.engine();  // no key → renders with the attribution line
 
   const bytes = await engine.render(xml, { data });
 

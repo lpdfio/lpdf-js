@@ -85,7 +85,8 @@ export interface LpdfBrowser {
  * @param wasmSource  - URL, path string, `Response`, or raw WASM bytes used to
  *                      load `lpdf_bg.wasm`.  Typically:
  *                      `new URL('./lpdf_bg.wasm', import.meta.url)`
- * @param licenseKey  - License key. Omit or pass empty string for free tier
+ * @param licenseKey  - License key. Omit or pass an empty string to render unlicensed,
+ *                      which draws the attribution line
  *                      (watermark applied).
  */
 export async function initLpdf(

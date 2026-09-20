@@ -1,7 +1,7 @@
 import type { RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
 /** How a license key stands with this build of the engine. */
-export type LicenseStatus = 'licensed' | 'free' | 'expired' | 'version_mismatch' | 'wrong_product' | 'unknown_key' | 'bad_signature' | 'malformed';
+export type LicenseStatus = 'licensed' | 'no_key' | 'expired' | 'version_mismatch' | 'wrong_product' | 'unknown_key' | 'bad_signature' | 'malformed';
 /**
  * What the engine makes of a license key — see {@link PdfEngine.checkLicenseKey}.
  *
