@@ -47,7 +47,8 @@ jobs:
             sleep 10
           done
           # No fallback to the latest core: vX.Y.Z must ship engine vX.Y.0
-          # (var/VERSIONING.md in lpdfio/lpdf). ci.yml keeps its fallback.
+          # (var/VERSIONING.md in lpdfio/lpdf). ci.yml is the other way round —
+          # it tracks the newest core release, pre-releases included.
           if [ -z "$DOWNLOADED" ]; then
             echo "::error::Could not download core $CORE_TAG. This release must ship engine $CORE_TAG — publish that core release first, or check the tag."
             exit 1
