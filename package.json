@@ -31,6 +31,9 @@
   },
   "keywords": ["pdf", "wasm", "xml", "document", "lpdf"],
   "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "files": [
     "dist/"
   ],

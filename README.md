@@ -43,18 +43,12 @@ const pdf = await engine.render(doc)
 
 ## Requirements
 
-- Node.js 16+
+- Node.js 20+
 - No external runtime dependencies — the WASM engine is embedded in the package.
-
-## Versioning
-
-The first two numbers are the Lpdf engine, and the last number counts changes to this package only. `0.22.3` runs engine `0.22`, with three JS-only changes since that engine shipped. Every engine release publishes all SDKs at `X.Y.0`, so the same `X.Y` means the same engine in every language.
-
-To stay on one engine and still get this package's fixes, use a tilde range in `package.json`: `"@lpdfio/lpdf": "~0.22.0"`.
 
 ## Docs
 
-[lpdf.io/docs/js](https://lpdf.io/docs/js)
+[lpdf.io/docs/js](https://lpdf.io/docs/js?utm_source=readme&utm_medium=referral&utm_campaign=sdk-node)
 
 ## Issues
 
