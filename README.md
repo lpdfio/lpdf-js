@@ -48,7 +48,7 @@ const pdf = await engine.render(doc)
 
 ## Docs
 
-[lpdf.io/docs](https://lpdf.io/docs/?sdk=js&p=install&utm_campaign=sdk-node&utm_medium=referral&utm_source=readme)
+[lpdf.io/docs](https://lpdf.io/docs/install/?sdk=js&utm_campaign=sdk-node&utm_medium=referral&utm_source=readme)
 
 ## Issues
 
