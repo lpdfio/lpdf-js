@@ -1,57 +1,9 @@
-import type { PageScope } from './_shared';
-export type TextAlign = 'left' | 'center' | 'right' | 'justify';
-export type LineCap = 'butt' | 'round' | 'square';
-export type LineJoin = 'miter' | 'round' | 'bevel';
-export interface CanvasRectStyle {
-    fill?: string;
-    stroke?: string;
-    strokeWidth?: number;
-    strokeDash?: number[];
-    borderRadius?: number;
-    opacity?: number;
-    anchor?: string;
-}
-export interface CanvasLineStyle {
-    stroke?: string;
-    strokeWidth?: number;
-    strokeDash?: number[];
-    lineCap?: LineCap;
-    lineJoin?: LineJoin;
-}
-export interface CanvasEllipseStyle {
-    fill?: string;
-    stroke?: string;
-    strokeWidth?: number;
-    strokeDash?: number[];
-    opacity?: number;
-    anchor?: string;
-}
-export interface CanvasPathStyle {
-    fill?: string;
-    stroke?: string;
-    strokeWidth?: number;
-    strokeDash?: number[];
-    fillRuleEvenodd?: boolean;
-    lineCap?: LineCap;
-    lineJoin?: LineJoin;
-    opacity?: number;
-}
-export interface CanvasTextStyle {
-    font?: string;
-    size?: number;
-    color?: string;
-    align?: TextAlign;
-    lineHeight?: number;
-    width?: number;
-    opacity?: number;
-    anchor?: string;
-}
-export interface CanvasRun {
-    text: string;
-    font?: string;
-    size?: number;
-    color?: string;
-}
+import type { RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr, LayerAttr } from './attrs';
+import type { LpdfSpanNode } from './layout';
+/**
+ * Builds the `transform` string of a layer. `String(CanvasTransform.rotate(45))` is
+ * `matrix(...)`, which a layer's `transform` attribute accepts like `rotate(45)`.
+ */
 export declare class CanvasTransform {
     readonly matrix: number[];
     constructor(matrix: number[]);
@@ -66,67 +18,52 @@ export declare class CanvasTransform {
      * Equivalent to matrix multiplication: this × other.
      */
     then(other: CanvasTransform): CanvasTransform;
-    /** Serialise to the `"matrix(a,b,c,d,e,f)"` string form that Rust `jattr()` reads. */
+    /** The `"matrix(a,b,c,d,e,f)"` form of the transform. */
     toString(): string;
 }
 export interface LpdfCanvasRectNode {
-    type: 'canvas-rect';
+    type: 'rect';
     attrs: Record<string, string>;
 }
 export interface LpdfCanvasLineNode {
-    type: 'canvas-line';
+    type: 'line';
     attrs: Record<string, string>;
 }
 export interface LpdfCanvasEllipseNode {
-    type: 'canvas-ellipse';
+    type: 'ellipse';
     attrs: Record<string, string>;
 }
 export interface LpdfCanvasCircleNode {
-    type: 'canvas-circle';
+    type: 'circle';
     attrs: Record<string, string>;
 }
 export interface LpdfCanvasPathNode {
-    type: 'canvas-path';
+    type: 'path';
     attrs: Record<string, string>;
 }
 export interface LpdfCanvasTextNode {
-    type: 'canvas-text';
-    text: string;
+    type: 'text';
     attrs: Record<string, string>;
-    runs?: {
-        text: string;
-        attrs: {
-            font?: string;
-            'font-size'?: string;
-            color?: string;
-        };
-    }[];
+    nodes: (string | LpdfSpanNode)[];
 }
 export interface LpdfCanvasImgNode {
-    type: 'canvas-img';
+    type: 'img';
     attrs: Record<string, string>;
 }
 export type LpdfCanvasPrimitiveNode = LpdfCanvasRectNode | LpdfCanvasLineNode | LpdfCanvasEllipseNode | LpdfCanvasCircleNode | LpdfCanvasPathNode | LpdfCanvasTextNode | LpdfCanvasImgNode;
-/** @deprecated Use {@link LayerAttr} */
-export type CanvasLayerOptions = LayerAttr;
-export interface LayerAttr {
-    page?: PageScope | string;
-    opacity?: number;
-    transform?: CanvasTransform;
-}
 export interface LpdfCanvasLayerNode {
-    type: 'canvas-layer';
+    type: 'layer';
     attrs: Record<string, string>;
     nodes: LpdfCanvasPrimitiveNode[];
 }
-declare function rect(x: number, y: number, w: number, h: number, style?: CanvasRectStyle): LpdfCanvasRectNode;
-declare function line(x1: number, y1: number, x2: number, y2: number, style?: CanvasLineStyle): LpdfCanvasLineNode;
-declare function ellipse(cx: number, cy: number, rx: number, ry: number, style?: CanvasEllipseStyle): LpdfCanvasEllipseNode;
-declare function circle(cx: number, cy: number, r: number, style?: CanvasEllipseStyle): LpdfCanvasCircleNode;
-declare function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode;
-declare function textAt(x: number, y: number, content: string, style?: CanvasTextStyle, runs?: CanvasRun[]): LpdfCanvasTextNode;
-declare function imgAt(x: number, y: number, w: number, h: number, name: string, anchor?: string): LpdfCanvasImgNode;
-declare function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode;
+declare function rect(attrs: RectAttr): LpdfCanvasRectNode;
+declare function line(attrs: LineAttr): LpdfCanvasLineNode;
+declare function ellipse(attrs: EllipseAttr): LpdfCanvasEllipseNode;
+declare function circle(attrs: CircleAttr): LpdfCanvasCircleNode;
+declare function path(attrs: PathAttr): LpdfCanvasPathNode;
+declare function textAt(attrs: CanvasTextAttr, nodes?: (string | LpdfSpanNode)[]): LpdfCanvasTextNode;
+declare function imgAt(attrs: CanvasImgAttr): LpdfCanvasImgNode;
+declare function layer(attrs: LayerAttr | null, nodes?: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode;
 export declare const LpdfCanvas: Readonly<{
     rect: typeof rect;
     line: typeof line;

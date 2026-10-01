@@ -26,38 +26,28 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LpdfKit = void 0;
-// ── camelCase → kebab-case helper ─────────────────────────────────────────────
-function attrKey(camel) {
-    return camel.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
-}
-function buildAttrs(options) {
-    const result = {};
-    for (const [key, val] of Object.entries(options)) {
-        if (val !== undefined) {
-            result[attrKey(key)] = val;
-        }
-    }
-    return result;
-}
+const _shared_1 = require("./_shared");
 // ── Factory functions ─────────────────────────────────────────────────────────
-function layout(_attrs, nodes) {
+function layout(_attrs, nodes = []) {
     return { type: 'layout', nodes };
 }
-function canvas(_attrs, layers) {
+function canvas(_attrs, layers = []) {
     return { type: 'canvas', nodes: layers };
 }
-function section(attrs, nodes) {
+function section(attrs, nodes = []) {
     return {
         type: 'section',
-        attrs: buildAttrs((attrs ?? {})),
+        attrs: (0, _shared_1.buildAttrs)(attrs),
         nodes,
     };
 }
-function document(attrs, nodes) {
-    const { tokens, meta, ...restOpts } = attrs ?? {};
+function document(attrs, nodes = []) {
+    const { assets, tokens, meta, ...restOpts } = attrs ?? {};
     const attrsObj = {
-        ...buildAttrs(restOpts),
+        ...(0, _shared_1.buildAttrs)(restOpts),
     };
+    if (assets !== undefined)
+        attrsObj['assets'] = assets;
     if (tokens !== undefined) {
         const { textSize, ...rest } = tokens;
         attrsObj['tokens'] = textSize !== undefined ? { 'text-size': textSize, ...rest } : rest;

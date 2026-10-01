@@ -26,26 +26,12 @@
 
 import type { LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
-
-// ── camelCase → kebab-case helper ─────────────────────────────────────────────
-
-function attrKey(camel: string): string {
-  return camel.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
-}
-
-function buildAttrs(options: Record<string, string | undefined>): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const [key, val] of Object.entries(options)) {
-    if (val !== undefined) {
-      result[attrKey(key)] = val;
-    }
-  }
-  return result;
-}
+import type { FontAttr, ImageAttr } from './attrs';
+import { buildAttrs } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
-export interface LpdfTokens {
+export interface DocumentTokens {
   colors?:  Record<string, string>;
   space?:   Record<string, string>;
   grid?:    Record<string, string>;
@@ -53,14 +39,18 @@ export interface LpdfTokens {
   radius?:  Record<string, string>;
   width?:   Record<string, string>;
   textSize?: Record<string, string>;
-  fonts?:   Record<string, LpdfFontDef>;
 }
 
-export type LpdfFontDef =
-  | { src: string; builtin?: never }
-  | { builtin: string; src?: never };
+/**
+ * The fonts and images the document declares, as the `assets` element of the XML does. A font or image
+ * is picked by its `name`: text sets `font` to a font's name, an `img` sets `name` to an image's.
+ */
+export interface DocumentAssets {
+  fonts?:  FontAttr[];
+  images?: ImageAttr[];
+}
 
-export interface LpdfMeta {
+export interface DocumentMeta {
   title?:    string;
   author?:   string;
   subject?:  string;
@@ -82,8 +72,10 @@ export interface DocumentAttr {
   orientation?: string;
   margin?:      string;
   background?:  string;
-  tokens?:      LpdfTokens;
-  meta?:        LpdfMeta;
+  font?:        string;
+  assets?:      DocumentAssets;
+  tokens?:      DocumentTokens;
+  meta?:        DocumentMeta;
   debug?:       string;
 }
 
@@ -118,27 +110,28 @@ export interface PdfDocument {
 
 // ── Factory functions ─────────────────────────────────────────────────────────
 
-function layout(_attrs: null, nodes: LpdfNode[]): LpdfLayoutBlock {
+function layout(_attrs: null, nodes: LpdfNode[] = []): LpdfLayoutBlock {
   return { type: 'layout', nodes };
 }
 
-function canvas(_attrs: null, layers: LpdfCanvasLayerNode[]): LpdfCanvasBlock {
+function canvas(_attrs: null, layers: LpdfCanvasLayerNode[] = []): LpdfCanvasBlock {
   return { type: 'canvas', nodes: layers };
 }
 
-function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[]): LpdfSectionNode {
+function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[] = []): LpdfSectionNode {
   return {
     type:  'section',
-    attrs: buildAttrs((attrs ?? {}) as Record<string, string | undefined>),
+    attrs: buildAttrs(attrs),
     nodes,
   };
 }
 
-function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[]): PdfDocument {
-  const { tokens, meta, ...restOpts } = attrs ?? {};
+function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): PdfDocument {
+  const { assets, tokens, meta, ...restOpts } = attrs ?? {};
   const attrsObj: Record<string, unknown> = {
-    ...buildAttrs(restOpts as Record<string, string | undefined>),
+    ...buildAttrs(restOpts),
   };
+  if (assets !== undefined) attrsObj['assets'] = assets;
   if (tokens !== undefined) {
     const { textSize, ...rest } = tokens;
     attrsObj['tokens'] = textSize !== undefined ? { 'text-size': textSize, ...rest } : rest;

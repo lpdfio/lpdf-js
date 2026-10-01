@@ -153,10 +153,11 @@ class PdfEngine {
                 pdf = engine.render_pdf(xml, dataJson);
             }
             else {
-                // JSON (Kit tree) path — pass JSON directly to render_tree_pdf.
+                // JSON (Kit tree) path — pass JSON directly to render_tree_pdf. Fonts and images the
+                // document declares with a src are read from there, as on the XML path.
                 const json = JSON.stringify(input);
                 const allFonts = new Map(this._fonts);
-                for (const [key, src] of extractFontSrcsFromJson(json)) {
+                for (const [key, src] of assetSrcsOfDocument(input, 'fonts')) {
                     if (!allFonts.has(key)) {
                         try {
                             allFonts.set(key, (0, node_fs_1.readFileSync)(src));
@@ -167,7 +168,16 @@ class PdfEngine {
                 for (const [name, bytes] of allFonts) {
                     engine.load_font(name, bytes);
                 }
-                for (const [name, bytes] of this._images) {
+                const allImages = new Map(this._images);
+                for (const [key, src] of assetSrcsOfDocument(input, 'images')) {
+                    if (!allImages.has(key)) {
+                        try {
+                            allImages.set(key, (0, node_fs_1.readFileSync)(src));
+                        }
+                        catch { /* skip unresolvable image */ }
+                    }
+                }
+                for (const [name, bytes] of allImages) {
                     engine.load_image(name, bytes);
                 }
                 if (this._encrypt) {
@@ -203,19 +213,13 @@ function extractAssetSrcs(xml, tag) {
     }
     return result;
 }
-/** Extract `ref??name → src` pairs from `attrs.tokens.fonts[name].src` in a kit JSON string. */
-function extractFontSrcsFromJson(json) {
+/** The `ref ?? name → src` pairs of the fonts or images a document declares in `attrs.assets`. */
+function assetSrcsOfDocument(document, kind) {
     const result = new Map();
-    try {
-        const doc = JSON.parse(json);
-        const fonts = doc?.attrs?.tokens?.fonts ?? {};
-        for (const [name, def] of Object.entries(fonts)) {
-            if (def.src) {
-                const key = def.ref ?? name;
-                result.set(key, def.src);
-            }
-        }
+    const declared = document.attrs['assets']?.[kind] ?? [];
+    for (const { name, ref, src } of declared) {
+        if (src)
+            result.set(ref ?? name, src);
     }
-    catch { /* ignore */ }
     return result;
 }

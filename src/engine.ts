@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { RenderOptions } from './_shared';
-import type { PdfDocument } from './kit';
+import type { DocumentAssets, PdfDocument } from './kit';
 
 // The WASM CJS module is loaded at runtime; we declare only what we use.
 interface IWasmEngine {
@@ -239,10 +239,11 @@ export class PdfEngine {
         const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
         pdf = engine.render_pdf(xml, dataJson);
       } else {
-        // JSON (Kit tree) path — pass JSON directly to render_tree_pdf.
+        // JSON (Kit tree) path — pass JSON directly to render_tree_pdf. Fonts and images the
+        // document declares with a src are read from there, as on the XML path.
         const json = JSON.stringify(input);
         const allFonts = new Map<string, Uint8Array>(this._fonts);
-        for (const [key, src] of extractFontSrcsFromJson(json)) {
+        for (const [key, src] of assetSrcsOfDocument(input, 'fonts')) {
           if (!allFonts.has(key)) {
             try { allFonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
           }
@@ -250,7 +251,13 @@ export class PdfEngine {
         for (const [name, bytes] of allFonts) {
           engine.load_font(name, bytes);
         }
-        for (const [name, bytes] of this._images) {
+        const allImages = new Map<string, Uint8Array>(this._images);
+        for (const [key, src] of assetSrcsOfDocument(input, 'images')) {
+          if (!allImages.has(key)) {
+            try { allImages.set(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
+          }
+        }
+        for (const [name, bytes] of allImages) {
           engine.load_image(name, bytes);
         }
         if (this._encrypt) {
@@ -286,18 +293,12 @@ function extractAssetSrcs(xml: string, tag: 'font' | 'image'): Map<string, strin
   return result;
 }
 
-/** Extract `ref??name → src` pairs from `attrs.tokens.fonts[name].src` in a kit JSON string. */
-function extractFontSrcsFromJson(json: string): Map<string, string> {
+/** The `ref ?? name → src` pairs of the fonts or images a document declares in `attrs.assets`. */
+function assetSrcsOfDocument(document: PdfDocument, kind: 'fonts' | 'images'): Map<string, string> {
   const result = new Map<string, string>();
-  try {
-    const doc = JSON.parse(json);
-    const fonts = doc?.attrs?.tokens?.fonts ?? {};
-    for (const [name, def] of Object.entries(fonts as Record<string, { ref?: string; src?: string }>)) {
-      if (def.src) {
-        const key = def.ref ?? name;
-        result.set(key, def.src);
-      }
-    }
-  } catch { /* ignore */ }
+  const declared = (document.attrs['assets'] as DocumentAssets | undefined)?.[kind] ?? [];
+  for (const { name, ref, src } of declared) {
+    if (src) result.set(ref ?? name, src);
+  }
   return result;
 }

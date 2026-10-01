@@ -23,7 +23,7 @@ import { NoAttr, L } from '../dist/index.js';
                     // Header — company label flanks the title
                     L.flank({ gap: '16pt', align: 'end' }, [
                         L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),
-                        L.text({ fontSize: '22pt', bold: 'true', textAlign: 'right' }, ['Project Proposal']),
+                        L.text({ fontSize: '22pt', bold: 'true', align: 'right' }, ['Project Proposal']),
                     ]),
                     // Meta — client details split left / reference right
                     L.split({ gap: '24pt' }, [
@@ -33,9 +33,9 @@ import { NoAttr, L } from '../dist/index.js';
                             L.text(NoAttr, ['hello@brightideas.io']),
                         ]),
                         L.stack({ gap: '4pt' }, [
-                            L.text({ fontSize: '8pt', color: '#888888', textAlign: 'right' }, ['REFERENCE']),
-                            L.text({ bold: 'true', textAlign: 'right' }, ['PROP-2026-04']),
-                            L.text({ textAlign: 'right' }, ['Valid until May 29, 2026']),
+                            L.text({ fontSize: '8pt', color: '#888888', align: 'right' }, ['REFERENCE']),
+                            L.text({ bold: 'true', align: 'right' }, ['PROP-2026-04']),
+                            L.text({ align: 'right' }, ['Valid until May 29, 2026']),
                         ]),
                     ]),
                     L.divider({thickness: 'xs'}),
@@ -69,8 +69,8 @@ import { NoAttr, L } from '../dist/index.js';
                     L.split(NoAttr, [
                         L.text(NoAttr, ['']),
                         L.stack({ gap: '2pt' }, [
-                            L.text({ textAlign: 'right', color: '#888888' }, ['TOTAL']),
-                            L.text({ textAlign: 'right', fontSize: '18pt', bold: 'true' }, ['$12,400']),
+                            L.text({ align: 'right', color: '#888888' }, ['TOTAL']),
+                            L.text({ align: 'right', fontSize: '18pt', bold: 'true' }, ['$12,400']),
                         ]),
                     ]),
                 ]),

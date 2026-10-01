@@ -392,6 +392,48 @@ async function __wbg_init(module_or_path) {
   return __wbg_finalize_init(instance, module);
 }
 
+// src/constants.ts
+var FieldType = {
+  Text: "text",
+  Checkbox: "checkbox",
+  Dropdown: "dropdown",
+  Radio: "radio",
+  Button: "button"
+};
+var Pin = {
+  Top: "top",
+  Bottom: "bottom",
+  Left: "left",
+  Right: "right"
+};
+var Orientation = {
+  Portrait: "portrait",
+  Landscape: "landscape"
+};
+var BuiltinFont = {
+  Courier: "Courier",
+  CourierBold: "Courier-Bold",
+  CourierOblique: "Courier-Oblique",
+  CourierBoldOblique: "Courier-BoldOblique",
+  Helvetica: "Helvetica",
+  HelveticaBold: "Helvetica-Bold",
+  HelveticaOblique: "Helvetica-Oblique",
+  HelveticaBoldOblique: "Helvetica-BoldOblique",
+  TimesRoman: "Times-Roman",
+  TimesBold: "Times-Bold",
+  TimesItalic: "Times-Italic",
+  TimesBoldItalic: "Times-BoldItalic",
+  Symbol: "Symbol",
+  ZapfDingbats: "ZapfDingbats"
+};
+var PageScope = {
+  Each: "each",
+  First: "first",
+  Last: "last",
+  Odd: "odd",
+  Even: "even"
+};
+
 // src/browser.ts
 var NoAttr = null;
 function nowUnix() {
@@ -443,6 +485,11 @@ async function initLpdf(wasmSource, licenseKey = "") {
   };
 }
 export {
+  BuiltinFont,
+  FieldType,
   NoAttr,
+  Orientation,
+  PageScope,
+  Pin,
   initLpdf
 };

@@ -19,7 +19,8 @@ export interface RenderOptions {
     data?: Record<string, unknown> | null;
 }
 /**
- * Page scope for canvas layers and layout regions.
- * Numeric ranges (e.g. '2-4', '1,3-5', '2-last') remain as plain strings.
+ * The attributes of an element: an attribute object's own properties, with each camelCase name
+ * written as the schema's kebab-case one (`fontSize` as `font-size`) and each value as a string.
+ * Properties that are `undefined` are left out.
  */
-export type PageScope = 'each' | 'first' | 'last' | 'odd' | 'even';
+export declare function buildAttrs(options: object | null | undefined): Record<string, string>;

@@ -60,6 +60,21 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # ── Check the API against the schema ─────────────────────────────────────
+      # The attribute classes and constants follow from schema/lpdf.xsd, and the scripts that check
+      # them live in core. Fails if a generated file differs from what the schema gives, or a class
+      # has other attributes than the schema's element.
+      # The schema is the one at the core tag the engine was taken from.
+      - name: Check the API against the schema
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "$EFFECTIVE_CORE_TAG" \
+            https://github.com/lpdfio/lpdf.git _schema
+          git -C _schema sparse-checkout set schema scripts
+          node _schema/scripts/gen-sdk-api.mjs --check --sdk node=.
+          node _schema/scripts/check-sdk-parity.mjs --sdk node=.
+          rm -rf _schema
+
       # ── Fetch test fixtures and snapshots from core ──────────────────────────
       - name: Fetch test fixtures and snapshots from core
         run: |

@@ -6,7 +6,13 @@
 
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
-import { PdfEngine, L, LpdfRenderError, CanvasTransform } from '../dist/index.js';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  PdfEngine, L, LpdfRenderError, CanvasTransform,
+  FieldType, Pin, Orientation, PageScope, BuiltinFont,
+} from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -22,6 +28,11 @@ function kitDoc(layoutNodes = []) {
     L.section(null, [L.layout(null, layoutNodes)]),
   ]);
 }
+
+const PIXEL = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+  'base64',
+);
 
 // ── LpdfEngine class ──────────────────────────────────────────────────────────
 
@@ -127,7 +138,7 @@ describe('LpdfEngine', () => {
     const document = L.document(null, [
       L.section(null, [
         L.canvas(null, [
-          L.layer(null, [L.rect(0, 0, 595, 842, { fill: '#eeeeee' })]),
+          L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#eeeeee' })]),
         ]),
         L.layout(null, [L.text(null, ['Canvas underlay'])]),
       ]),
@@ -142,7 +153,7 @@ describe('LpdfEngine', () => {
     const document = L.document(null, [
       L.section(null, [
         L.canvas(null, [
-          L.layer(null, [L.textAt(10, 20, 'Hello canvas')]),
+          L.layer(null, [L.textAt({ x: '10pt', y: '20pt' }, ['Hello canvas'])]),
         ]),
         L.layout(null, [L.text(null, ['x'])]),
       ]),
@@ -181,32 +192,20 @@ describe('kitToXml', () => {
     assert(xml.includes('<lpdf version="1">'), 'missing <lpdf version="1">');
   });
 
-  it('places builtin font in <assets> (flat) with core= attribute', () => {
+  it('writes the fonts and images of the assets under the schema names', () => {
     const document = L.document(
-      { tokens: { fonts: { heading: { builtin: 'Helvetica-Bold' } } } },
+      {
+        assets: {
+          fonts:  [{ name: 'heading', core: 'Helvetica-Bold' }, { name: 'body', ref: 'body-font', src: '/fonts/MyFont.ttf' }],
+          images: [{ name: 'logo', src: 'logo.png' }],
+        },
+      },
       [L.section(null, [L.layout(null, [])])],
     );
     const xml = L.toXml(document);
-    assert(xml.includes('<assets>'), 'missing <assets>');
-    assert(!xml.includes('<fonts>'), '<fonts> wrapper must not appear in flat structure');
-    assert(xml.includes('<font '), 'missing <font> element');
-    assert(xml.includes('core="Helvetica-Bold"'), 'missing core= attribute');
-    const tokensStart = xml.indexOf('<tokens>');
-    const tokensEnd   = xml.indexOf('</tokens>');
-    if (tokensStart !== -1) {
-      const fontInTokens = xml.indexOf('<font ', tokensStart);
-      assert(fontInTokens === -1 || fontInTokens > tokensEnd, 'font incorrectly placed inside <tokens>');
-    }
-  });
-
-  it('places custom font src in <assets> (flat) with ref= and src= attributes', () => {
-    const document = L.document(
-      { tokens: { fonts: { body: { src: '/fonts/MyFont.ttf' } } } },
-      [L.section(null, [L.layout(null, [])])],
-    );
-    const xml = L.toXml(document);
-    assert(xml.includes('ref="body"'), 'custom font should use alias name as ref=');
-    assert(xml.includes('src='), 'src= path should appear in XML');
+    assert(xml.includes('<font name="heading" core="Helvetica-Bold"/>'), xml);
+    assert(xml.includes('<font name="body" ref="body-font" src="/fonts/MyFont.ttf"/>'), xml);
+    assert(xml.includes('<image name="logo" src="logo.png"/>'), xml);
   });
 
   it('emits text tokens inside <tokens>', () => {
@@ -231,7 +230,7 @@ describe('kitToXml', () => {
   it('emits section with layout and canvas blocks', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [L.layer(null, [L.rect(0, 0, 10, 10)])]),
+        L.canvas(null, [L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '10pt', h: '10pt' })])]),
         L.layout(null, [L.text(null, ['hello'])]),
       ]),
     ]);
@@ -245,7 +244,7 @@ describe('kitToXml', () => {
   it('canvas text node emits text content at top level', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [L.layer(null, [L.textAt(5, 5, 'Test text')])]),
+        L.canvas(null, [L.layer(null, [L.textAt({ x: '5pt', y: '5pt' }, ['Test text'])])]),
         L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
@@ -253,14 +252,14 @@ describe('kitToXml', () => {
     assert(xml.includes('Test text'), 'canvas text content missing from XML');
   });
 
-  it('canvas text node with runs emits span elements', () => {
+  it('canvas text node with spans emits span elements', () => {
     const document = L.document(null, [
       L.section(null, [
         L.canvas(null, [
           L.layer(null, [
-            L.textAt(5, 5, 'ignored', undefined, [
-              { text: 'bold part', font: 'Helvetica-Bold', size: 14 },
-              { text: 'normal part', color: '#333333' },
+            L.textAt({ x: '5pt', y: '5pt' }, [
+              L.span({ font: 'Helvetica-Bold' }, ['bold part']),
+              L.span({ color: '#333333' }, ['normal part']),
             ]),
           ]),
         ]),
@@ -268,11 +267,10 @@ describe('kitToXml', () => {
       ]),
     ]);
     const xml = L.toXml(document);
-    assert(xml.includes('<span'), 'missing <span> for runs');
-    assert(xml.includes('bold part'), 'run text missing');
-    assert(xml.includes('font="Helvetica-Bold"'), 'run font attr missing');
-    assert(xml.includes('font-size="14"'), 'run font-size attr missing');
-    assert(xml.includes('color="#333333"'), 'run color attr missing');
+    assert(xml.includes('<span'), 'missing <span>');
+    assert(xml.includes('bold part'), 'span text missing');
+    assert(xml.includes('font="Helvetica-Bold"'), 'span font attr missing');
+    assert(xml.includes('color="#333333"'), 'span color attr missing');
   });
 
 });
@@ -296,120 +294,96 @@ describe('PDF snapshots (fixture XMLs)', () => {
 
 describe('LpdfCanvas serialization', () => {
 
-  it('rect emits correct type and string attrs', () => {
-    const node = L.rect(10, 20, 100, 50);
-    assert.equal(node.type, 'canvas-rect');
-    assert.equal(node.attrs.x, '10');
-    assert.equal(node.attrs.y, '20');
-    assert.equal(node.attrs.w, '100');
-    assert.equal(node.attrs.h, '50');
+  it('rect emits its schema name and its attributes as given', () => {
+    const node = L.rect({ x: '10pt', y: '20pt', w: '100pt', h: '50pt' });
+    assert.equal(node.type, 'rect');
+    assert.deepEqual(node.attrs, { x: '10pt', y: '20pt', w: '100pt', h: '50pt' });
   });
 
-  it('rect style attrs emitted as strings', () => {
-    const node = L.rect(0, 0, 10, 10, {
-      fill: '#ff0000', stroke: '#000', strokeWidth: 2,
-      strokeDash: [4, 2], borderRadius: 5,
+  it('rect style attributes are written under the schema names', () => {
+    const node = L.rect({
+      w: '10pt', h: '10pt', fill: '#ff0000', stroke: '#000', strokeWidth: '2pt',
+      strokeDash: '4 2', radius: '5pt', opacity: '0.5', anchor: 'center',
     });
     assert.equal(node.attrs.fill, '#ff0000');
-    assert.equal(node.attrs.stroke, '#000');
-    assert.equal(node.attrs['stroke-width'], '2');
+    assert.equal(node.attrs['stroke-width'], '2pt');
     assert.equal(node.attrs['stroke-dash'], '4 2');
-    assert.equal(node.attrs.radius, '5');
+    assert.equal(node.attrs.radius, '5pt');
+    assert.equal(node.attrs.opacity, '0.5');
+    assert.equal(node.attrs.anchor, 'center');
   });
 
-  it('line emits correct type and coords as strings', () => {
-    const node = L.line(0, 0, 100, 100, { stroke: '#000', strokeWidth: 1 });
-    assert.equal(node.type, 'canvas-line');
-    assert.equal(node.attrs.x1, '0');
-    assert.equal(node.attrs.y1, '0');
-    assert.equal(node.attrs.x2, '100');
-    assert.equal(node.attrs.y2, '100');
-    assert.equal(node.attrs['stroke-width'], '1');
+  it('line emits its coordinates', () => {
+    const node = L.line({ x1: '0pt', y1: '0pt', x2: '100pt', y2: '100pt', stroke: '#000', strokeWidth: '1pt', lineCap: 'round' });
+    assert.equal(node.type, 'line');
+    assert.equal(node.attrs.x2, '100pt');
+    assert.equal(node.attrs['stroke-width'], '1pt');
+    assert.equal(node.attrs['line-cap'], 'round');
   });
 
-  it('ellipse emits correct type', () => {
-    const node = L.ellipse(50, 50, 30, 20);
-    assert.equal(node.type, 'canvas-ellipse');
-    assert.equal(node.attrs.cx, '50');
-    assert.equal(node.attrs.ry, '20');
+  it('ellipse emits its radii', () => {
+    const node = L.ellipse({ cx: '50pt', cy: '50pt', rx: '30pt', ry: '20pt' });
+    assert.equal(node.type, 'ellipse');
+    assert.equal(node.attrs.ry, '20pt');
   });
 
-  it('circle emits correct type', () => {
-    const node = L.circle(50, 50, 25);
-    assert.equal(node.type, 'canvas-circle');
-    assert.equal(node.attrs.r, '25');
+  it('circle emits its radius', () => {
+    const node = L.circle({ cx: '50pt', cy: '50pt', r: '25pt' });
+    assert.equal(node.type, 'circle');
+    assert.equal(node.attrs.r, '25pt');
   });
 
-  it('path emits correct type', () => {
-    const node = L.path('M 0 0 L 100 100');
-    assert.equal(node.type, 'canvas-path');
+  it('path emits d and fill-rule as given', () => {
+    const node = L.path({ d: 'M 0 0 L 100 100', fillRule: 'evenodd' });
+    assert.equal(node.type, 'path');
     assert.equal(node.attrs.d, 'M 0 0 L 100 100');
+    assert.equal(node.attrs['fill-rule'], 'evenodd');
   });
 
-  it('path fillRuleEvenodd → fill-rule attr', () => {
-    const even = L.path('M 0 0', { fillRuleEvenodd: true });
-    const nonz = L.path('M 0 0', { fillRuleEvenodd: false });
-    assert.equal(even.attrs['fill-rule'], 'evenodd');
-    assert.equal(nonz.attrs['fill-rule'], 'nonzero');
+  it('text takes its attributes first and its content second', () => {
+    const node = L.textAt({ x: '10pt', y: '20pt', font: 'Helvetica', fontSize: '12pt', color: '#000', lineHeight: '14' }, ['Hello']);
+    assert.equal(node.type, 'text');
+    assert.deepEqual(node.nodes, ['Hello']);
+    assert.equal(node.attrs.x, '10pt');
+    assert.equal(node.attrs['font-size'], '12pt');
+    assert.equal(node.attrs['line-height'], '14');
   });
 
-  it('text emits text at top-level and string attrs', () => {
-    const node = L.textAt(10, 20, 'Hello', { font: 'Helvetica', size: 12, color: '#000' });
-    assert.equal(node.type, 'canvas-text');
-    assert.equal(node.text, 'Hello');
-    assert.equal(node.attrs.x, '10');
-    assert.equal(node.attrs.y, '20');
-    assert.equal(node.attrs.font, 'Helvetica');
-    assert.equal(node.attrs['font-size'], '12');
-    assert.equal(node.attrs.color, '#000');
-    assert(!('runs' in node), 'runs key absent when no runs passed');
+  it('text content can mix strings and spans', () => {
+    const node = L.textAt({ x: '0pt', y: '0pt' }, ['base ', L.span({ font: 'Helvetica-Bold' }, ['bold'])]);
+    assert.equal(node.nodes[0], 'base ');
+    assert.equal(node.nodes[1].type, 'span');
+    assert.equal(node.nodes[1].attrs.font, 'Helvetica-Bold');
   });
 
-  it('text with runs emits nested attrs format', () => {
-    const node = L.textAt(0, 0, 'base', undefined, [
-      { text: 'bold', font: 'Helvetica-Bold', size: 14 },
-      { text: 'plain', color: '#333' },
-    ]);
-    assert(Array.isArray(node.runs), 'runs should be array');
-    assert.equal(node.runs[0].text, 'bold');
-    assert.equal(node.runs[0].attrs.font, 'Helvetica-Bold');
-    assert.equal(node.runs[0].attrs['font-size'], '14');
-    assert.equal(node.runs[1].attrs.color, '#333');
-  });
-
-  it('img emits name attr', () => {
-    const node = L.imgAt(0, 0, 100, 80, 'logo');
-    assert.equal(node.type, 'canvas-img');
+  it('img emits its name and size', () => {
+    const node = L.imgAt({ name: 'logo', x: '0pt', y: '0pt', w: '100pt', h: '80pt' });
+    assert.equal(node.type, 'img');
     assert.equal(node.attrs.name, 'logo');
-    assert.equal(node.attrs.w, '100');
-    assert.equal(node.attrs.h, '80');
+    assert.equal(node.attrs.w, '100pt');
   });
 
-  it('layer without options emits empty attrs', () => {
-    const node = L.layer(null, [L.rect(0, 0, 10, 10)]);
-    assert.equal(node.type, 'canvas-layer');
+  it('layer without attributes emits empty attrs', () => {
+    const node = L.layer(null, [L.rect({ w: '10pt', h: '10pt' })]);
+    assert.equal(node.type, 'layer');
     assert.deepEqual(node.attrs, {});
     assert.equal(node.nodes.length, 1);
   });
 
-  it('layer opacity emitted as string', () => {
-    const node = L.layer({ opacity: 0.5 }, []);
-    assert.equal(node.attrs.opacity, '0.5');
-  });
-
-  it('layer page scope emitted', () => {
-    const node = L.layer({ page: 'first' }, []);
+  it('layer attributes are written as given', () => {
+    const node = L.layer({ page: 'first', opacity: '0.5', transform: 'rotate(45 100 100)' }, []);
     assert.equal(node.attrs.page, 'first');
+    assert.equal(node.attrs.opacity, '0.5');
+    assert.equal(node.attrs.transform, 'rotate(45 100 100)');
   });
 
-  it('layer transform emitted as matrix(...) string', () => {
-    const t = CanvasTransform.translate(10, 20);
-    const node = L.layer({ transform: t }, []);
+  it('layer transform accepts a CanvasTransform as a string', () => {
+    const node = L.layer({ transform: String(CanvasTransform.translate(10, 20)) }, []);
     assert.equal(node.attrs.transform, 'matrix(1,0,0,1,10,20)');
   });
 
-  it('null/undefined style fields omitted from attrs', () => {
-    const node = L.rect(0, 0, 10, 10, { fill: undefined });
+  it('undefined attributes are left out', () => {
+    const node = L.rect({ w: '10pt', h: '10pt', fill: undefined });
     assert(!('fill' in node.attrs), 'undefined fill should be omitted');
   });
 
@@ -468,11 +442,11 @@ describe('LpdfKit section model', () => {
   });
 
   it('LpdfKit.canvas wraps layers in a canvas block', () => {
-    const layer = L.layer(null, [L.rect(0, 0, 10, 10)]);
+    const layer = L.layer(null, [L.rect({ w: '10pt', h: '10pt' })]);
     const block = L.canvas(null, [layer]);
     assert.equal(block.type, 'canvas');
     assert.equal(block.nodes.length, 1);
-    assert.equal(block.nodes[0].type, 'canvas-layer');
+    assert.equal(block.nodes[0].type, 'layer');
   });
 
   it('LpdfKit.section preserves block order, no implicit wrapping', () => {
@@ -511,7 +485,7 @@ describe('LpdfLayout region', () => {
 
   it('region emits correct type with pin in attrs', () => {
     const node = L.region({ pin: 'top' }, [L.text(null, ['header'])]);
-    assert.equal(node.type, 'layout-region');
+    assert.equal(node.type, 'region');
     assert.equal(node.attrs.pin, 'top');
     assert.equal(node.nodes.length, 1);
   });
@@ -523,7 +497,7 @@ describe('LpdfLayout region', () => {
     assert.equal(node.attrs.w, '100pt');
   });
 
-  it('kitToXml emits layout-region element', () => {
+  it('kitToXml emits region element', () => {
     const document = L.document(null, [
       L.section(null, [
         L.layout(null, [
@@ -586,6 +560,120 @@ describe('data binding', () => {
 
 });
 
+// ── The builders follow the schema ────────────────────────────────────────────
 
+/** The PDF a document renders to, with the parts that vary left out. */
+function normalised(bytes) {
+  return Buffer.from(bytes).toString('latin1')
+    .replace(/\/CreationDate[^\n]*/g, '').replace(/\/ID *\[[^\]]*\]/g, '');
+}
 
+describe('attributes follow the schema', () => {
 
+  it('text align and bold are written as the schema names them', () => {
+    const node = L.text({ align: 'right', bold: 'true' }, ['x']);
+    assert.deepEqual(node.attrs, { align: 'right', bold: 'true' });
+  });
+
+  it('link and span carry href', () => {
+    assert.equal(L.link({ href: 'https://lpdf.io' }, []).attrs.href, 'https://lpdf.io');
+    assert.equal(L.span({ href: 'https://lpdf.io' }, ['x']).attrs.href, 'https://lpdf.io');
+  });
+
+  it('field carries its type and name as attributes', () => {
+    const node = L.field({ type: 'text', name: 'email', maxLen: '40', actionUrl: 'https://lpdf.io' });
+    assert.deepEqual(node.attrs, { type: 'text', name: 'email', 'max-len': '40', 'action-url': 'https://lpdf.io' });
+  });
+
+  it('layout builders take their content as optional', () => {
+    assert.deepEqual(L.stack(null).nodes, []);
+    assert.deepEqual(L.text(null).nodes, []);
+    assert.deepEqual(L.document(null).nodes, []);
+  });
+
+  it('a built document renders the same as its XML', async () => {
+    const built = L.document({ size: 'a4' }, [
+      L.section(null, [
+        L.layout(null, [
+          L.stack({ gap: '12pt' }, [
+            L.text({ align: 'right', bold: 'true' }, ['Title']),
+            L.text(null, ['Body ', L.span({ bold: 'true' }, ['bold']), ' text']),
+            L.link({ href: 'https://lpdf.io' }, [L.text(null, ['link'])]),
+          ]),
+        ]),
+        L.canvas(null, [
+          L.layer({ page: 'each' }, [
+            L.rect({ x: '40pt', y: '40pt', w: '100pt', h: '60pt', fill: '#ff0000', radius: '6pt' }),
+            L.textAt({ x: '40pt', y: '120pt', fontSize: '10pt' }, ['Canvas ', L.span({ color: '#0000ff' }, ['text'])]),
+          ]),
+        ]),
+      ]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const fromTree = normalised(await engine.render(built));
+    const fromXml  = normalised(await new PdfEngine().setLicenseKey('test-key').render(L.toXml(built)));
+    assert.equal(fromTree, fromXml);
+  });
+
+  it('assets declare fonts and images with the schema names', () => {
+    const assets = {
+      fonts:  [{ name: 'heading', core: BuiltinFont.TimesBold }],
+      images: [{ name: 'logo', ref: 'company-logo', src: 'logo.png' }],
+    };
+    assert.deepEqual(L.document({ assets }, []).attrs.assets, assets);
+    assert.deepEqual(L.assets(assets), assets);
+  });
+
+  it('a font declared in the assets is the font the text is set in', async () => {
+    const built = L.document({ assets: { fonts: [{ name: 'heading', core: BuiltinFont.TimesBold }] } }, [
+      L.section(null, [L.layout(null, [L.text({ font: 'heading' }, ['Hello'])])]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const pdf = Buffer.from(await engine.render(built)).toString('latin1');
+    assert(pdf.includes('/BaseFont /Times-Bold'), 'the text is not set in Times-Bold');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
+  });
+
+  it('an image declared in the assets can be used and renders the same as its XML', async () => {
+    const built = L.document({ assets: { images: [{ name: 'logo' }] } }, [
+      L.section(null, [L.layout(null, [L.img({ name: 'logo', width: '40pt' })])]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key').loadImage('logo', PIXEL);
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
+  });
+
+  it('an image used but not declared in the assets is an error that names it', async () => {
+    const built = kitDoc([L.img({ name: 'ghost' })]);
+    const engine = new PdfEngine().setLicenseKey('test-key').loadImage('ghost', PIXEL);
+    await assert.rejects(engine.render(built), /ghost/);
+  });
+
+  it('a font or image declared with a src is read from there', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-assets-'));
+    const file = join(dir, 'logo.png');
+    writeFileSync(file, PIXEL);
+    const built = L.document({ assets: { images: [{ name: 'logo', src: file }] } }, [
+      L.section(null, [L.layout(null, [L.img({ name: 'logo', width: '40pt' })])]),
+    ]);
+    const pdf = await new PdfEngine().setLicenseKey('test-key').render(built);
+    assert.equal(Buffer.from(pdf.slice(0, 5)).toString('ascii'), '%PDF-');
+  });
+
+  it('the constants are the schema values', () => {
+    assert.equal(FieldType.Text, 'text');
+    assert.equal(Pin.Top, 'top');
+    assert.equal(Orientation.Landscape, 'landscape');
+    assert.equal(PageScope.Each, 'each');
+    assert.equal(BuiltinFont.TimesBold, 'Times-Bold');
+  });
+
+  it('bold text is the bold face of the font', async () => {
+    const render = async (xml) => normalised(await new PdfEngine().setLicenseKey('test-key').render(xml));
+    const bold  = await render(doc('<text bold="true">Hello</text>'));
+    const named = await render(doc('<text font="Helvetica-Bold">Hello</text>'));
+    const plain = await render(doc('<text>Hello</text>'));
+    assert.equal(bold, named);
+    assert.notEqual(bold, plain);
+  });
+
+});

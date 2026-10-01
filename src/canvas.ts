@@ -1,73 +1,15 @@
-import type { PageScope } from './_shared';
-
-// ── Enum / const types ────────────────────────────────────────────────────────
-
-export type TextAlign = 'left' | 'center' | 'right' | 'justify';
-export type LineCap   = 'butt' | 'round' | 'square';
-export type LineJoin  = 'miter' | 'round' | 'bevel';
-
-// ── Style interfaces ──────────────────────────────────────────────────────────
-
-export interface CanvasRectStyle {
-  fill?:         string;
-  stroke?:       string;
-  strokeWidth?:  number;
-  strokeDash?:   number[];
-  borderRadius?: number;
-  opacity?:      number;
-  anchor?:       string;
-}
-
-export interface CanvasLineStyle {
-  stroke?:      string;
-  strokeWidth?: number;
-  strokeDash?:  number[];
-  lineCap?:     LineCap;
-  lineJoin?:    LineJoin;
-}
-
-export interface CanvasEllipseStyle {
-  fill?:        string;
-  stroke?:      string;
-  strokeWidth?: number;
-  strokeDash?:  number[];
-  opacity?:     number;
-  anchor?:      string;
-}
-
-export interface CanvasPathStyle {
-  fill?:            string;
-  stroke?:          string;
-  strokeWidth?:     number;
-  strokeDash?:      number[];
-  fillRuleEvenodd?: boolean;
-  lineCap?:         LineCap;
-  lineJoin?:        LineJoin;
-  opacity?:         number;
-}
-
-export interface CanvasTextStyle {
-  font?:       string;
-  size?:       number;
-  color?:      string;
-  align?:      TextAlign;
-  lineHeight?: number;
-  width?:      number;
-  opacity?:    number;
-  anchor?:     string;
-}
-
-// ── Run ───────────────────────────────────────────────────────────────────────
-
-export interface CanvasRun {
-  text:   string;
-  font?:  string;
-  size?:  number;
-  color?: string;
-}
+import type {
+  RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr, LayerAttr,
+} from './attrs';
+import type { LpdfSpanNode } from './layout';
+import { buildAttrs } from './_shared';
 
 // ── CanvasTransform ───────────────────────────────────────────────────────────
 
+/**
+ * Builds the `transform` string of a layer. `String(CanvasTransform.rotate(45))` is
+ * `matrix(...)`, which a layer's `transform` attribute accepts like `rotate(45)`.
+ */
 export class CanvasTransform {
   readonly matrix: number[];
 
@@ -112,7 +54,7 @@ export class CanvasTransform {
     ]);
   }
 
-  /** Serialise to the `"matrix(a,b,c,d,e,f)"` string form that Rust `jattr()` reads. */
+  /** The `"matrix(a,b,c,d,e,f)"` form of the transform. */
   toString(): string {
     return `matrix(${this.matrix.join(',')})`;
   }
@@ -121,39 +63,38 @@ export class CanvasTransform {
 // ── Canvas node interfaces ────────────────────────────────────────────────────
 
 export interface LpdfCanvasRectNode {
-  type:  'canvas-rect';
+  type:  'rect';
   attrs: Record<string, string>;
 }
 
 export interface LpdfCanvasLineNode {
-  type:  'canvas-line';
+  type:  'line';
   attrs: Record<string, string>;
 }
 
 export interface LpdfCanvasEllipseNode {
-  type:  'canvas-ellipse';
+  type:  'ellipse';
   attrs: Record<string, string>;
 }
 
 export interface LpdfCanvasCircleNode {
-  type:  'canvas-circle';
+  type:  'circle';
   attrs: Record<string, string>;
 }
 
 export interface LpdfCanvasPathNode {
-  type:  'canvas-path';
+  type:  'path';
   attrs: Record<string, string>;
 }
 
 export interface LpdfCanvasTextNode {
-  type:  'canvas-text';
-  text:  string;
+  type:  'text';
   attrs: Record<string, string>;
-  runs?: { text: string; attrs: { font?: string; 'font-size'?: string; color?: string } }[];
+  nodes: (string | LpdfSpanNode)[];
 }
 
 export interface LpdfCanvasImgNode {
-  type:  'canvas-img';
+  type:  'img';
   attrs: Record<string, string>;
 }
 
@@ -166,131 +107,44 @@ export type LpdfCanvasPrimitiveNode =
   | LpdfCanvasTextNode
   | LpdfCanvasImgNode;
 
-// ── Layer ─────────────────────────────────────────────────────────────────────
-
-/** @deprecated Use {@link LayerAttr} */
-export type CanvasLayerOptions = LayerAttr;
-
-export interface LayerAttr {
-  page?:      PageScope | string;
-  opacity?:   number;
-  transform?: CanvasTransform;
-  // clip is not supported — Rust CanvasLayer has no clip field
-}
-
 export interface LpdfCanvasLayerNode {
-  type:  'canvas-layer';
+  type:  'layer';
   attrs: Record<string, string>;
   nodes: LpdfCanvasPrimitiveNode[];
 }
 
 // ── LpdfCanvas factory ────────────────────────────────────────────────────────
 
-function rect(x: number, y: number, w: number, h: number, style?: CanvasRectStyle): LpdfCanvasRectNode {
-  const attrs: Record<string, string> = {
-    x: String(x), y: String(y), w: String(w), h: String(h),
-  };
-  if (style?.fill         !== undefined) attrs['fill']         = style.fill;
-  if (style?.stroke       !== undefined) attrs['stroke']       = style.stroke;
-  if (style?.strokeWidth  !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
-  if (style?.strokeDash   !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
-  if (style?.borderRadius !== undefined) attrs['radius']       = String(style.borderRadius);
-  if (style?.opacity      !== undefined) attrs['opacity']      = String(style.opacity);
-  if (style?.anchor       !== undefined) attrs['anchor']       = style.anchor;
-  return { type: 'canvas-rect', attrs };
+function rect(attrs: RectAttr): LpdfCanvasRectNode {
+  return { type: 'rect', attrs: buildAttrs(attrs) };
 }
 
-function line(x1: number, y1: number, x2: number, y2: number, style?: CanvasLineStyle): LpdfCanvasLineNode {
-  const attrs: Record<string, string> = {
-    x1: String(x1), y1: String(y1), x2: String(x2), y2: String(y2),
-  };
-  if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
-  if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
-  if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
-  if (style?.lineCap     !== undefined) attrs['line-cap']     = style.lineCap;
-  if (style?.lineJoin    !== undefined) attrs['line-join']    = style.lineJoin;
-  return { type: 'canvas-line', attrs };
+function line(attrs: LineAttr): LpdfCanvasLineNode {
+  return { type: 'line', attrs: buildAttrs(attrs) };
 }
 
-function ellipse(cx: number, cy: number, rx: number, ry: number, style?: CanvasEllipseStyle): LpdfCanvasEllipseNode {
-  const attrs: Record<string, string> = {
-    cx: String(cx), cy: String(cy), rx: String(rx), ry: String(ry),
-  };
-  if (style?.fill        !== undefined) attrs['fill']         = style.fill;
-  if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
-  if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
-  if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
-  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
-  if (style?.anchor      !== undefined) attrs['anchor']       = style.anchor;
-  return { type: 'canvas-ellipse', attrs };
+function ellipse(attrs: EllipseAttr): LpdfCanvasEllipseNode {
+  return { type: 'ellipse', attrs: buildAttrs(attrs) };
 }
 
-function circle(cx: number, cy: number, r: number, style?: CanvasEllipseStyle): LpdfCanvasCircleNode {
-  const attrs: Record<string, string> = {
-    cx: String(cx), cy: String(cy), r: String(r),
-  };
-  if (style?.fill        !== undefined) attrs['fill']         = style.fill;
-  if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
-  if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
-  if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
-  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
-  if (style?.anchor      !== undefined) attrs['anchor']       = style.anchor;
-  return { type: 'canvas-circle', attrs };
+function circle(attrs: CircleAttr): LpdfCanvasCircleNode {
+  return { type: 'circle', attrs: buildAttrs(attrs) };
 }
 
-function path(d: string, style?: CanvasPathStyle): LpdfCanvasPathNode {
-  const attrs: Record<string, string> = { d };
-  if (style?.fill        !== undefined) attrs['fill']         = style.fill;
-  if (style?.stroke      !== undefined) attrs['stroke']       = style.stroke;
-  if (style?.strokeWidth !== undefined) attrs['stroke-width'] = String(style.strokeWidth);
-  if (style?.strokeDash  !== undefined) attrs['stroke-dash']  = style.strokeDash.join(' ');
-  if (style?.fillRuleEvenodd !== undefined) attrs['fill-rule'] = style.fillRuleEvenodd ? 'evenodd' : 'nonzero';
-  if (style?.lineCap     !== undefined) attrs['line-cap']     = style.lineCap;
-  if (style?.lineJoin    !== undefined) attrs['line-join']    = style.lineJoin;
-  if (style?.opacity     !== undefined) attrs['opacity']      = String(style.opacity);
-  return { type: 'canvas-path', attrs };
+function path(attrs: PathAttr): LpdfCanvasPathNode {
+  return { type: 'path', attrs: buildAttrs(attrs) };
 }
 
-function textAt(
-  x: number, y: number, content: string,
-  style?: CanvasTextStyle,
-  runs?: CanvasRun[],
-): LpdfCanvasTextNode {
-  const attrs: Record<string, string> = { x: String(x), y: String(y) };
-  if (style?.font       !== undefined) attrs['font']        = style.font;
-  if (style?.size       !== undefined) attrs['font-size']   = String(style.size);
-  if (style?.color      !== undefined) attrs['color']       = style.color;
-  if (style?.align      !== undefined) attrs['align']       = style.align;
-  if (style?.lineHeight !== undefined) attrs['line-height'] = String(style.lineHeight);
-  if (style?.width      !== undefined) attrs['w']           = String(style.width);
-  if (style?.opacity    !== undefined) attrs['opacity']     = String(style.opacity);
-  if (style?.anchor     !== undefined) attrs['anchor']      = style.anchor;
-
-  const node: LpdfCanvasTextNode = { type: 'canvas-text', text: content, attrs };
-  if (runs && runs.length > 0) {
-    node.runs = runs.map(r => {
-      const runAttrs: { font?: string; 'font-size'?: string; color?: string } = {};
-      if (r.font  !== undefined) runAttrs['font']      = r.font;
-      if (r.size  !== undefined) runAttrs['font-size'] = String(r.size);
-      if (r.color !== undefined) runAttrs['color']     = r.color;
-      return { text: r.text, attrs: runAttrs };
-    });
-  }
-  return node;
+function textAt(attrs: CanvasTextAttr, nodes: (string | LpdfSpanNode)[] = []): LpdfCanvasTextNode {
+  return { type: 'text', attrs: buildAttrs(attrs), nodes };
 }
 
-function imgAt(x: number, y: number, w: number, h: number, name: string, anchor?: string): LpdfCanvasImgNode {
-  const attrs: Record<string, string> = { x: String(x), y: String(y), w: String(w), h: String(h), name };
-  if (anchor !== undefined) attrs['anchor'] = anchor;
-  return { type: 'canvas-img', attrs };
+function imgAt(attrs: CanvasImgAttr): LpdfCanvasImgNode {
+  return { type: 'img', attrs: buildAttrs(attrs) };
 }
 
-function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[]): LpdfCanvasLayerNode {
-  const a: Record<string, string> = {};
-  if (attrs?.page      !== undefined) a['page']      = attrs.page;
-  if (attrs?.opacity   !== undefined) a['opacity']   = String(attrs.opacity);
-  if (attrs?.transform !== undefined) a['transform'] = attrs.transform.toString();
-  return { type: 'canvas-layer', attrs: a, nodes };
+function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[] = []): LpdfCanvasLayerNode {
+  return { type: 'layer', attrs: buildAttrs(attrs), nodes };
 }
 
 export const LpdfCanvas = Object.freeze({

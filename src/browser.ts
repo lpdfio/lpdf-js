@@ -22,21 +22,24 @@ import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
+export { FieldType, Pin, Orientation, BuiltinFont, PageScope } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfLayoutBlock, LpdfCanvasBlock,
-    LpdfTokens, LpdfFontDef, LpdfMeta, SectionAttr, DocumentAttr,
+    DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
 } from './kit';
 export type {
     StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-    ImgAttr, BarcodeAttr, RegionAttr,
+    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr,
+    LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr,
+    FontAttr, ImageAttr,
+} from './attrs';
+export type {
     LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
     LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
-    LpdfTdNode, LpdfRegionNode,
+    LpdfTdNode, LpdfRegionNode, LpdfFieldNode,
 } from './layout';
-export type {
-    LayerAttr, LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode,
-} from './canvas';
+export type { LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode } from './canvas';
 
 /** Pass as `attrs` when a node has no attributes. Equivalent to `null`. */
 export const NoAttr = null;

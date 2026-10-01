@@ -1,7 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LpdfCanvas = exports.CanvasTransform = void 0;
+const _shared_1 = require("./_shared");
 // ── CanvasTransform ───────────────────────────────────────────────────────────
+/**
+ * Builds the `transform` string of a layer. `String(CanvasTransform.rotate(45))` is
+ * `matrix(...)`, which a layer's `transform` attribute accepts like `rotate(45)`.
+ */
 class CanvasTransform {
     constructor(matrix) {
         this.matrix = matrix;
@@ -39,153 +44,36 @@ class CanvasTransform {
             b1 * e2 + d1 * f2 + f1,
         ]);
     }
-    /** Serialise to the `"matrix(a,b,c,d,e,f)"` string form that Rust `jattr()` reads. */
+    /** The `"matrix(a,b,c,d,e,f)"` form of the transform. */
     toString() {
         return `matrix(${this.matrix.join(',')})`;
     }
 }
 exports.CanvasTransform = CanvasTransform;
 // ── LpdfCanvas factory ────────────────────────────────────────────────────────
-function rect(x, y, w, h, style) {
-    const attrs = {
-        x: String(x), y: String(y), w: String(w), h: String(h),
-    };
-    if (style?.fill !== undefined)
-        attrs['fill'] = style.fill;
-    if (style?.stroke !== undefined)
-        attrs['stroke'] = style.stroke;
-    if (style?.strokeWidth !== undefined)
-        attrs['stroke-width'] = String(style.strokeWidth);
-    if (style?.strokeDash !== undefined)
-        attrs['stroke-dash'] = style.strokeDash.join(' ');
-    if (style?.borderRadius !== undefined)
-        attrs['radius'] = String(style.borderRadius);
-    if (style?.opacity !== undefined)
-        attrs['opacity'] = String(style.opacity);
-    if (style?.anchor !== undefined)
-        attrs['anchor'] = style.anchor;
-    return { type: 'canvas-rect', attrs };
+function rect(attrs) {
+    return { type: 'rect', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function line(x1, y1, x2, y2, style) {
-    const attrs = {
-        x1: String(x1), y1: String(y1), x2: String(x2), y2: String(y2),
-    };
-    if (style?.stroke !== undefined)
-        attrs['stroke'] = style.stroke;
-    if (style?.strokeWidth !== undefined)
-        attrs['stroke-width'] = String(style.strokeWidth);
-    if (style?.strokeDash !== undefined)
-        attrs['stroke-dash'] = style.strokeDash.join(' ');
-    if (style?.lineCap !== undefined)
-        attrs['line-cap'] = style.lineCap;
-    if (style?.lineJoin !== undefined)
-        attrs['line-join'] = style.lineJoin;
-    return { type: 'canvas-line', attrs };
+function line(attrs) {
+    return { type: 'line', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function ellipse(cx, cy, rx, ry, style) {
-    const attrs = {
-        cx: String(cx), cy: String(cy), rx: String(rx), ry: String(ry),
-    };
-    if (style?.fill !== undefined)
-        attrs['fill'] = style.fill;
-    if (style?.stroke !== undefined)
-        attrs['stroke'] = style.stroke;
-    if (style?.strokeWidth !== undefined)
-        attrs['stroke-width'] = String(style.strokeWidth);
-    if (style?.strokeDash !== undefined)
-        attrs['stroke-dash'] = style.strokeDash.join(' ');
-    if (style?.opacity !== undefined)
-        attrs['opacity'] = String(style.opacity);
-    if (style?.anchor !== undefined)
-        attrs['anchor'] = style.anchor;
-    return { type: 'canvas-ellipse', attrs };
+function ellipse(attrs) {
+    return { type: 'ellipse', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function circle(cx, cy, r, style) {
-    const attrs = {
-        cx: String(cx), cy: String(cy), r: String(r),
-    };
-    if (style?.fill !== undefined)
-        attrs['fill'] = style.fill;
-    if (style?.stroke !== undefined)
-        attrs['stroke'] = style.stroke;
-    if (style?.strokeWidth !== undefined)
-        attrs['stroke-width'] = String(style.strokeWidth);
-    if (style?.strokeDash !== undefined)
-        attrs['stroke-dash'] = style.strokeDash.join(' ');
-    if (style?.opacity !== undefined)
-        attrs['opacity'] = String(style.opacity);
-    if (style?.anchor !== undefined)
-        attrs['anchor'] = style.anchor;
-    return { type: 'canvas-circle', attrs };
+function circle(attrs) {
+    return { type: 'circle', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function path(d, style) {
-    const attrs = { d };
-    if (style?.fill !== undefined)
-        attrs['fill'] = style.fill;
-    if (style?.stroke !== undefined)
-        attrs['stroke'] = style.stroke;
-    if (style?.strokeWidth !== undefined)
-        attrs['stroke-width'] = String(style.strokeWidth);
-    if (style?.strokeDash !== undefined)
-        attrs['stroke-dash'] = style.strokeDash.join(' ');
-    if (style?.fillRuleEvenodd !== undefined)
-        attrs['fill-rule'] = style.fillRuleEvenodd ? 'evenodd' : 'nonzero';
-    if (style?.lineCap !== undefined)
-        attrs['line-cap'] = style.lineCap;
-    if (style?.lineJoin !== undefined)
-        attrs['line-join'] = style.lineJoin;
-    if (style?.opacity !== undefined)
-        attrs['opacity'] = String(style.opacity);
-    return { type: 'canvas-path', attrs };
+function path(attrs) {
+    return { type: 'path', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function textAt(x, y, content, style, runs) {
-    const attrs = { x: String(x), y: String(y) };
-    if (style?.font !== undefined)
-        attrs['font'] = style.font;
-    if (style?.size !== undefined)
-        attrs['font-size'] = String(style.size);
-    if (style?.color !== undefined)
-        attrs['color'] = style.color;
-    if (style?.align !== undefined)
-        attrs['align'] = style.align;
-    if (style?.lineHeight !== undefined)
-        attrs['line-height'] = String(style.lineHeight);
-    if (style?.width !== undefined)
-        attrs['w'] = String(style.width);
-    if (style?.opacity !== undefined)
-        attrs['opacity'] = String(style.opacity);
-    if (style?.anchor !== undefined)
-        attrs['anchor'] = style.anchor;
-    const node = { type: 'canvas-text', text: content, attrs };
-    if (runs && runs.length > 0) {
-        node.runs = runs.map(r => {
-            const runAttrs = {};
-            if (r.font !== undefined)
-                runAttrs['font'] = r.font;
-            if (r.size !== undefined)
-                runAttrs['font-size'] = String(r.size);
-            if (r.color !== undefined)
-                runAttrs['color'] = r.color;
-            return { text: r.text, attrs: runAttrs };
-        });
-    }
-    return node;
+function textAt(attrs, nodes = []) {
+    return { type: 'text', attrs: (0, _shared_1.buildAttrs)(attrs), nodes };
 }
-function imgAt(x, y, w, h, name, anchor) {
-    const attrs = { x: String(x), y: String(y), w: String(w), h: String(h), name };
-    if (anchor !== undefined)
-        attrs['anchor'] = anchor;
-    return { type: 'canvas-img', attrs };
+function imgAt(attrs) {
+    return { type: 'img', attrs: (0, _shared_1.buildAttrs)(attrs) };
 }
-function layer(attrs, nodes) {
-    const a = {};
-    if (attrs?.page !== undefined)
-        a['page'] = attrs.page;
-    if (attrs?.opacity !== undefined)
-        a['opacity'] = String(attrs.opacity);
-    if (attrs?.transform !== undefined)
-        a['transform'] = attrs.transform.toString();
-    return { type: 'canvas-layer', attrs: a, nodes };
+function layer(attrs, nodes = []) {
+    return { type: 'layer', attrs: (0, _shared_1.buildAttrs)(attrs), nodes };
 }
 exports.LpdfCanvas = Object.freeze({
     rect,

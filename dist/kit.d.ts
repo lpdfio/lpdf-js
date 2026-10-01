@@ -25,7 +25,8 @@
  */
 import type { LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
-export interface LpdfTokens {
+import type { FontAttr, ImageAttr } from './attrs';
+export interface DocumentTokens {
     colors?: Record<string, string>;
     space?: Record<string, string>;
     grid?: Record<string, string>;
@@ -33,16 +34,16 @@ export interface LpdfTokens {
     radius?: Record<string, string>;
     width?: Record<string, string>;
     textSize?: Record<string, string>;
-    fonts?: Record<string, LpdfFontDef>;
 }
-export type LpdfFontDef = {
-    src: string;
-    builtin?: never;
-} | {
-    builtin: string;
-    src?: never;
-};
-export interface LpdfMeta {
+/**
+ * The fonts and images the document declares, as the `assets` element of the XML does. A font or image
+ * is picked by its `name`: text sets `font` to a font's name, an `img` sets `name` to an image's.
+ */
+export interface DocumentAssets {
+    fonts?: FontAttr[];
+    images?: ImageAttr[];
+}
+export interface DocumentMeta {
     title?: string;
     author?: string;
     subject?: string;
@@ -62,8 +63,10 @@ export interface DocumentAttr {
     orientation?: string;
     margin?: string;
     background?: string;
-    tokens?: LpdfTokens;
-    meta?: LpdfMeta;
+    font?: string;
+    assets?: DocumentAssets;
+    tokens?: DocumentTokens;
+    meta?: DocumentMeta;
     debug?: string;
 }
 /** A layout block — wraps an ordered list of layout nodes. */
@@ -87,10 +90,10 @@ export interface PdfDocument {
     attrs: Record<string, unknown>;
     nodes: LpdfSectionNode[];
 }
-declare function layout(_attrs: null, nodes: LpdfNode[]): LpdfLayoutBlock;
-declare function canvas(_attrs: null, layers: LpdfCanvasLayerNode[]): LpdfCanvasBlock;
-declare function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[]): LpdfSectionNode;
-declare function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[]): PdfDocument;
+declare function layout(_attrs: null, nodes?: LpdfNode[]): LpdfLayoutBlock;
+declare function canvas(_attrs: null, layers?: LpdfCanvasLayerNode[]): LpdfCanvasBlock;
+declare function section(attrs: SectionAttr | null, nodes?: (LpdfLayoutBlock | LpdfCanvasBlock)[]): LpdfSectionNode;
+declare function document(attrs: DocumentAttr | null, nodes?: LpdfSectionNode[]): PdfDocument;
 export declare const LpdfKit: Readonly<{
     layout: typeof layout;
     canvas: typeof canvas;

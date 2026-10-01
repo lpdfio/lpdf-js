@@ -22,8 +22,17 @@ export interface RenderOptions {
 }
 
 /**
- * Page scope for canvas layers and layout regions.
- * Numeric ranges (e.g. '2-4', '1,3-5', '2-last') remain as plain strings.
+ * The attributes of an element: an attribute object's own properties, with each camelCase name
+ * written as the schema's kebab-case one (`fontSize` as `font-size`) and each value as a string.
+ * Properties that are `undefined` are left out.
  */
-export type PageScope = 'each' | 'first' | 'last' | 'odd' | 'even';
+export function buildAttrs(options: object | null | undefined): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(options ?? {})) {
+    if (value !== undefined && value !== null) {
+      result[key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = String(value);
+    }
+  }
+  return result;
+}
 

@@ -1,4 +1,4 @@
-import type { LpdfTokens, PdfDocument } from './kit';
+import type { DocumentAssets, DocumentTokens, PdfDocument } from './kit';
 import { LpdfKit } from './kit';
 import { LpdfLayout } from './layout';
 import { LpdfCanvas } from './canvas';
@@ -17,7 +17,7 @@ export const NoAttr = null;
  *
  * @example
  * ```ts
- * import { L, NoAttr } from 'lpdf';
+ * const { L, NoAttr } = require('@lpdfio/lpdf');
  *
  * const engine = L.engine().setLicenseKey(process.env.LPDF_KEY);
  *
@@ -42,7 +42,8 @@ export const L = Object.freeze({
     section:  LpdfKit.section,
     layout:   LpdfKit.layout,
     canvas:   LpdfKit.canvas,
-    tokens:   (attrs: LpdfTokens): LpdfTokens => attrs,
+    assets:   (attrs: DocumentAssets): DocumentAssets => attrs,
+    tokens:   (attrs: DocumentTokens): DocumentTokens => attrs,
 
     // ── Layout ────────────────────────────────────────────────────────────────
     stack:   LpdfLayout.stack,
