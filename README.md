@@ -14,8 +14,8 @@ npm install @lpdfio/lpdf
 
 ## Usage — Node.js
 
-```ts
-import { L, NoAttr } from 'lpdf'
+```js
+const { L, NoAttr } = require('@lpdfio/lpdf')
 
 const engine = L.engine()
 
@@ -38,7 +38,7 @@ const doc = L.document({ size: 'letter', margin: '48pt' }, [
     ]),
 ])
 
-const pdf = await engine.render(doc)
+engine.render(doc).then((pdf) => require('node:fs').writeFileSync('proposal.pdf', pdf))
 ```
 
 ## Requirements
