@@ -24,6 +24,15 @@ export interface StackAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   align?: string;
   justify?: string;
@@ -53,6 +62,15 @@ export interface FlankAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   align?: string;
   /**
@@ -87,6 +105,15 @@ export interface SplitAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   align?: string;
   /**
@@ -120,6 +147,15 @@ export interface ClusterAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   align?: string;
   justify?: string;
@@ -149,6 +185,15 @@ export interface GridAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   width?: string;
   colWidth?: string;
@@ -177,6 +222,15 @@ export interface FrameAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   width?: string;
 }
@@ -228,6 +282,7 @@ export interface ImgAttr {
   background?: string;
   border?: string;
   radius?: string;
+  paginate?: string;
   debug?: string;
 }
 
@@ -244,6 +299,7 @@ export interface BarcodeAttr {
   hrt?: string;
   color?: string;
   background?: string;
+  paginate?: string;
   debug?: string;
 }
 
@@ -263,6 +319,7 @@ export interface TextAttr {
   color?: string;
   align?: string;
   width?: string;
+  paginate?: string;
   debug?: string;
 }
 
@@ -288,6 +345,15 @@ export interface TdAttr {
   background?: string;
   border?: string;
   radius?: string;
+  /**
+   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
+   * page when it does not fit. break-before: start it on a new page. break-after: start the next
+   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
+   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
+   * take effect on the children of layout; on a box inside another box they are not applied. no
+   * applies at any depth.
+   */
+  paginate?: string;
   debug?: string;
   align?: string;
   valign?: string;
@@ -323,6 +389,7 @@ export interface TableAttr {
   background?: string;
   width?: string;
   height?: string;
+  paginate?: string;
   debug?: string;
 }
 
