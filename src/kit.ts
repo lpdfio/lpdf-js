@@ -24,7 +24,7 @@
  * ```
  */
 
-import type { LpdfNode } from './layout';
+import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { FontAttr, ImageAttr } from './attrs';
 import { buildAttrs } from './_shared';
@@ -65,6 +65,8 @@ export interface SectionAttr {
   background?:  string;
   title?:       string;
   debug?:       string;
+  type?:        string;
+  tocIndentStep?: string;
 }
 
 export interface DocumentAttr {
@@ -98,7 +100,7 @@ export interface LpdfCanvasBlock {
 export interface LpdfSectionNode {
   type:  'section';
   attrs: Record<string, string>;
-  nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[];
+  nodes: (LpdfBookmarkNode | LpdfLayoutBlock | LpdfCanvasBlock)[];
 }
 
 export interface PdfDocument {
@@ -118,7 +120,7 @@ function canvas(_attrs: null, layers: LpdfCanvasLayerNode[] = []): LpdfCanvasBlo
   return { type: 'canvas', nodes: layers };
 }
 
-function section(attrs: SectionAttr | null, nodes: (LpdfLayoutBlock | LpdfCanvasBlock)[] = []): LpdfSectionNode {
+function section(attrs: SectionAttr | null, nodes: (LpdfBookmarkNode | LpdfLayoutBlock | LpdfCanvasBlock)[] = []): LpdfSectionNode {
   return {
     type:  'section',
     attrs: buildAttrs(attrs),

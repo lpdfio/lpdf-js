@@ -239,6 +239,10 @@ export interface FrameAttr {
  * Attributes of the `link` element.
  */
 export interface LinkAttr {
+  /**
+   * Where the link goes: a URL, or #id to jump to the bookmark with that id. In an entry of a table
+   * of contents, # alone jumps to that entry's bookmark.
+   */
   href: string;
   gap?: string;
   width?: string;
@@ -263,6 +267,10 @@ export interface SpanAttr {
   font?: string;
   bold?: string;
   color?: string;
+  /**
+   * Makes the span a link: a URL, or #id to jump to the bookmark with that id. In an entry of a
+   * table of contents, # alone jumps to that entry's bookmark.
+   */
   href?: string;
   underline?: string;
   strike?: string;
@@ -426,6 +434,28 @@ export interface FieldAttr {
   background?: string;
   border?: string;
   debug?: string;
+}
+
+/**
+ * An entry of the PDF's outline, the bookmark panel of a viewer, and a target for links with
+ * href="#id". It draws nothing and marks the element that follows it, so it is never left at the
+ * bottom of a page apart from that element. Directly inside a section, it marks the section's first
+ * page.
+ */
+export interface BookmarkAttr {
+  /** The text of the entry, in the outline and in a table of contents. */
+  label: string;
+  /**
+   * Depth in the outline, 1 to 6. Defaults to 1. An entry nests under the closest entry before it
+   * with a lower level.
+   */
+  level?: string;
+  /**
+   * The name links use to jump here, as href="#id". Leave it out to make it from the label:
+   * lowercase, with other characters than letters and digits turned into hyphens, and -2, -3 added
+   * when an earlier bookmark has it. Two bookmarks may not have the same id.
+   */
+  id?: string;
 }
 
 /**
