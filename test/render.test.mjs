@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PdfEngine, L, LpdfRenderError, CanvasTransform,
-  FieldType, Pin, Orientation, PageScope, BuiltinFont,
+  FieldType, Pin, Orientation, SectionType, PageScope, BuiltinFont,
 } from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -509,6 +509,50 @@ describe('LpdfLayout region', () => {
     assert(xml.includes('<region '), 'missing <region> element');
     assert(xml.includes('pin="top"'), 'missing pin attribute');
     assert(xml.includes('header'), 'region text content missing');
+  });
+
+});
+
+// ── Bookmarks and the table of contents ───────────────────────────────────────
+
+describe('bookmarks', () => {
+
+  it('bookmark carries its attributes, in a layout and directly in a section', () => {
+    const node = L.bookmark({ label: 'Methods', level: '2', id: 'methods' });
+    assert.deepEqual(node, { type: 'bookmark', attrs: { label: 'Methods', level: '2', id: 'methods' } });
+    const sec = L.section({ type: SectionType.Toc, tocIndentStep: '14pt' }, [L.bookmark({ label: 'Contents' }), L.layout(null, [])]);
+    assert.deepEqual(sec.attrs, { type: 'toc', 'toc-indent-step': '14pt' });
+    assert.equal(sec.nodes[0].type, 'bookmark');
+  });
+
+  it('bookmarks fill the outline and render the same as their XML', async () => {
+    const built = L.document(null, [
+      L.section(null, [L.bookmark({ label: 'Cover' }), L.layout(null, [L.text(null, ['Cover'])])]),
+      L.section(null, [
+        L.layout(null, [
+          L.link({ href: '#methods' }, [L.text(null, ['Go to Methods'])]),
+          L.bookmark({ label: 'Methods' }),
+          L.text(null, ['Methods']),
+        ]),
+      ]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const pdf = Buffer.from(await engine.render(built)).toString('latin1');
+    assert(pdf.includes('/Outlines'), 'no outline');
+    assert(pdf.includes('/Title (Cover)') && pdf.includes('/Title (Methods)'), 'missing outline entries');
+    assert(pdf.includes('/D /methods'), 'the link does not go to the bookmark');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
+  });
+
+  it('a table of contents section lists the bookmarks of an XML template', async () => {
+    const xml = `<lpdf version="1"><document>
+      <section type="toc"><layout>
+        <stack data-source="$toc"><link href="#"><text data-value="label">Label</text></link></stack>
+      </layout></section>
+      <section><layout><bookmark label="Methods"/><text>Methods</text></layout></section>
+    </document></lpdf>`;
+    const pdf = Buffer.from(await new PdfEngine().setLicenseKey('test-key').render(xml)).toString('latin1');
+    assert(pdf.includes('/D /methods'), 'the entry does not link to its bookmark');
   });
 
 });

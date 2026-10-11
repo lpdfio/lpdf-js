@@ -1,7 +1,7 @@
 import type {
   StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-  ImgAttr, BarcodeAttr, FieldAttr, RegionAttr,
+  ImgAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
 import { buildAttrs } from './_shared';
 
@@ -75,6 +75,12 @@ export interface LpdfFieldNode {
   attrs: Record<string, string>;
 }
 
+/** An outline entry and link target that marks the node after it; it draws nothing. */
+export interface LpdfBookmarkNode {
+  type:  'bookmark';
+  attrs: Record<string, string>;
+}
+
 export type LpdfNode =
   | LpdfContainerNode
   | LpdfTextNode
@@ -83,7 +89,8 @@ export type LpdfNode =
   | LpdfImgNode
   | LpdfBarcodeNode
   | LpdfRegionNode
-  | LpdfFieldNode;
+  | LpdfFieldNode
+  | LpdfBookmarkNode;
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -169,6 +176,14 @@ function field(attrs: FieldAttr): LpdfFieldNode {
   return { type: 'field', attrs: buildAttrs(attrs) };
 }
 
+/**
+ * An entry of the PDF's outline and a target for `href: '#id'` links. It marks the node that follows it
+ * in the same list; directly in a section's nodes, it marks the section's first page.
+ */
+function bookmark(attrs: BookmarkAttr): LpdfBookmarkNode {
+  return { type: 'bookmark', attrs: buildAttrs(attrs) };
+}
+
 export const LpdfLayout = Object.freeze({
   stack,
   flank,
@@ -188,4 +203,5 @@ export const LpdfLayout = Object.freeze({
   td,
   region,
   field,
+  bookmark,
 });

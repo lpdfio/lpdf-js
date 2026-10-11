@@ -30,6 +30,13 @@ export const Orientation = {
 
 export type Orientation = (typeof Orientation)[keyof typeof Orientation];
 
+/** The values of the `type` attribute of a section. */
+export const SectionType = {
+  Toc: 'toc',
+} as const;
+
+export type SectionType = (typeof SectionType)[keyof typeof SectionType];
+
 /** The values of the `core` attribute of a font: the built-in PDF fonts, which need no file. */
 export const BuiltinFont = {
   Courier: 'Courier',

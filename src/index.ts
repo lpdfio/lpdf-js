@@ -6,7 +6,7 @@ export type { EncryptPermissions, EncryptOptions } from './engine';
 export type { RenderOptions, EngineOptions } from './_shared';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
-export { FieldType, Pin, Orientation, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────
 export type {
@@ -20,7 +20,7 @@ export type {
 export type {
     StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr,
+    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr,
     FontAttr, ImageAttr,
 } from './attrs';
@@ -29,7 +29,7 @@ export type {
 export type {
     LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
     LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
-    LpdfTdNode, LpdfRegionNode, LpdfFieldNode,
+    LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
 
 // ── Canvas types ──────────────────────────────────────────────────────────────

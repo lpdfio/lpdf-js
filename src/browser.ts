@@ -22,7 +22,7 @@ import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
-export { FieldType, Pin, Orientation, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfLayoutBlock, LpdfCanvasBlock,
     DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
@@ -30,14 +30,14 @@ export type {
 export type {
     StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr,
+    ImgAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr,
     FontAttr, ImageAttr,
 } from './attrs';
 export type {
     LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
     LpdfImgNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
-    LpdfTdNode, LpdfRegionNode, LpdfFieldNode,
+    LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
 export type { LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode } from './canvas';
 

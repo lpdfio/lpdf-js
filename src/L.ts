@@ -64,6 +64,7 @@ export const L = Object.freeze({
     barcode: LpdfLayout.barcode,
     region:  LpdfLayout.region,
     field:   LpdfLayout.field,
+    bookmark: LpdfLayout.bookmark,
 
     // ── Canvas ────────────────────────────────────────────────────────────────
     layer:   LpdfCanvas.layer,
