@@ -93,6 +93,18 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public --provenance
 
+      # main's ruleset takes changes through a PR only, and the lpdf release App
+      # is its one bypass actor. So the changelog commit below is pushed with a
+      # token of that App, minted here for this repo. The App's key is a secret
+      # of this job's environment, never of the repo: only a run the user
+      # approved can mint it.
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.LPDF_RELEASE_APP_ID }}
+          private-key: ${{ secrets.LPDF_RELEASE_APP_PRIVATE_KEY }}
+
       # ── Changelog ────────────────────────────────────────────────────────────
       # Writes this release's notes into CHANGELOG.md on main, and hands the
       # same text to the release step below so the file and the Releases page
@@ -106,6 +118,7 @@ jobs:
       - name: Update CHANGELOG.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
 
@@ -166,7 +179,10 @@ jobs:
 
           git add CHANGELOG.md
           git diff --cached --quiet || git commit -m "changelog: $ADAPTER_TAG"
-          git push origin main
+          # As the App: the empty extraheader drops the GITHUB_TOKEN header that
+          # checkout set, so git sends the App token from the URL instead.
+          git -c http.https://github.com/.extraheader= push \
+            "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" main
 
       # ── Create GitHub Release (core-triggered only) ──────────────────────────
       # --notes carries core's text onto this repo's Releases page, which
