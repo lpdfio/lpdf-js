@@ -22,7 +22,7 @@ const engine = L.engine()
 const doc = L.document({ size: 'letter', margin: '48pt' }, [
     L.section(NoAttr, [
         L.layout(NoAttr, [
-            L.stack({ gap: '24pt' }, [
+            L.column({ gap: '24pt' }, [
                 L.split(NoAttr, [
                     L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),
                     L.text({ fontSize: '22pt', bold: 'true' }, ['Project Proposal']),

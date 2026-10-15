@@ -1,5 +1,5 @@
 import type {
-  StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
+  ColumnAttr, FlankAttr, SplitAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
   ImgAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
@@ -14,7 +14,7 @@ export interface LpdfSpanNode {
 }
 
 export interface LpdfContainerNode {
-  type:  'stack' | 'flank' | 'split' | 'cluster' | 'grid' | 'frame' | 'link';
+  type:  'column' | 'flank' | 'split' | 'row' | 'grid' | 'frame' | 'link';
   attrs: Record<string, string>;
   nodes: LpdfNode[];
 }
@@ -104,8 +104,8 @@ function makeContainer(
 
 // ── LpdfLayout factory ────────────────────────────────────────────────────────
 
-function stack(attrs: StackAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
-  return makeContainer('stack', attrs, nodes);
+function column(attrs: ColumnAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
+  return makeContainer('column', attrs, nodes);
 }
 
 function flank(attrs: FlankAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
@@ -116,8 +116,8 @@ function split(attrs: SplitAttr | null, nodes: LpdfNode[] = []): LpdfContainerNo
   return makeContainer('split', attrs, nodes);
 }
 
-function cluster(attrs: ClusterAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
-  return makeContainer('cluster', attrs, nodes);
+function row(attrs: RowAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
+  return makeContainer('row', attrs, nodes);
 }
 
 function grid(attrs: GridAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
@@ -185,10 +185,10 @@ function bookmark(attrs: BookmarkAttr): LpdfBookmarkNode {
 }
 
 export const LpdfLayout = Object.freeze({
-  stack,
+  column,
   flank,
   split,
-  cluster,
+  row,
   grid,
   frame,
   link,

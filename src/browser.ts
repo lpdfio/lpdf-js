@@ -28,7 +28,7 @@ export type {
     DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
 } from './kit';
 export type {
-    StackAttr, FlankAttr, SplitAttr, ClusterAttr, GridAttr, FrameAttr, LinkAttr,
+    ColumnAttr, FlankAttr, SplitAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
     ImgAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr,

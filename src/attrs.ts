@@ -5,7 +5,7 @@
  * Places children top to bottom, each at the full width, with gap between them. Can split across
  * pages between children.
  */
-export interface StackAttr {
+export interface ColumnAttr {
   font?: string;
   fontSize?: string;
   gap?: string;
@@ -125,10 +125,10 @@ export interface SplitAttr {
 }
 
 /**
- * A row that wraps: children sit side by side, and continue on the next line when they run out of
- * width. Splits across pages between lines.
+ * Children side by side, continuing on the next line when they run out of width. Splits across
+ * pages between lines.
  */
-export interface ClusterAttr {
+export interface RowAttr {
   font?: string;
   fontSize?: string;
   gap?: string;
