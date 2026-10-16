@@ -47,8 +47,6 @@ export const L = Object.freeze({
 
     // ── Layout ────────────────────────────────────────────────────────────────
     column:  LpdfLayout.column,
-    flank:   LpdfLayout.flank,
-    split:   LpdfLayout.split,
     row:     LpdfLayout.row,
     grid:    LpdfLayout.grid,
     frame:   LpdfLayout.frame,
