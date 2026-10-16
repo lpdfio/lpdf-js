@@ -1,5 +1,5 @@
 import type {
-  ColumnAttr, FlankAttr, SplitAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
+  ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
   ImgAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
@@ -14,7 +14,7 @@ export interface LpdfSpanNode {
 }
 
 export interface LpdfContainerNode {
-  type:  'column' | 'flank' | 'split' | 'row' | 'grid' | 'frame' | 'link';
+  type:  'column' | 'row' | 'grid' | 'frame' | 'link';
   attrs: Record<string, string>;
   nodes: LpdfNode[];
 }
@@ -108,14 +108,6 @@ function column(attrs: ColumnAttr | null, nodes: LpdfNode[] = []): LpdfContainer
   return makeContainer('column', attrs, nodes);
 }
 
-function flank(attrs: FlankAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
-  return makeContainer('flank', attrs, nodes);
-}
-
-function split(attrs: SplitAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
-  return makeContainer('split', attrs, nodes);
-}
-
 function row(attrs: RowAttr | null, nodes: LpdfNode[] = []): LpdfContainerNode {
   return makeContainer('row', attrs, nodes);
 }
@@ -186,8 +178,6 @@ function bookmark(attrs: BookmarkAttr): LpdfBookmarkNode {
 
 export const LpdfLayout = Object.freeze({
   column,
-  flank,
-  split,
   row,
   grid,
   frame,
