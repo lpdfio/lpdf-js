@@ -14,7 +14,7 @@ import { resolve } from 'node:path';
 import { L } from '../dist/index.js';
 
 (async () => {
-  const __root = resolve(__dirname, '../../../../example/');
+  const __root = resolve(__dirname, '../../../example/');
 
   const examples = [
     'example1', 
