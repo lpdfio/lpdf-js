@@ -2,20 +2,18 @@
  * encrypt-open-password.ts — render showcase-encryption.xml with RC4-128 encryption,
  * open password required, copy disabled.
  *
- * Run after building the adapter:
- *   cd src/adapters/node
- *   npm run build
- *   npx ts-node example/encrypt-open-password.ts
+ * Run from lpdf's root, after building the adapter (make build-sdk-node):
+ *   make example-node
  *
- * Output: example/result/encrypt-open-password-node.pdf
+ * Output: tmp/sdk-examples/encrypt-open-password-node.pdf in lpdf's root.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { L } from '../dist/index.js';
 
 (async () => {
-  const __root   = resolve(__dirname, '../../../example/');
+  const output   = resolve(__dirname, '../../../tmp/sdk-examples');
   const xmlFile  = resolve(__dirname, '../../../test/fixtures/showcase-encryption.xml');
   const outputFile = 'encrypt-open-password-node.pdf';
 
@@ -30,6 +28,7 @@ import { L } from '../dist/index.js';
 
   const bytes = await engine.render(xml);
 
-  writeFileSync(resolve(__root, 'result', outputFile), bytes);
+  mkdirSync(output, { recursive: true });
+  writeFileSync(resolve(output, outputFile), bytes);
   console.log(`output: ${outputFile} (${bytes.length.toLocaleString()} bytes)`);
 })();
