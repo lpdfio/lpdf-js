@@ -11,7 +11,7 @@ export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from
 // ── Document tree types ───────────────────────────────────────────────────────
 export type {
     PdfDocument,
-    LpdfSectionNode, LpdfLayoutBlock, LpdfCanvasBlock,
+    LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
     DocumentTokens, DocumentAssets, DocumentMeta,
     SectionAttr, DocumentAttr,
 } from './kit';
@@ -32,7 +32,7 @@ export type {
     LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
 
-// ── Canvas types ──────────────────────────────────────────────────────────────
+// ── Layer types ───────────────────────────────────────────────────────────────
 export { CanvasTransform } from './canvas';
 export type {
     LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode,

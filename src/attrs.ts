@@ -452,7 +452,10 @@ export interface RegionAttr {
 }
 
 /**
- * Groups canvas shapes and sets what applies to all of them: which pages they appear on, opacity,
+ * Draws shapes at exact positions on the page, independent of the flowing layout: watermarks,
+ * stamps, page furniture. Coordinates start at the top left corner of the whole page, not the
+ * margin, and y grows downward. A layer before the section's layout paints under it, and one after
+ * paints over it. It sets what applies to all of its shapes: which pages they appear on, opacity,
  * transform and clip. Layers cannot be nested.
  */
 export interface LayerAttr {
@@ -463,7 +466,7 @@ export interface LayerAttr {
 }
 
 /**
- * Attributes of the `rect` element on the canvas.
+ * Attributes of the `rect` element in a layer.
  */
 export interface RectAttr {
   w: string;
@@ -480,7 +483,7 @@ export interface RectAttr {
 }
 
 /**
- * Attributes of the `circle` element on the canvas.
+ * Attributes of the `circle` element in a layer.
  */
 export interface CircleAttr {
   r: string;
@@ -495,7 +498,7 @@ export interface CircleAttr {
 }
 
 /**
- * Attributes of the `ellipse` element on the canvas.
+ * Attributes of the `ellipse` element in a layer.
  */
 export interface EllipseAttr {
   rx: string;
@@ -511,7 +514,7 @@ export interface EllipseAttr {
 }
 
 /**
- * Attributes of the `line` element on the canvas.
+ * Attributes of the `line` element in a layer.
  */
 export interface LineAttr {
   x1: string;
@@ -525,7 +528,7 @@ export interface LineAttr {
 }
 
 /**
- * Attributes of the `path` element on the canvas.
+ * Attributes of the `path` element in a layer.
  */
 export interface PathAttr {
   d: string;
@@ -555,7 +558,7 @@ export interface CanvasTextAttr {
 }
 
 /**
- * Attributes of the `img` element on the canvas.
+ * Attributes of the `img` element in a layer.
  */
 export interface CanvasImgAttr {
   name: string;

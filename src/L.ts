@@ -11,7 +11,7 @@ export const NoAttr = null;
 /**
  * Unified lpdf facade.
  *
- * All document, layout, and canvas factory methods are available as flat
+ * All document, layout, and layer factory methods are available as flat
  * properties on this object. Construction-time configuration is handled via
  * `L.engine()`.
  *
@@ -41,7 +41,6 @@ export const L = Object.freeze({
     document: LpdfKit.document,
     section:  LpdfKit.section,
     layout:   LpdfKit.layout,
-    canvas:   LpdfKit.canvas,
     assets:   (attrs: DocumentAssets): DocumentAssets => attrs,
     tokens:   (attrs: DocumentTokens): DocumentTokens => attrs,
 
@@ -64,7 +63,7 @@ export const L = Object.freeze({
     field:   LpdfLayout.field,
     bookmark: LpdfLayout.bookmark,
 
-    // ── Canvas ────────────────────────────────────────────────────────────────
+    // ── Layers ────────────────────────────────────────────────────────────────
     layer:   LpdfCanvas.layer,
     rect:    LpdfCanvas.rect,
     line:    LpdfCanvas.line,

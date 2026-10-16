@@ -1,26 +1,22 @@
 /**
  * LpdfKit — document skeleton assembly.
  *
- * Assembles sections (containing layout and canvas blocks) into a document
- * tree ready for `LpdfEngine.renderPdf()` or `kitToXml()`.
+ * Assembles sections (layers and a layout) into a document tree ready for
+ * `PdfEngine.render()` or `L.toXml()`. A section holds layers, then at most
+ * one layout, then layers: the layers before the layout paint under it, and
+ * the layers after it paint over it.
  *
  * @example
  * ```ts
- * import { LpdfEngine, LpdfKit, LpdfLayout, LpdfCanvas } from 'lpdf';
+ * import { L, NoAttr } from '@lpdfio/lpdf';
  *
- * const doc = LpdfKit.document({
- *   sections: [
- *     LpdfKit.section({
- *       nodes: [
- *         LpdfKit.canvas([ LpdfCanvas.layer([ LpdfCanvas.rect(0, 0, 595, 842) ]) ]),
- *         LpdfKit.layout([ LpdfLayout.text(['Hello']) ]),
- *       ],
- *       options: { size: 'a4', margin: '28pt' },
- *     }),
- *   ],
- *   options: { meta: { title: 'My Doc' } },
- * });
- * const bytes = await new LpdfEngine(key).renderPdf(doc);
+ * const doc = L.document({ meta: { title: 'My Doc' } }, [
+ *   L.section({ size: 'a4', margin: '28pt' }, [
+ *     L.layer(NoAttr, [ L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#f5f5f5' }) ]),
+ *     L.layout(null, [ L.text(NoAttr, ['Hello']) ]),
+ *   ]),
+ * ]);
+ * const bytes = await L.engine().setLicenseKey(key).render(doc);
  * ```
  */
 
@@ -89,19 +85,19 @@ export interface LpdfLayoutBlock {
   nodes: LpdfNode[];
 }
 
-/** A canvas block — wraps an ordered list of canvas layers. */
-export interface LpdfCanvasBlock {
-  type:  'canvas';
-  nodes: LpdfCanvasLayerNode[];
-}
-
 // ── Document structure ────────────────────────────────────────────────────────
 
 export interface LpdfSectionNode {
   type:  'section';
   attrs: Record<string, string>;
-  nodes: (LpdfBookmarkNode | LpdfLayoutBlock | LpdfCanvasBlock)[];
+  nodes: LpdfSectionChild[];
 }
+
+/**
+ * What a section holds: a bookmark first, then layers, then at most one layout, then layers. Layers before
+ * the layout paint under it, and layers after it paint over it.
+ */
+export type LpdfSectionChild = LpdfBookmarkNode | LpdfCanvasLayerNode | LpdfLayoutBlock;
 
 export interface PdfDocument {
   version:  1;
@@ -116,11 +112,7 @@ function layout(_attrs: null, nodes: LpdfNode[] = []): LpdfLayoutBlock {
   return { type: 'layout', nodes };
 }
 
-function canvas(_attrs: null, layers: LpdfCanvasLayerNode[] = []): LpdfCanvasBlock {
-  return { type: 'canvas', nodes: layers };
-}
-
-function section(attrs: SectionAttr | null, nodes: (LpdfBookmarkNode | LpdfLayoutBlock | LpdfCanvasBlock)[] = []): LpdfSectionNode {
+function section(attrs: SectionAttr | null, nodes: LpdfSectionChild[] = []): LpdfSectionNode {
   return {
     type:  'section',
     attrs: buildAttrs(attrs),
@@ -151,7 +143,6 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
 
 export const LpdfKit = Object.freeze({
   layout,
-  canvas,
   section,
   document,
 });

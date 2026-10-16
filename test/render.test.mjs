@@ -134,13 +134,11 @@ describe('LpdfEngine', () => {
     assert.equal(header, '%PDF-');
   });
 
-  it('renders canvas layer with a rect via JSON path', async () => {
+  it('renders a layer with a rect via JSON path', async () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [
-          L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#eeeeee' })]),
-        ]),
-        L.layout(null, [L.text(null, ['Canvas underlay'])]),
+        L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#eeeeee' })]),
+        L.layout(null, [L.text(null, ['Layer underlay'])]),
       ]),
     ]);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
@@ -149,17 +147,28 @@ describe('LpdfEngine', () => {
     assert.equal(header, '%PDF-');
   });
 
-  it('kitToXml canvas text content appears in XML output', () => {
+  it('kitToXml layer text content appears in XML output', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [
-          L.layer(null, [L.textAt({ x: '10pt', y: '20pt' }, ['Hello canvas'])]),
-        ]),
+        L.layer(null, [L.textAt({ x: '10pt', y: '20pt' }, ['Hello layer'])]),
         L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
     const xml = L.toXml(document);
-    assert(xml.includes('Hello canvas'), `text content missing from XML:\n${xml}`);
+    assert(xml.includes('Hello layer'), `text content missing from XML:\n${xml}`);
+  });
+
+  it('rejects a section with two layouts, with an error that says to use one', async () => {
+    const document = L.document(null, [
+      L.section(null, [
+        L.layout(null, [L.text(null, ['a'])]),
+        L.layout(null, [L.text(null, ['b'])]),
+      ]),
+    ]);
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(document),
+      (e) => e instanceof LpdfRenderError && /at most one <layout>/.test(e.message),
+    );
   });
 
 });
@@ -227,40 +236,42 @@ describe('kitToXml', () => {
     assert.equal(header, '%PDF-');
   });
 
-  it('emits section with layout and canvas blocks', () => {
+  it('emits a section with layers before and after its layout', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '10pt', h: '10pt' })])]),
+        L.layer({ page: 'first' }, [L.rect({ x: '0pt', y: '0pt', w: '10pt', h: '10pt' })]),
         L.layout(null, [L.text(null, ['hello'])]),
+        L.layer({ page: 'last' }, [L.rect({ x: '0pt', y: '0pt', w: '20pt', h: '20pt' })]),
       ]),
     ]);
     const xml = L.toXml(document);
-    assert(xml.includes('<canvas>'), 'missing <canvas> block');
-    assert(xml.includes('<layout>'), 'missing <layout> block');
-    assert(xml.includes('<layer'), 'missing <layer> element');
+    const under = xml.indexOf('<layer page="first">');
+    const layout = xml.indexOf('<layout>');
+    const over = xml.indexOf('<layer page="last">');
+    assert(under >= 0 && layout >= 0 && over >= 0, `missing a layer or the layout:\n${xml}`);
+    assert(under < layout && layout < over, `the layers are not around the layout:\n${xml}`);
+    assert(!xml.includes('<canvas'), `a <canvas> was written:\n${xml}`);
     assert(xml.includes('<rect '), 'missing <rect> element');
   });
 
-  it('canvas text node emits text content at top level', () => {
+  it('layer text node emits text content at top level', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [L.layer(null, [L.textAt({ x: '5pt', y: '5pt' }, ['Test text'])])]),
+        L.layer(null, [L.textAt({ x: '5pt', y: '5pt' }, ['Test text'])]),
         L.layout(null, [L.text(null, ['x'])]),
       ]),
     ]);
     const xml = L.toXml(document);
-    assert(xml.includes('Test text'), 'canvas text content missing from XML');
+    assert(xml.includes('Test text'), 'layer text content missing from XML');
   });
 
-  it('canvas text node with spans emits span elements', () => {
+  it('layer text node with spans emits span elements', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.canvas(null, [
-          L.layer(null, [
-            L.textAt({ x: '5pt', y: '5pt' }, [
-              L.span({ font: 'Helvetica-Bold' }, ['bold part']),
-              L.span({ color: '#333333' }, ['normal part']),
-            ]),
+        L.layer(null, [
+          L.textAt({ x: '5pt', y: '5pt' }, [
+            L.span({ font: 'Helvetica-Bold' }, ['bold part']),
+            L.span({ color: '#333333' }, ['normal part']),
           ]),
         ]),
         L.layout(null, [L.text(null, ['x'])]),
@@ -441,21 +452,15 @@ describe('LpdfKit section model', () => {
     assert.equal(block.nodes[0].type, 'text');
   });
 
-  it('LpdfKit.canvas wraps layers in a canvas block', () => {
-    const layer = L.layer(null, [L.rect({ w: '10pt', h: '10pt' })]);
-    const block = L.canvas(null, [layer]);
-    assert.equal(block.type, 'canvas');
-    assert.equal(block.nodes.length, 1);
-    assert.equal(block.nodes[0].type, 'layer');
+  it('has no canvas: layers go directly in the section', () => {
+    assert.equal('canvas' in L, false);
   });
 
-  it('LpdfKit.section preserves block order, no implicit wrapping', () => {
+  it('LpdfKit.section preserves the order of its layers and layout, no implicit wrapping', () => {
     const layoutBlock = L.layout(null, [L.text(null, ['text'])]);
-    const canvasBlock = L.canvas(null, [L.layer(null, [])]);
-    const sec = L.section(null, [canvasBlock, layoutBlock]);
+    const sec = L.section(null, [L.layer(null, []), layoutBlock, L.layer(null, [])]);
     assert.equal(sec.type, 'section');
-    assert.equal(sec.nodes[0].type, 'canvas');
-    assert.equal(sec.nodes[1].type, 'layout');
+    assert.deepEqual(sec.nodes.map((n) => n.type), ['layer', 'layout', 'layer']);
   });
 
   it('LpdfKit.section options are serialised to attrs', () => {
@@ -645,11 +650,9 @@ describe('attributes follow the schema', () => {
             L.link({ href: 'https://lpdf.io' }, [L.text(null, ['link'])]),
           ]),
         ]),
-        L.canvas(null, [
-          L.layer({ page: 'each' }, [
-            L.rect({ x: '40pt', y: '40pt', w: '100pt', h: '60pt', fill: '#ff0000', radius: '6pt' }),
-            L.textAt({ x: '40pt', y: '120pt', fontSize: '10pt' }, ['Canvas ', L.span({ color: '#0000ff' }, ['text'])]),
-          ]),
+        L.layer({ page: 'each' }, [
+          L.rect({ x: '40pt', y: '40pt', w: '100pt', h: '60pt', fill: '#ff0000', radius: '6pt' }),
+          L.textAt({ x: '40pt', y: '120pt', fontSize: '10pt' }, ['Layer ', L.span({ color: '#0000ff' }, ['text'])]),
         ]),
       ]),
     ]);
