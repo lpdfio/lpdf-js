@@ -24,7 +24,7 @@ import type { LicenseCheck } from './engine';
 export type { RenderOptions } from './_shared';
 export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from './constants';
 export type {
-    PdfDocument, LpdfSectionNode, LpdfLayoutBlock, LpdfCanvasBlock,
+    PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
     DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
 } from './kit';
 export type {
