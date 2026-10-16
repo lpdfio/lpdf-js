@@ -46,10 +46,8 @@ export const L = Object.freeze({
     tokens:   (attrs: DocumentTokens): DocumentTokens => attrs,
 
     // ── Layout ────────────────────────────────────────────────────────────────
-    stack:   LpdfLayout.stack,
-    flank:   LpdfLayout.flank,
-    split:   LpdfLayout.split,
-    cluster: LpdfLayout.cluster,
+    column:  LpdfLayout.column,
+    row:     LpdfLayout.row,
     grid:    LpdfLayout.grid,
     frame:   LpdfLayout.frame,
     link:    LpdfLayout.link,

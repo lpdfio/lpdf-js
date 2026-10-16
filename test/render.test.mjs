@@ -61,12 +61,12 @@ describe('LpdfEngine', () => {
     assert.equal(header, '%PDF-');
   });
 
-  it('renders a section with a stack of two frames', async () => {
+  it('renders a section with a column of two frames', async () => {
     const xml = doc(`
-      <stack gap="m">
+      <column gap="m">
         <frame height="40pt"/>
         <frame height="40pt"/>
-      </stack>
+      </column>
     `);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const bytes = await lpdf.render(xml);
@@ -547,7 +547,7 @@ describe('bookmarks', () => {
   it('a table of contents section lists the bookmarks of an XML template', async () => {
     const xml = `<lpdf version="1"><document>
       <section type="toc"><layout>
-        <stack data-source="$toc"><link href="#"><text data-value="label">Label</text></link></stack>
+        <column data-source="$toc"><link href="#"><text data-value="label">Label</text></link></column>
       </layout></section>
       <section><layout><bookmark label="Methods"/><text>Methods</text></layout></section>
     </document></lpdf>`;
@@ -572,9 +572,9 @@ describe('data binding', () => {
 
   it('data-source expands an array', async () => {
     const xml = doc(`
-      <stack data-source="items" gap="xs">
+      <column data-source="items" gap="xs">
         <text data-value="label">Fallback item</text>
-      </stack>
+      </column>
     `);
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const data = { items: [{ label: 'Alpha' }, { label: 'Beta' }, { label: 'Gamma' }] };
@@ -630,7 +630,7 @@ describe('attributes follow the schema', () => {
   });
 
   it('layout builders take their content as optional', () => {
-    assert.deepEqual(L.stack(null).nodes, []);
+    assert.deepEqual(L.column(null).nodes, []);
     assert.deepEqual(L.text(null).nodes, []);
     assert.deepEqual(L.document(null).nodes, []);
   });
@@ -639,7 +639,7 @@ describe('attributes follow the schema', () => {
     const built = L.document({ size: 'a4' }, [
       L.section(null, [
         L.layout(null, [
-          L.stack({ gap: '12pt' }, [
+          L.column({ gap: '12pt' }, [
             L.text({ align: 'right', bold: 'true' }, ['Title']),
             L.text(null, ['Body ', L.span({ bold: 'true' }, ['bold']), ' text']),
             L.link({ href: 'https://lpdf.io' }, [L.text(null, ['link'])]),

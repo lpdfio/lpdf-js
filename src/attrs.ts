@@ -5,7 +5,7 @@
  * Places children top to bottom, each at the full width, with gap between them. Can split across
  * pages between children.
  */
-export interface StackAttr {
+export interface ColumnAttr {
   font?: string;
   fontSize?: string;
   gap?: string;
@@ -36,99 +36,21 @@ export interface StackAttr {
   debug?: string;
   align?: string;
   justify?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
 }
 
 /**
- * One row where the children keep their own width except one, which fills the rest. By default the
- * last child fills; set end to true and the first fills. Never splits across pages.
+ * Children side by side, continuing on the next line when they run out of width. A child with width
+ * set to fill takes what its line leaves; justify set to between puts a line's first child at the
+ * left edge, its last at the right and the others evenly between. Splits across pages between
+ * lines.
  */
-export interface FlankAttr {
-  font?: string;
-  fontSize?: string;
-  gap?: string;
-  /**
-   * Space between the edge of the box and its content, written like CSS: one value for all sides,
-   * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
-   */
-  padding?: string;
-  /**
-   * Height of the box. Leave it out to size to the content. A length fixes it; fill takes what is
-   * left after its siblings (shared equally if several use fill); full takes all the height
-   * available. Any of these stops the box splitting across pages.
-   */
-  height?: string;
-  background?: string;
-  border?: string;
-  radius?: string;
-  /**
-   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
-   * page when it does not fit. break-before: start it on a new page. break-after: start the next
-   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
-   */
-  paginate?: string;
-  debug?: string;
-  align?: string;
-  /**
-   * false (the default): every child but the last keeps its own width at the left, and the last
-   * fills the rest. true: the first child fills, and the others keep their own width at the right.
-   */
-  end?: string;
-  width?: string;
-}
-
-/**
- * Two children side by side; any further children are ignored. By default each keeps its own width,
- * the first at the left edge and the second at the right. With equal set to true they take half the
- * width each. Never splits across pages.
- */
-export interface SplitAttr {
-  font?: string;
-  fontSize?: string;
-  gap?: string;
-  /**
-   * Space between the edge of the box and its content, written like CSS: one value for all sides,
-   * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
-   */
-  padding?: string;
-  /**
-   * Height of the box. Leave it out to size to the content. A length fixes it; fill takes what is
-   * left after its siblings (shared equally if several use fill); full takes all the height
-   * available. Any of these stops the box splitting across pages.
-   */
-  height?: string;
-  background?: string;
-  border?: string;
-  radius?: string;
-  /**
-   * Where the box falls in the page flow. no: never split the box, and move it whole to the next
-   * page when it does not fit. break-before: start it on a new page. break-after: start the next
-   * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
-   */
-  paginate?: string;
-  debug?: string;
-  align?: string;
-  /**
-   * false (the default): each child keeps its own width, the first at the left edge and the second
-   * at the right edge. true: the two children share the width in equal halves.
-   */
-  equal?: string;
-  width?: string;
-}
-
-/**
- * A row that wraps: children sit side by side, and continue on the next line when they run out of
- * width. Splits across pages between lines.
- */
-export interface ClusterAttr {
+export interface RowAttr {
   font?: string;
   fontSize?: string;
   gap?: string;
@@ -159,6 +81,11 @@ export interface ClusterAttr {
   debug?: string;
   align?: string;
   justify?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
 }
 
@@ -195,6 +122,11 @@ export interface GridAttr {
    */
   paginate?: string;
   debug?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   colWidth?: string;
   cols?: string;
@@ -232,6 +164,11 @@ export interface FrameAttr {
    */
   paginate?: string;
   debug?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
 }
 
@@ -245,6 +182,11 @@ export interface LinkAttr {
    */
   href: string;
   gap?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   height?: string;
   debug?: string;
@@ -257,6 +199,12 @@ export interface DividerAttr {
   direction?: string;
   color?: string;
   thickness?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
+  width?: string;
   debug?: string;
 }
 
@@ -282,6 +230,11 @@ export interface SpanAttr {
 export interface ImgAttr {
   name: string;
   height?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   font?: string;
   fontSize?: string;
@@ -301,6 +254,11 @@ export interface BarcodeAttr {
   type: string;
   data: string;
   size?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   height?: string;
   ec?: string;
@@ -326,6 +284,11 @@ export interface TextAttr {
   bold?: string;
   color?: string;
   align?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   /**
    * The fewest lines of the text that may stand alone at the top of the next page when it splits.
@@ -408,6 +371,11 @@ export interface TableAttr {
   gap?: string;
   padding?: string;
   background?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   height?: string;
   paginate?: string;
@@ -429,6 +397,11 @@ export interface FieldAttr {
   readonly?: string;
   maxLen?: string;
   actionUrl?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
   width?: string;
   height?: string;
   background?: string;

@@ -22,16 +22,16 @@ const engine = L.engine()
 const doc = L.document({ size: 'letter', margin: '48pt' }, [
     L.section(NoAttr, [
         L.layout(NoAttr, [
-            L.stack({ gap: '24pt' }, [
-                L.split(NoAttr, [
+            L.column({ gap: '24pt' }, [
+                L.row({ justify: 'between' }, [
                     L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),
                     L.text({ fontSize: '22pt', bold: 'true' }, ['Project Proposal']),
                 ]),
                 L.divider({ thickness: 'xs' }),
                 L.text({ fontSize: '13pt', bold: 'true' }, ['Scope of Work']),
-                L.flank({ gap: '12pt', align: 'start' }, [
+                L.row({ gap: '12pt', align: 'start' }, [
                     L.text({ color: '#888888', width: '24pt' }, ['01']),
-                    L.text(NoAttr, ['Discovery & Research']),
+                    L.text({ width: 'fill' }, ['Discovery & Research']),
                 ]),
             ]),
         ]),

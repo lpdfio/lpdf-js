@@ -26,8 +26,8 @@ export const HAS_FIXTURES = existsSync(FIXTURES);
 export const EXAMPLES = [
   'example1', 'example2', 'example3', 'example4',  'example5',
   'example6', 'example7', 'example8', 'example9', 'example10', 'example11',
-  'showcase-cluster', 'showcase-flank', 'showcase-frame',
-  'showcase-grid', 'showcase-split', 'showcase-stack',
+  'showcase-row', 'showcase-row-fill', 'showcase-frame',
+  'showcase-grid', 'showcase-row-between', 'showcase-column',
   'showcase-table', 'showcase-barcode', 'showcase-encryption', 'showcase-forms',
   'bench_xs', 'bench_s', 'bench_m', 'bench_l', 'bench_xl',
   'showcase-canvas-layer', 'showcase-canvas-overlay', 'showcase-canvas-rect', 'showcase-canvas-text',
