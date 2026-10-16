@@ -9,10 +9,10 @@ import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// In the monorepo, this file is at src/adapters/node/test/ — 4 levels up is
-// the monorepo root (where Cargo.toml lives).  In a standalone adapter repo
+// In an lpdf checkout, this file is at repos/lpdf-js/test/ — 3 levels up is
+// lpdf's root (where Cargo.toml lives).  In a standalone adapter repo
 // checkout the test/ directory is at the root, so fall back one level up.
-const _monoroot = path.resolve(__dirname, '../../../../');
+const _monoroot = path.resolve(__dirname, '../../../');
 export const ROOT      = existsSync(path.join(_monoroot, 'Cargo.toml'))
   ? _monoroot
   : path.resolve(__dirname, '../');

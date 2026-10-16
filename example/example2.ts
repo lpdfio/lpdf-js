@@ -79,7 +79,7 @@ import { NoAttr, L } from '../dist/index.js';
     ]);
 
     const bytes = await engine.render(doc);
-    const outputFile = resolve(__dirname, '../../../../example/result/pdf-as-code-node.pdf');
+    const outputFile = resolve(__dirname, '../../../example/result/pdf-as-code-node.pdf');
     writeFileSync(outputFile, bytes);
     console.log(`output: ${outputFile} (${bytes.length.toLocaleString()} bytes)`);
 })();
