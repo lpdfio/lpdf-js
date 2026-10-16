@@ -1,15 +1,13 @@
 /**
  * example2.ts — PDF as Code: compose a proposal page using column and row.
  *
- * Run after building the adapter:
- *   cd src/adapters/node
- *   npm run build
- *   npx ts-node example/example2.ts
+ * Run from lpdf's root, after building the adapter (make build-sdk-node):
+ *   make example-node
  *
- * Output: example/result/pdf-as-code-node.pdf
+ * Output: tmp/sdk-examples/pdf-as-code-node.pdf in lpdf's root.
  */
 
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { NoAttr, L } from '../dist/index.js';
 
@@ -79,7 +77,9 @@ import { NoAttr, L } from '../dist/index.js';
     ]);
 
     const bytes = await engine.render(doc);
-    const outputFile = resolve(__dirname, '../../../example/result/pdf-as-code-node.pdf');
+    const output = resolve(__dirname, '../../../tmp/sdk-examples');
+    const outputFile = resolve(output, 'pdf-as-code-node.pdf');
+    mkdirSync(output, { recursive: true });
     writeFileSync(outputFile, bytes);
     console.log(`output: ${outputFile} (${bytes.length.toLocaleString()} bytes)`);
 })();
