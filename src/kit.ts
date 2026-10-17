@@ -11,9 +11,9 @@
  * import { L, NoAttr } from '@lpdfio/lpdf';
  *
  * const doc = L.document({ meta: { title: 'My Doc' } }, [
- *   L.section({ size: 'a4', margin: '28pt' }, [
+ *   L.section({ size: 'a4' }, [
  *     L.layer(NoAttr, [ L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#f5f5f5' }) ]),
- *     L.layout(null, [ L.text(NoAttr, ['Hello']) ]),
+ *     L.layout({ margin: '28pt' }, [ L.text(NoAttr, ['Hello']) ]),
  *   ]),
  * ]);
  * const bytes = await L.engine().setLicenseKey(key).render(doc);
@@ -22,7 +22,7 @@
 
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
-import type { FontAttr, ImageAttr } from './attrs';
+import type { FontAttr, ImageAttr, LayoutAttr } from './attrs';
 import { buildAttrs } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -57,7 +57,6 @@ export interface DocumentMeta {
 export interface SectionAttr {
   size?:        string;
   orientation?: string;
-  margin?:      string;
   background?:  string;
   title?:       string;
   debug?:       string;
@@ -68,7 +67,6 @@ export interface SectionAttr {
 export interface DocumentAttr {
   size?:        string;
   orientation?: string;
-  margin?:      string;
   background?:  string;
   font?:        string;
   assets?:      DocumentAssets;
@@ -82,6 +80,7 @@ export interface DocumentAttr {
 /** A layout block — wraps an ordered list of layout nodes. */
 export interface LpdfLayoutBlock {
   type:  'layout';
+  attrs: Record<string, string>;
   nodes: LpdfNode[];
 }
 
@@ -108,8 +107,8 @@ export interface PdfDocument {
 
 // ── Factory functions ─────────────────────────────────────────────────────────
 
-function layout(_attrs: null, nodes: LpdfNode[] = []): LpdfLayoutBlock {
-  return { type: 'layout', nodes };
+function layout(attrs: LayoutAttr | null, nodes: LpdfNode[] = []): LpdfLayoutBlock {
+  return { type: 'layout', attrs: buildAttrs(attrs), nodes };
 }
 
 function section(attrs: SectionAttr | null, nodes: LpdfSectionChild[] = []): LpdfSectionNode {

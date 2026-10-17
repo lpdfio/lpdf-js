@@ -171,6 +171,23 @@ describe('LpdfEngine', () => {
     );
   });
 
+  it('kitToXml writes the margin on the layout', () => {
+    const document = L.document(null, [
+      L.section(null, [L.layout({ margin: '48pt' }, [L.text(null, ['x'])])]),
+    ]);
+    assert.match(L.toXml(document), /<layout margin="48pt">/);
+  });
+
+  it('rejects a margin on a section, with an error that says it goes on the layout', async () => {
+    const document = L.document(null, [
+      L.section({ margin: '28pt' }, [L.layout(null, [L.text(null, ['x'])])]),
+    ]);
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(document),
+      (e) => e instanceof LpdfRenderError && /margin moved to <layout>/.test(e.message),
+    );
+  });
+
 });
 
 // ── Snapshot tests ────────────────────────────────────────────────────────────
@@ -448,8 +465,14 @@ describe('LpdfKit section model', () => {
     const textNode = L.text(null, ['hello']);
     const block = L.layout(null, [textNode]);
     assert.equal(block.type, 'layout');
+    assert.deepEqual(block.attrs, {});
     assert.equal(block.nodes.length, 1);
     assert.equal(block.nodes[0].type, 'text');
+  });
+
+  it('LpdfKit.layout serialises its margin to attrs', () => {
+    const block = L.layout({ margin: '20pt 30pt' }, []);
+    assert.deepEqual(block.attrs, { margin: '20pt 30pt' });
   });
 
   it('has no canvas: layers go directly in the section', () => {
@@ -465,11 +488,11 @@ describe('LpdfKit section model', () => {
 
   it('LpdfKit.section options are serialised to attrs', () => {
     const sec = L.section(
-      { size: 'a4', margin: '20pt', title: 'My Page' },
+      { size: 'a4', background: '#ffffff', title: 'My Page' },
       [L.layout(null, [])],
     );
     assert.equal(sec.attrs.size, 'a4');
-    assert.equal(sec.attrs.margin, '20pt');
+    assert.equal(sec.attrs.background, '#ffffff');
     assert.equal(sec.attrs.title, 'My Page');
   });
 
