@@ -253,13 +253,18 @@ export interface ImgAttr {
 export interface BarcodeAttr {
   type: string;
   data: string;
-  size?: string;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
    * line; in a column it takes the full width.
    */
   width?: string;
+  /**
+   * Height of the whole barcode, with the digits of hrt inside it: they take the bottom 12pt and
+   * the bars the rest. A QR code is square: it takes width or height, and the smaller when both are
+   * set. Without a height, code128 has bars 40pt high, and 12pt more with hrt, and ean13 is 60pt
+   * high.
+   */
   height?: string;
   ec?: string;
   hrt?: string;
@@ -469,8 +474,8 @@ export interface LayerAttr {
  * Attributes of the `rect` element in a layer.
  */
 export interface RectAttr {
-  w: string;
-  h: string;
+  width: string;
+  height: string;
   x?: string;
   y?: string;
   anchor?: string;
@@ -487,8 +492,18 @@ export interface RectAttr {
  */
 export interface CircleAttr {
   r: string;
-  cx?: string;
-  cy?: string;
+  /**
+   * Where the circle's box goes, the square of side 2r around it: its left edge, or with anchor, an
+   * offset from that point of the page, where the box's matching point goes. The centre is r
+   * further in.
+   */
+  x?: string;
+  /**
+   * Where the circle's box goes, the square of side 2r around it: its top edge, or with anchor, an
+   * offset from that point of the page, where the box's matching point goes. The centre is r
+   * further in.
+   */
+  y?: string;
   anchor?: string;
   fill?: string;
   stroke?: string;
@@ -503,8 +518,18 @@ export interface CircleAttr {
 export interface EllipseAttr {
   rx: string;
   ry: string;
-  cx?: string;
-  cy?: string;
+  /**
+   * Where the ellipse's box goes, 2rx wide and 2ry high around it: its left edge, or with anchor,
+   * an offset from that point of the page, where the box's matching point goes. The centre is rx
+   * further in.
+   */
+  x?: string;
+  /**
+   * Where the ellipse's box goes, 2rx wide and 2ry high around it: its top edge, or with anchor, an
+   * offset from that point of the page, where the box's matching point goes. The centre is ry
+   * further in.
+   */
+  y?: string;
   anchor?: string;
   fill?: string;
   stroke?: string;
@@ -552,7 +577,7 @@ export interface CanvasTextAttr {
   fontSize?: string;
   color?: string;
   align?: string;
-  w?: string;
+  width?: string;
   lineHeight?: string;
   opacity?: string;
 }
@@ -562,8 +587,8 @@ export interface CanvasTextAttr {
  */
 export interface CanvasImgAttr {
   name: string;
-  w: string;
-  h: string;
+  width: string;
+  height: string;
   x?: string;
   y?: string;
   anchor?: string;
