@@ -137,7 +137,7 @@ describe('LpdfEngine', () => {
   it('renders a layer with a rect via JSON path', async () => {
     const document = L.document(null, [
       L.section(null, [
-        L.layer(null, [L.rect({ x: '0pt', y: '0pt', w: '595pt', h: '842pt', fill: '#eeeeee' })]),
+        L.layer(null, [L.rect({ x: '0pt', y: '0pt', width: '595pt', height: '842pt', fill: '#eeeeee' })]),
         L.layout(null, [L.text(null, ['Layer underlay'])]),
       ]),
     ]);
@@ -186,6 +186,42 @@ describe('LpdfEngine', () => {
       new PdfEngine().setLicenseKey('test-key').render(document),
       (e) => e instanceof LpdfRenderError && /margin moved to <layout>/.test(e.message),
     );
+  });
+
+  for (const [name, node, message] of [
+    ['w on a rect', () => L.rect({ x: '0pt', y: '0pt', w: '10pt', height: '10pt' }), /'w' renamed to 'width'/],
+    ['h on a rect', () => L.rect({ x: '0pt', y: '0pt', width: '10pt', h: '10pt' }), /'h' renamed to 'height'/],
+    ['cx on a circle', () => L.circle({ cx: '50pt', cy: '50pt', r: '5pt' }), /'cx' removed; 'x' and 'y' place the circle's box/],
+    ['cx on an ellipse', () => L.ellipse({ cx: '50pt', rx: '5pt', ry: '3pt' }), /'cx' removed; 'x' and 'y' place the ellipse's box/],
+  ]) {
+    it(`rejects ${name}, with an error that names what replaces it`, async () => {
+      const document = L.document(null, [L.section(null, [L.layer(null, [node()])])]);
+      await assert.rejects(
+        new PdfEngine().setLicenseKey('test-key').render(document),
+        (e) => e instanceof LpdfRenderError && message.test(e.message),
+      );
+    });
+  }
+
+  it('rejects size on a QR code, with an error that names width and height', async () => {
+    const document = L.document(null, [
+      L.section(null, [L.layout(null, [L.barcode({ type: 'qr', data: 'x', size: '60pt' })])]),
+    ]);
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(document),
+      (e) => e instanceof LpdfRenderError && /'size' removed; use 'width' or 'height'/.test(e.message),
+    );
+  });
+
+  it('renders a circle placed by its box and a QR code sized by its width', async () => {
+    const document = L.document(null, [
+      L.section(null, [
+        L.layer(null, [L.circle({ x: '25pt', y: '25pt', r: '25pt', fill: '#ff0000' })]),
+        L.layout(null, [L.barcode({ type: 'qr', data: 'https://lpdf.io', width: '80pt' })]),
+      ]),
+    ]);
+    const bytes = await new PdfEngine().setLicenseKey('test-key').render(document);
+    assert.equal(Buffer.from(bytes.slice(0, 5)).toString('ascii'), '%PDF-');
   });
 
 });
@@ -256,9 +292,9 @@ describe('kitToXml', () => {
   it('emits a section with layers before and after its layout', () => {
     const document = L.document(null, [
       L.section(null, [
-        L.layer({ page: 'first' }, [L.rect({ x: '0pt', y: '0pt', w: '10pt', h: '10pt' })]),
+        L.layer({ page: 'first' }, [L.rect({ x: '0pt', y: '0pt', width: '10pt', height: '10pt' })]),
         L.layout(null, [L.text(null, ['hello'])]),
-        L.layer({ page: 'last' }, [L.rect({ x: '0pt', y: '0pt', w: '20pt', h: '20pt' })]),
+        L.layer({ page: 'last' }, [L.rect({ x: '0pt', y: '0pt', width: '20pt', height: '20pt' })]),
       ]),
     ]);
     const xml = L.toXml(document);
@@ -323,14 +359,14 @@ describe('PDF snapshots (fixture XMLs)', () => {
 describe('LpdfCanvas serialization', () => {
 
   it('rect emits its schema name and its attributes as given', () => {
-    const node = L.rect({ x: '10pt', y: '20pt', w: '100pt', h: '50pt' });
+    const node = L.rect({ x: '10pt', y: '20pt', width: '100pt', height: '50pt' });
     assert.equal(node.type, 'rect');
-    assert.deepEqual(node.attrs, { x: '10pt', y: '20pt', w: '100pt', h: '50pt' });
+    assert.deepEqual(node.attrs, { x: '10pt', y: '20pt', width: '100pt', height: '50pt' });
   });
 
   it('rect style attributes are written under the schema names', () => {
     const node = L.rect({
-      w: '10pt', h: '10pt', fill: '#ff0000', stroke: '#000', strokeWidth: '2pt',
+      width: '10pt', height: '10pt', fill: '#ff0000', stroke: '#000', strokeWidth: '2pt',
       strokeDash: '4 2', radius: '5pt', opacity: '0.5', anchor: 'center',
     });
     assert.equal(node.attrs.fill, '#ff0000');
@@ -350,13 +386,13 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('ellipse emits its radii', () => {
-    const node = L.ellipse({ cx: '50pt', cy: '50pt', rx: '30pt', ry: '20pt' });
+    const node = L.ellipse({ x: '20pt', y: '30pt', rx: '30pt', ry: '20pt' });
     assert.equal(node.type, 'ellipse');
     assert.equal(node.attrs.ry, '20pt');
   });
 
   it('circle emits its radius', () => {
-    const node = L.circle({ cx: '50pt', cy: '50pt', r: '25pt' });
+    const node = L.circle({ x: '25pt', y: '25pt', r: '25pt' });
     assert.equal(node.type, 'circle');
     assert.equal(node.attrs.r, '25pt');
   });
@@ -385,14 +421,14 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('img emits its name and size', () => {
-    const node = L.imgAt({ name: 'logo', x: '0pt', y: '0pt', w: '100pt', h: '80pt' });
+    const node = L.imgAt({ name: 'logo', x: '0pt', y: '0pt', width: '100pt', height: '80pt' });
     assert.equal(node.type, 'img');
     assert.equal(node.attrs.name, 'logo');
-    assert.equal(node.attrs.w, '100pt');
+    assert.equal(node.attrs.width, '100pt');
   });
 
   it('layer without attributes emits empty attrs', () => {
-    const node = L.layer(null, [L.rect({ w: '10pt', h: '10pt' })]);
+    const node = L.layer(null, [L.rect({ width: '10pt', height: '10pt' })]);
     assert.equal(node.type, 'layer');
     assert.deepEqual(node.attrs, {});
     assert.equal(node.nodes.length, 1);
@@ -411,7 +447,7 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('undefined attributes are left out', () => {
-    const node = L.rect({ w: '10pt', h: '10pt', fill: undefined });
+    const node = L.rect({ width: '10pt', height: '10pt', fill: undefined });
     assert(!('fill' in node.attrs), 'undefined fill should be omitted');
   });
 
@@ -674,7 +710,7 @@ describe('attributes follow the schema', () => {
           ]),
         ]),
         L.layer({ page: 'each' }, [
-          L.rect({ x: '40pt', y: '40pt', w: '100pt', h: '60pt', fill: '#ff0000', radius: '6pt' }),
+          L.rect({ x: '40pt', y: '40pt', width: '100pt', height: '60pt', fill: '#ff0000', radius: '6pt' }),
           L.textAt({ x: '40pt', y: '120pt', fontSize: '10pt' }, ['Layer ', L.span({ color: '#0000ff' }, ['text'])]),
         ]),
       ]),
