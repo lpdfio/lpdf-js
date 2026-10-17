@@ -72,4 +72,5 @@ export const L = Object.freeze({
     path:    LpdfCanvas.path,
     textAt:  LpdfCanvas.textAt,
     imgAt:   LpdfCanvas.imgAt,
+    barcodeAt: LpdfCanvas.barcodeAt,
 });
