@@ -254,12 +254,6 @@ export interface BarcodeAttr {
   type: string;
   data: string;
   /**
-   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
-   * the other children, shared equally if several on the line use fill, and never moves to the next
-   * line; in a column it takes the full width.
-   */
-  width?: string;
-  /**
    * Height of the whole barcode, with the digits of hrt inside it: they take the bottom 12pt and
    * the bars the rest. A QR code is square: it takes width or height, and the smaller when both are
    * set. Without a height, code128 has bars 40pt high, and 12pt more with hrt, and ean13 is 60pt
@@ -270,6 +264,12 @@ export interface BarcodeAttr {
   hrt?: string;
   color?: string;
   background?: string;
+  /**
+   * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
+   * the other children, shared equally if several on the line use fill, and never moves to the next
+   * line; in a column it takes the full width.
+   */
+  width?: string;
   paginate?: string;
   debug?: string;
 }
@@ -457,16 +457,24 @@ export interface RegionAttr {
 }
 
 /**
- * Draws shapes at exact positions on the page, independent of the flowing layout: watermarks,
- * stamps, page furniture. Coordinates start at the top left corner of the whole page, not inside
- * the layout's margin, and y grows downward. A layer before the section's layout paints under it,
- * and one after paints over it. It sets what applies to all of its shapes: which pages they appear
- * on, opacity, transform and clip. Layers cannot be nested.
+ * Draws shapes, text, images and barcodes at exact positions on the page, independent of the
+ * flowing layout: watermarks, stamps, page furniture. Coordinates start at the top left corner of
+ * the whole page, not inside the layout's margin, and y grows downward. A layer before the
+ * section's layout paints under it, and one after paints over it. It sets what applies to all of
+ * its content: which pages it appears on, opacity, transform and clip. Layers cannot be nested.
  */
 export interface LayerAttr {
   page?: string;
+  /**
+   * How opaque everything in the layer is, from 0 to 1. To fade one element, put it in a layer of
+   * its own.
+   */
   opacity?: string;
   transform?: string;
+  /**
+   * A rectangle that cuts off what the layer draws outside it: x y w h, in points from the top left
+   * corner of the page.
+   */
   clip?: string;
 }
 
@@ -484,7 +492,6 @@ export interface RectAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
-  opacity?: string;
 }
 
 /**
@@ -509,7 +516,6 @@ export interface CircleAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
-  opacity?: string;
 }
 
 /**
@@ -535,7 +541,6 @@ export interface EllipseAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
-  opacity?: string;
 }
 
 /**
@@ -563,35 +568,88 @@ export interface PathAttr {
   strokeWidth?: string;
   strokeDash?: string;
   lineCap?: string;
-  opacity?: string;
 }
 
 /**
- * Text at an exact position on the page: either x and y, or an anchor with optional offsets.
+ * Text at a fixed place on the page. It is the text of the layout, with the same defaults: the
+ * document's font or Helvetica, 11pt and the text colour. It is one line unless told otherwise;
+ * give width to cut it off at a width or to wrap it with max-lines. x and y place its box: the
+ * top-left corner, or with anchor, an offset from that point of the page, where the box's matching
+ * point goes. {page} and {pages} in it count within the section, and a text that comes from data
+ * belongs in the layout, since a longer text loses its end here without a warning.
  */
-export interface CanvasTextAttr {
+export interface TextAtAttr {
   x?: string;
   y?: string;
   anchor?: string;
-  font?: string;
   fontSize?: string;
+  font?: string;
+  /**
+   * Use the bold face of the font. It applies to the 14 built-in fonts: Helvetica becomes
+   * Helvetica-Bold, Times-Roman becomes Times-Bold, Courier becomes Courier-Bold, and the oblique
+   * and italic faces their bold forms. A custom font has no bold face to pick, so name one in font.
+   */
+  bold?: string;
   color?: string;
   align?: string;
+  /**
+   * Width of the box. Without it the text is one line of the width its characters need, and align
+   * has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in
+   * the PDF. With it, a line past the width is cut off at it, or ends in an ellipsis with ellipsis,
+   * and max-lines above 1 wraps the text within it.
+   */
   width?: string;
+  /**
+   * The most lines drawn, 1 by default. Above 1 it needs a width to wrap at, and wraps the text
+   * within it; only whole lines are drawn, and the rest of the text is dropped.
+   */
+  maxLines?: string;
+  /**
+   * End the last line drawn in an ellipsis when the text does not fit its width and max-lines. Off
+   * by default: the line is cut off at the width.
+   */
+  ellipsis?: string;
+  /** The distance between lines, as a factor of the font size. Default 1.2. */
   lineHeight?: string;
-  opacity?: string;
 }
 
 /**
- * Attributes of the `img` element in a layer.
+ * An image at a fixed place on the page. It needs width or height, and the other follows the
+ * image's proportions. x and y place its box: the top-left corner, or with anchor, an offset from
+ * that point of the page, where the box's matching point goes.
  */
-export interface CanvasImgAttr {
+export interface ImgAtAttr {
   name: string;
-  width: string;
-  height: string;
   x?: string;
   y?: string;
   anchor?: string;
+  width?: string;
+  height?: string;
+}
+
+/**
+ * A barcode at a fixed place on the page. A QR code takes width or height. A code128 or ean13 needs
+ * a width. x and y place its box: the top-left corner, or with anchor, an offset from that point of
+ * the page, where the box's matching point goes.
+ */
+export interface BarcodeAtAttr {
+  type: string;
+  data: string;
+  /**
+   * Height of the whole barcode, with the digits of hrt inside it: they take the bottom 12pt and
+   * the bars the rest. A QR code is square: it takes width or height, and the smaller when both are
+   * set. Without a height, code128 has bars 40pt high, and 12pt more with hrt, and ean13 is 60pt
+   * high.
+   */
+  height?: string;
+  ec?: string;
+  hrt?: string;
+  color?: string;
+  background?: string;
+  x?: string;
+  y?: string;
+  anchor?: string;
+  width?: string;
 }
 
 /**

@@ -1,5 +1,5 @@
 import type {
-  RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr, LayerAttr,
+  RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr, LayerAttr,
 } from './attrs';
 import type { LpdfSpanNode } from './layout';
 import { buildAttrs } from './_shared';
@@ -87,14 +87,19 @@ export interface LpdfCanvasPathNode {
   attrs: Record<string, string>;
 }
 
-export interface LpdfCanvasTextNode {
-  type:  'text';
+export interface LpdfCanvasTextAtNode {
+  type:  'text-at';
   attrs: Record<string, string>;
   nodes: (string | LpdfSpanNode)[];
 }
 
-export interface LpdfCanvasImgNode {
-  type:  'img';
+export interface LpdfCanvasImgAtNode {
+  type:  'img-at';
+  attrs: Record<string, string>;
+}
+
+export interface LpdfCanvasBarcodeAtNode {
+  type:  'barcode-at';
   attrs: Record<string, string>;
 }
 
@@ -104,8 +109,9 @@ export type LpdfCanvasPrimitiveNode =
   | LpdfCanvasEllipseNode
   | LpdfCanvasCircleNode
   | LpdfCanvasPathNode
-  | LpdfCanvasTextNode
-  | LpdfCanvasImgNode;
+  | LpdfCanvasTextAtNode
+  | LpdfCanvasImgAtNode
+  | LpdfCanvasBarcodeAtNode;
 
 export interface LpdfCanvasLayerNode {
   type:  'layer';
@@ -135,12 +141,16 @@ function path(attrs: PathAttr): LpdfCanvasPathNode {
   return { type: 'path', attrs: buildAttrs(attrs) };
 }
 
-function textAt(attrs: CanvasTextAttr, nodes: (string | LpdfSpanNode)[] = []): LpdfCanvasTextNode {
-  return { type: 'text', attrs: buildAttrs(attrs), nodes };
+function textAt(attrs: TextAtAttr, nodes: (string | LpdfSpanNode)[] = []): LpdfCanvasTextAtNode {
+  return { type: 'text-at', attrs: buildAttrs(attrs), nodes };
 }
 
-function imgAt(attrs: CanvasImgAttr): LpdfCanvasImgNode {
-  return { type: 'img', attrs: buildAttrs(attrs) };
+function imgAt(attrs: ImgAtAttr): LpdfCanvasImgAtNode {
+  return { type: 'img-at', attrs: buildAttrs(attrs) };
+}
+
+function barcodeAt(attrs: BarcodeAtAttr): LpdfCanvasBarcodeAtNode {
+  return { type: 'barcode-at', attrs: buildAttrs(attrs) };
 }
 
 function layer(attrs: LayerAttr | null, nodes: LpdfCanvasPrimitiveNode[] = []): LpdfCanvasLayerNode {
@@ -155,5 +165,6 @@ export const LpdfCanvas = Object.freeze({
   path,
   textAt,
   imgAt,
+  barcodeAt,
   layer,
 });

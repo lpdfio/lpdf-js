@@ -21,7 +21,7 @@ export type {
     ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
     ImgAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
-    LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, CanvasTextAttr, CanvasImgAttr,
+    LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
     FontAttr, ImageAttr, LayoutAttr,
 } from './attrs';
 
@@ -37,7 +37,7 @@ export { CanvasTransform } from './canvas';
 export type {
     LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode,
     LpdfCanvasRectNode, LpdfCanvasLineNode, LpdfCanvasEllipseNode, LpdfCanvasCircleNode,
-    LpdfCanvasPathNode, LpdfCanvasTextNode, LpdfCanvasImgNode,
+    LpdfCanvasPathNode, LpdfCanvasTextAtNode, LpdfCanvasImgAtNode, LpdfCanvasBarcodeAtNode,
 } from './canvas';
 
 // ── Facade ────────────────────────────────────────────────────────────────────

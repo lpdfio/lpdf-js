@@ -367,13 +367,12 @@ describe('LpdfCanvas serialization', () => {
   it('rect style attributes are written under the schema names', () => {
     const node = L.rect({
       width: '10pt', height: '10pt', fill: '#ff0000', stroke: '#000', strokeWidth: '2pt',
-      strokeDash: '4 2', radius: '5pt', opacity: '0.5', anchor: 'center',
+      strokeDash: '4 2', radius: '5pt', anchor: 'center',
     });
     assert.equal(node.attrs.fill, '#ff0000');
     assert.equal(node.attrs['stroke-width'], '2pt');
     assert.equal(node.attrs['stroke-dash'], '4 2');
     assert.equal(node.attrs.radius, '5pt');
-    assert.equal(node.attrs.opacity, '0.5');
     assert.equal(node.attrs.anchor, 'center');
   });
 
@@ -405,12 +404,12 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('text takes its attributes first and its content second', () => {
-    const node = L.textAt({ x: '10pt', y: '20pt', font: 'Helvetica', fontSize: '12pt', color: '#000', lineHeight: '14' }, ['Hello']);
-    assert.equal(node.type, 'text');
+    const node = L.textAt({ x: '10pt', y: '20pt', font: 'Helvetica', fontSize: '12pt', color: '#000', lineHeight: '1.5' }, ['Hello']);
+    assert.equal(node.type, 'text-at');
     assert.deepEqual(node.nodes, ['Hello']);
     assert.equal(node.attrs.x, '10pt');
     assert.equal(node.attrs['font-size'], '12pt');
-    assert.equal(node.attrs['line-height'], '14');
+    assert.equal(node.attrs['line-height'], '1.5');
   });
 
   it('text content can mix strings and spans', () => {
@@ -422,9 +421,39 @@ describe('LpdfCanvas serialization', () => {
 
   it('img emits its name and size', () => {
     const node = L.imgAt({ name: 'logo', x: '0pt', y: '0pt', width: '100pt', height: '80pt' });
-    assert.equal(node.type, 'img');
+    assert.equal(node.type, 'img-at');
     assert.equal(node.attrs.name, 'logo');
     assert.equal(node.attrs.width, '100pt');
+  });
+
+  it('barcodeAt emits a barcode-at with its size and position', () => {
+    const node = L.barcodeAt({ type: 'qr', data: 'https://lpdf.io', x: '10pt', y: '20pt', width: '60pt' });
+    assert.equal(node.type, 'barcode-at');
+    assert.equal(node.attrs.data, 'https://lpdf.io');
+    assert.equal(node.attrs.width, '60pt');
+  });
+
+  it('a text-at, an img-at and a barcode-at are written under their element names', () => {
+    const document = L.document(null, [
+      L.section(null, [L.layer(null, [
+        L.textAt({ x: '10pt', y: '20pt', maxLines: '2', width: '80pt' }, ['Hello']),
+        L.barcodeAt({ type: 'qr', data: 'x', x: '0pt', y: '0pt', width: '40pt' }),
+      ])]),
+    ]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<text-at [^>]*max-lines="2"[^>]*>Hello<\/text-at>/);
+    assert.match(xml, /<barcode-at /);
+  });
+
+  it('renders a text-at that says which page it is on', async () => {
+    const document = L.document(null, [
+      L.section(null, [
+        L.layer({ page: 'each' }, [L.textAt({ x: '40pt', y: '800pt' }, ['Page {page} of {pages}'])]),
+        L.layout(null, [L.text(null, ['Body'])]),
+      ]),
+    ]);
+    const bytes = await new PdfEngine().setLicenseKey('test-key').render(document);
+    assert.equal(Buffer.from(bytes.slice(0, 5)).toString('ascii'), '%PDF-');
   });
 
   it('layer without attributes emits empty attrs', () => {
@@ -435,7 +464,8 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('layer attributes are written as given', () => {
-    const node = L.layer({ page: 'first', opacity: '0.5', transform: 'rotate(45 100 100)' }, []);
+    const node = L.layer({ page: 'first', opacity: '0.5', transform: 'rotate(45 100 100)', clip: '0pt 0pt 200pt 100pt' }, []);
+    assert.equal(node.attrs.clip, '0pt 0pt 200pt 100pt');
     assert.equal(node.attrs.page, 'first');
     assert.equal(node.attrs.opacity, '0.5');
     assert.equal(node.attrs.transform, 'rotate(45 100 100)');
