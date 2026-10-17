@@ -19,9 +19,9 @@ const { L, NoAttr } = require('@lpdfio/lpdf')
 
 const engine = L.engine()
 
-const doc = L.document({ size: 'letter', margin: '48pt' }, [
+const doc = L.document({ size: 'letter' }, [
     L.section(NoAttr, [
-        L.layout(NoAttr, [
+        L.layout({ margin: '48pt' }, [
             L.column({ gap: '24pt' }, [
                 L.row({ justify: 'between' }, [
                     L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),

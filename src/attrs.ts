@@ -453,10 +453,10 @@ export interface RegionAttr {
 
 /**
  * Draws shapes at exact positions on the page, independent of the flowing layout: watermarks,
- * stamps, page furniture. Coordinates start at the top left corner of the whole page, not the
- * margin, and y grows downward. A layer before the section's layout paints under it, and one after
- * paints over it. It sets what applies to all of its shapes: which pages they appear on, opacity,
- * transform and clip. Layers cannot be nested.
+ * stamps, page furniture. Coordinates start at the top left corner of the whole page, not inside
+ * the layout's margin, and y grows downward. A layer before the section's layout paints under it,
+ * and one after paints over it. It sets what applies to all of its shapes: which pages they appear
+ * on, opacity, transform and clip. Layers cannot be nested.
  */
 export interface LayerAttr {
   page?: string;
@@ -567,6 +567,19 @@ export interface CanvasImgAttr {
   x?: string;
   y?: string;
   anchor?: string;
+}
+
+/**
+ * The flowing content of a section. Elements stack down the page, and a new page starts when one
+ * runs out of room. Put headers and footers in a region, which sits outside the flow.
+ */
+export interface LayoutAttr {
+  /**
+   * The space between the page edges and the flowing content and its regions: one value for all
+   * four sides, or two to four in the order top, right, bottom, left. Defaults to 36pt. Layers
+   * ignore it and measure from the page edges.
+   */
+  margin?: string;
 }
 
 /**
