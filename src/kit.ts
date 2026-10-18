@@ -35,6 +35,7 @@ export interface DocumentTokens {
   radius?:  Record<string, string>;
   width?:   Record<string, string>;
   textSize?: Record<string, string>;
+  lineHeight?: Record<string, string>;
 }
 
 /**
@@ -126,8 +127,12 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
   };
   if (assets !== undefined) attrsObj['assets'] = assets;
   if (tokens !== undefined) {
-    const { textSize, ...rest } = tokens;
-    attrsObj['tokens'] = textSize !== undefined ? { 'text-size': textSize, ...rest } : rest;
+    const { textSize, lineHeight, ...rest } = tokens;
+    attrsObj['tokens'] = {
+      ...rest,
+      ...(textSize !== undefined ? { 'text-size': textSize } : {}),
+      ...(lineHeight !== undefined ? { 'line-height': lineHeight } : {}),
+    };
   }
   if (meta   !== undefined) attrsObj['meta']   = meta;
   return {

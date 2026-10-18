@@ -280,6 +280,20 @@ describe('kitToXml', () => {
     assert(xml.includes('<text-size '), 'missing <text-size> token element');
   });
 
+  it('emits a line-height row inside <tokens>, and a line-height on a text as a token or a factor', () => {
+    const document = L.document(
+      { tokens: { lineHeight: { xs: '1', s: '1.1', m: '1.2', l: '1.4', xl: '1.6', xxl: '2' } } },
+      [L.section(null, [L.layout(null, [
+        L.text({ lineHeight: 'l' }, ['A token']),
+        L.text({ lineHeight: '1.5' }, ['A factor']),
+      ])])],
+    );
+    const xml = L.toXml(document);
+    assert.match(xml, /<line-height [^>]*l="1.4"[^>]*xxl="2"[^>]*\/>/, xml);
+    assert.match(xml, /<text line-height="l">A token<\/text>/, xml);
+    assert.match(xml, /<text line-height="1.5">A factor<\/text>/, xml);
+  });
+
   it('produced XML renders to a valid PDF', async () => {
     const document = kitDoc([L.text(null, ['Hello from kitToXml'])]);
     const xml  = L.toXml(document);

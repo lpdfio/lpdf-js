@@ -300,6 +300,11 @@ export interface TextAttr {
   color?: string;
   align?: string;
   /**
+   * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
+   * name from the line-height row of the tokens. Default 1.2, which is the token m.
+   */
+  lineHeight?: string;
+  /**
    * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
    * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
    * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
@@ -617,6 +622,11 @@ export interface TextAtAttr {
   color?: string;
   align?: string;
   /**
+   * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
+   * name from the line-height row of the tokens. Default 1.2, which is the token m.
+   */
+  lineHeight?: string;
+  /**
    * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
    * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
    * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
@@ -637,8 +647,6 @@ export interface TextAtAttr {
    * and max-lines above 1 wraps the text within it.
    */
   width?: string;
-  /** The distance between lines, as a factor of the font size. Default 1.2. */
-  lineHeight?: string;
 }
 
 /**
