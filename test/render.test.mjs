@@ -294,6 +294,16 @@ describe('kitToXml', () => {
     assert.match(xml, /<text line-height="1.5">A factor<\/text>/, xml);
   });
 
+  it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
+    const document = L.document(null, [L.section(null, [
+      L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
+      L.layout(null, [L.column({ color: 'text-muted', opacity: '0.5' }, [L.text(null, ['In a column'])])]),
+    ])]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<layer color="danger" font="Courier" font-size="s">/, xml);
+    assert.match(xml, /<column color="text-muted" opacity="0.5">/, xml);
+  });
+
   it('produced XML renders to a valid PDF', async () => {
     const document = kitDoc([L.text(null, ['Hello from kitToXml'])]);
     const xml  = L.toXml(document);
