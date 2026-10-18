@@ -304,6 +304,22 @@ describe('kitToXml', () => {
     assert.match(xml, /<column color="text-muted" opacity="0.5">/, xml);
   });
 
+  it('emits a shadow on a box and on a rect, a circle and an ellipse', () => {
+    const document = L.document(null, [L.section(null, [
+      L.layer(null, [
+        L.rect({ x: '10pt', y: '20pt', width: '50pt', height: '30pt', shadow: '2pt 3pt #000000' }),
+        L.circle({ x: '10pt', y: '60pt', r: '10pt', shadow: '2pt 3pt #000000 0.5' }),
+        L.ellipse({ x: '10pt', y: '90pt', rx: '20pt', ry: '10pt', shadow: '-2pt -3pt text' }),
+      ]),
+      L.layout(null, [L.column({ shadow: '2pt 3pt #000000 0.2' }, [L.text(null, ['In a column'])])]),
+    ])]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<rect [^>]*shadow="2pt 3pt #000000"/, xml);
+    assert.match(xml, /<circle [^>]*shadow="2pt 3pt #000000 0.5"/, xml);
+    assert.match(xml, /<ellipse [^>]*shadow="-2pt -3pt text"/, xml);
+    assert.match(xml, /<column shadow="2pt 3pt #000000 0.2">/, xml);
+  });
+
   it('produced XML renders to a valid PDF', async () => {
     const document = kitDoc([L.text(null, ['Hello from kitToXml'])]);
     const xml  = L.toXml(document);

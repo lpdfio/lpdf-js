@@ -37,6 +37,15 @@ export interface ColumnAttr {
    */
   opacity?: string;
   /**
+   * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
+   * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
+   * from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur.
+   * The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the
+   * siblings after the box are drawn over it. A box with no background shows the shadow only
+   * outside it. The box's own opacity fades the box and its shadow together.
+   */
+  shadow?: string;
+  /**
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
@@ -94,6 +103,15 @@ export interface RowAttr {
    */
   opacity?: string;
   /**
+   * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
+   * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
+   * from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur.
+   * The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the
+   * siblings after the box are drawn over it. A box with no background shows the shadow only
+   * outside it. The box's own opacity fades the box and its shadow together.
+   */
+  shadow?: string;
+  /**
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
@@ -149,6 +167,15 @@ export interface GridAttr {
    */
   opacity?: string;
   /**
+   * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
+   * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
+   * from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur.
+   * The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the
+   * siblings after the box are drawn over it. A box with no background shows the shadow only
+   * outside it. The box's own opacity fades the box and its shadow together.
+   */
+  shadow?: string;
+  /**
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
@@ -202,6 +229,15 @@ export interface FrameAttr {
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
   opacity?: string;
+  /**
+   * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
+   * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
+   * from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur.
+   * The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the
+   * siblings after the box are drawn over it. A box with no background shows the shadow only
+   * outside it. The box's own opacity fades the box and its shadow together.
+   */
+  shadow?: string;
   /**
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
@@ -424,6 +460,15 @@ export interface TdAttr {
    */
   opacity?: string;
   /**
+   * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
+   * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
+   * from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur.
+   * The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the
+   * siblings after the box are drawn over it. A box with no background shows the shadow only
+   * outside it. The box's own opacity fades the box and its shadow together.
+   */
+  shadow?: string;
+  /**
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
@@ -595,6 +640,13 @@ export interface RectAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
+  /**
+   * A hard-edged shadow: a copy of the shape, moved right and down by the first two lengths
+   * (negative is left and up) and filled with the color, drawn under the shape. An opacity from 0
+   * to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur. A shape
+   * with no fill shows the shadow only outside it.
+   */
+  shadow?: string;
 }
 
 /**
@@ -619,6 +671,13 @@ export interface CircleAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
+  /**
+   * A hard-edged shadow: a copy of the shape, moved right and down by the first two lengths
+   * (negative is left and up) and filled with the color, drawn under the shape. An opacity from 0
+   * to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur. A shape
+   * with no fill shows the shadow only outside it.
+   */
+  shadow?: string;
 }
 
 /**
@@ -644,6 +703,13 @@ export interface EllipseAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
+  /**
+   * A hard-edged shadow: a copy of the shape, moved right and down by the first two lengths
+   * (negative is left and up) and filled with the color, drawn under the shape. An opacity from 0
+   * to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur. A shape
+   * with no fill shows the shadow only outside it.
+   */
+  shadow?: string;
 }
 
 /**
