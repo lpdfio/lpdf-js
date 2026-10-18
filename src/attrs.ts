@@ -300,6 +300,20 @@ export interface TextAttr {
   color?: string;
   align?: string;
   /**
+   * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
+   * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
+   * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
+   * default, and above 1 needs a width to wrap within.
+   */
+  maxLines?: string;
+  /**
+   * End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width.
+   * Off by default: the text stops at the end of a line. A text-at also ends a line in one when it
+   * is cut off at its width. A text in the layout without max-lines is never cut, so there it has
+   * no effect.
+   */
+  ellipsis?: string;
+  /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
    * line; in a column it takes the full width.
@@ -603,22 +617,26 @@ export interface TextAtAttr {
   color?: string;
   align?: string;
   /**
+   * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
+   * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
+   * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
+   * default, and above 1 needs a width to wrap within.
+   */
+  maxLines?: string;
+  /**
+   * End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width.
+   * Off by default: the text stops at the end of a line. A text-at also ends a line in one when it
+   * is cut off at its width. A text in the layout without max-lines is never cut, so there it has
+   * no effect.
+   */
+  ellipsis?: string;
+  /**
    * Width of the box. Without it the text is one line of the width its characters need, and align
    * has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in
    * the PDF. With it, a line past the width is cut off at it, or ends in an ellipsis with ellipsis,
    * and max-lines above 1 wraps the text within it.
    */
   width?: string;
-  /**
-   * The most lines drawn, 1 by default. Above 1 it needs a width to wrap at, and wraps the text
-   * within it; only whole lines are drawn, and the rest of the text is dropped.
-   */
-  maxLines?: string;
-  /**
-   * End the last line drawn in an ellipsis when the text does not fit its width and max-lines. Off
-   * by default: the line is cut off at the width.
-   */
-  ellipsis?: string;
   /** The distance between lines, as a factor of the font size. Default 1.2. */
   lineHeight?: string;
 }
