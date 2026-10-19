@@ -519,6 +519,15 @@ describe('LpdfCanvas serialization', () => {
     assert.match(xml, /<barcode-at /);
   });
 
+  it('a text that captures, and one that shows a capture, are written under the schema names', () => {
+    assert.deepEqual(L.text({ capture: 'chapter' }, ['x']).attrs, { capture: 'chapter' });
+    assert.deepEqual(L.text({ captureRef: 'chapter', captureMode: 'first', captureFallback: 'None' }).attrs, {
+      'capture-ref': 'chapter',
+      'capture-mode': 'first',
+      'capture-fallback': 'None',
+    });
+  });
+
   it('renders a text-at that says which page it is on', async () => {
     const document = L.document(null, [
       L.section(null, [
