@@ -27,8 +27,28 @@ import { buildAttrs } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
+/** One color of a gradient: `color` is hex or a color token, at an `offset` from `'0%'` to `'100%'`. */
+export interface GradientStop {
+  offset: string;
+  color:  string;
+}
+
+/**
+ * A gradient of the tokens, which a background or a fill uses as `gradient:name`. Give `from` and `to` for two
+ * colors, or `stops` for more. `angle` is the direction of a linear gradient in degrees: 0 runs top to bottom
+ * and 90 left to right. A radial gradient runs from the center of the box out to its farthest corner.
+ */
+export interface GradientToken {
+  type:   'linear' | 'radial';
+  from?:  string;
+  to?:    string;
+  angle?: number | string;
+  stops?: GradientStop[];
+}
+
 export interface DocumentTokens {
   colors?:  Record<string, string>;
+  gradients?: Record<string, GradientToken>;
   space?:   Record<string, string>;
   grid?:    Record<string, string>;
   border?:  Record<string, string>;

@@ -12,7 +12,7 @@ export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from
 export type {
     PdfDocument,
     LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
-    DocumentTokens, DocumentAssets, DocumentMeta,
+    DocumentTokens, GradientToken, GradientStop, DocumentAssets, DocumentMeta,
     SectionAttr, DocumentAttr,
 } from './kit';
 
