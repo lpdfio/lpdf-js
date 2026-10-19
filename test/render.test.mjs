@@ -294,6 +294,40 @@ describe('kitToXml', () => {
     assert.match(xml, /<text line-height="1.5">A factor<\/text>/, xml);
   });
 
+  it('emits gradients inside <tokens>, and a gradient as the background of a box and the fill of a rect', () => {
+    const document = L.document(
+      {
+        tokens: {
+          gradients: {
+            'brand-fade': { type: 'linear', from: 'primary', to: '#0f3e8a', angle: 90 },
+            sunset: { type: 'radial', stops: [{ offset: '0%', color: '#f97316' }, { offset: '100%', color: '#8b5cf6' }] },
+          },
+        },
+      },
+      [L.section(null, [
+        L.layer(null, [L.rect({ x: '10pt', y: '20pt', width: '50pt', height: '30pt', fill: 'gradient:sunset' })]),
+        L.layout(null, [L.column({ background: 'gradient:brand-fade' }, [L.text(null, ['In a column'])])]),
+      ])],
+    );
+    const xml = L.toXml(document);
+    assert.match(xml, /<gradient name="brand-fade" type="linear" from="primary" to="#0f3e8a" angle="90"\/>/, xml);
+    assert.match(xml, /<gradient name="sunset" type="radial">/, xml);
+    assert.match(xml, /<stop color="#f97316" offset="0%"\/>|<stop offset="0%" color="#f97316"\/>/, xml);
+    assert.match(xml, /<rect [^>]*fill="gradient:sunset"/, xml);
+    assert.match(xml, /<column background="gradient:brand-fade">/, xml);
+  });
+
+  it('renders a gradient as a shading in the PDF', async () => {
+    const document = L.document(
+      { tokens: { gradients: { fade: { type: 'linear', from: '#ff0000', to: '#0000ff', angle: 90 } } } },
+      [L.section(null, [L.layout(null, [L.column({ background: 'gradient:fade', height: '60pt' }, [])])])],
+    );
+    const bytes = await new PdfEngine().render(document);
+    const text = Buffer.from(bytes).toString('latin1');
+    assert(text.includes('/ShadingType 2'), 'no shading in the PDF');
+    assert(text.includes('/Sh-fade'), 'the page does not list the shading');
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
