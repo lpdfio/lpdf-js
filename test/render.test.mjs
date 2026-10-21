@@ -328,6 +328,32 @@ describe('kitToXml', () => {
     assert(text.includes('/Sh-fade'), 'the page does not list the shading');
   });
 
+  it('emits aliases inside <tokens>, and an alias as the size of a text', () => {
+    const document = L.document(
+      { tokens: { aliases: { caption: 'xs', 'sub-title': 'l' } } },
+      [L.section(null, [L.layout(null, [L.text({ fontSize: 'caption' }, ['Small'])])])],
+    );
+    const xml = L.toXml(document);
+    assert.match(xml, /<aliases>/, xml);
+    assert.match(xml, /<alias name="caption" value="xs"\/>/, xml);
+    assert.match(xml, /<alias name="sub-title" value="l"\/>/, xml);
+    assert.match(xml, /<text font-size="caption">/, xml);
+  });
+
+  it('renders an alias as the slot it names, and rejects a name that is neither a slot nor an alias', async () => {
+    const build = (size) => L.document(
+      { tokens: { aliases: { caption: 'xs' } } },
+      [L.section(null, [L.layout(null, [L.text({ fontSize: size }, ['Sized'])])])],
+    );
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const bytes = await engine.render(build('caption'));
+    assert(Buffer.from(bytes).toString('latin1').startsWith('%PDF'), 'the document did not render');
+    await assert.rejects(
+      engine.render(build('medum')),
+      (e) => e instanceof LpdfRenderError && /invalid text size: 'medum': expected a slot from xs to xxl, an alias \(caption\)/.test(e.message),
+    );
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),

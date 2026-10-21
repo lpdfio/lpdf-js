@@ -49,6 +49,12 @@ export interface GradientToken {
 export interface DocumentTokens {
   colors?:  Record<string, string>;
   gradients?: Record<string, GradientToken>;
+  /**
+   * Names for the slots of the scale, each to the slot it stands for: `{ caption: 'xs' }` lets `fontSize: 'caption'`
+   * mean the text size `xs`, and `gap: 'caption'` the space `xs`. A name is lowercase letters, digits and `-`,
+   * starting with a letter, and is neither a slot nor `fill` or `full`.
+   */
+  aliases?: Record<string, string>;
   space?:   Record<string, string>;
   grid?:    Record<string, string>;
   border?:  Record<string, string>;
