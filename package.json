@@ -6,8 +6,9 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types":   "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "types":   "./dist/index.d.ts"
+      "default": "./dist/index.js"
     },
     "./browser": {
       "import": "./dist/browser.js",
@@ -18,7 +19,7 @@
     "build":         "tsc && node build-browser.mjs && node -e \"require('node:fs').cpSync('./wasm', './dist/wasm', {recursive:true})\"",
     "build:node":    "tsc",
     "build:browser": "node build-browser.mjs",
-    "test":          "node --test test/render.test.mjs"
+    "test":          "node --test test/render.test.mjs test/package-entry.test.mjs"
   },
   "author": "lpdf.io",
   "homepage": "https://lpdf.io",
