@@ -41,6 +41,12 @@ const doc = L.document({ size: 'letter' }, [
 engine.render(doc).then((pdf) => require('node:fs').writeFileSync('proposal.pdf', pdf))
 ```
 
+An ES module or a TypeScript file imports the same names, and gets the same classes:
+
+```js
+import { L, NoAttr } from '@lpdfio/lpdf'
+```
+
 ## Requirements
 
 - Node.js 20+
