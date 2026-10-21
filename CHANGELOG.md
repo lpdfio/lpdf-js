@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.28.1 — 2026-10-21
+### Node.js SDK
+- `import { L } from '@lpdfio/lpdf'` works in an ES module: an `.mts` file, or a package with `"type": "module"`. It failed with `ERR_PACKAGE_PATH_NOT_EXPORTED` in the earlier releases, and `require` was the only way in. `import` and `require` give the same classes, TypeScript's `nodenext` resolves the package, and so do bundlers such as esbuild, which answered `Could not resolve`. The README shows both forms
+
 ## v0.28.0 (core) — 2026-10-19
 ### Text
 - `max-lines` and `ellipsis` work on a `<text>` in the layout, as they do on `<text-at>`. `max-lines="2"` draws at most two lines of the wrapped text, whole lines only; the lines it drops take no room, and a text that splits across pages keeps the cap across them. With `ellipsis="true"` the last line drawn ends in dots. Without `max-lines` a text wraps as before
