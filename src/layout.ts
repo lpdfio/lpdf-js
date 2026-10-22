@@ -13,6 +13,13 @@ export interface LpdfSpanNode {
   nodes: string[];
 }
 
+/** A footnote: its words go at the bottom of the page where its number lands. */
+export interface LpdfFnNode {
+  type:  'fn';
+  attrs: Record<string, string>;
+  nodes: (string | LpdfSpanNode)[];
+}
+
 export interface LpdfContainerNode {
   type:  'column' | 'row' | 'grid' | 'frame' | 'link';
   attrs: Record<string, string>;
@@ -22,7 +29,7 @@ export interface LpdfContainerNode {
 export interface LpdfTextNode {
   type:  'text';
   attrs: Record<string, string>;
-  nodes: (string | LpdfSpanNode)[];
+  nodes: (string | LpdfSpanNode | LpdfFnNode)[];
 }
 
 export interface LpdfDividerNode {
@@ -146,12 +153,21 @@ function td(attrs: TdAttr | null, nodes: LpdfNode[] = []): LpdfTdNode {
   return { type: 'td', attrs: buildAttrs(attrs), nodes };
 }
 
-function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode)[] = []): LpdfTextNode {
+function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode | LpdfFnNode)[] = []): LpdfTextNode {
   return { type: 'text', attrs: buildAttrs(attrs), nodes };
 }
 
 function span(attrs: SpanAttr | null, nodes: string[] = []): LpdfSpanNode {
   return { type: 'span', attrs: buildAttrs(attrs), nodes };
+}
+
+/**
+ * A footnote, in the nodes of a text. The engine numbers it and puts a small raised number at its place in the
+ * text; its words go at the bottom of the page where that number lands. It has no attributes: pass `NoAttr`.
+ * The words are strings and spans.
+ */
+function fn(attrs: null, nodes: (string | LpdfSpanNode)[] = []): LpdfFnNode {
+  return { type: 'fn', attrs: {}, nodes };
 }
 
 function divider(attrs: DividerAttr | null = null): LpdfDividerNode {
@@ -195,6 +211,7 @@ export const LpdfLayout = Object.freeze({
   link,
   text,
   span,
+  fn,
   divider,
   img,
   shape,

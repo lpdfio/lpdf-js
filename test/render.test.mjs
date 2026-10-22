@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PdfEngine, L, LpdfRenderError, CanvasTransform,
-  FieldType, Pin, Orientation, SectionType, PageScope, BuiltinFont,
+  FieldType, Pin, Orientation, SectionType, FootnoteCounter, PageScope, BuiltinFont, NoAttr,
 } from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -419,6 +419,44 @@ describe('kitToXml', () => {
     await assert.rejects(
       engine.render(build(L.shape({ type: 'circle' }))),
       (e) => e instanceof LpdfRenderError && /a circle needs 'r'/.test(e.message),
+    );
+  });
+
+  it('emits a footnote as an fn child of a text, and the counter on the document and a section', () => {
+    const document = L.document({ footnoteCounter: FootnoteCounter.Document }, [
+      L.section({ footnoteCounter: FootnoteCounter.Page }, [L.layout(null, [
+        L.text(null, ['Total', L.fn(NoAttr, ['See ', L.span({ bold: 'true' }, ['this']), '.']), ' here']),
+      ])]),
+    ]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<document [^>]*footnote-counter="document"/, xml);
+    assert.match(xml, /<section [^>]*footnote-counter="page"/, xml);
+    assert.match(xml, /<text>Total<fn>See <span bold="true">this<\/span>\.<\/fn> here<\/text>/, xml);
+    assert.deepEqual(L.fn(NoAttr, ['a']), { type: 'fn', attrs: {}, nodes: ['a'] });
+  });
+
+  it('renders a footnote at the foot of the page, and says where one cannot stand', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    const build = (...nodes) => kitDoc([L.text(null, ['Total', ...nodes, ' here'])]);
+    const plain = await render(build());
+    const noted = await render(build(L.fn(NoAttr, ['The note.'])));
+    assert.notEqual(noted, plain, 'the note is not drawn');
+
+    const counted = (counter) => L.document({ footnoteCounter: counter }, [
+      L.section(null, [L.layout(null, [L.text(null, ['One', L.fn(NoAttr, ['A.'])])])]),
+      L.section(null, [L.layout(null, [L.text(null, ['Two', L.fn(NoAttr, ['B.'])])])]),
+    ]);
+    assert.notEqual(await render(counted(FootnoteCounter.Document)), await render(counted(FootnoteCounter.Section)),
+      'the second section goes on from the first, or starts over');
+
+    await assert.rejects(
+      engine.render(kitDoc([L.table({ cols: '1fr' }, [L.tr(null, [L.td(null, [L.text(null, ['x', L.fn(NoAttr, ['y'])])])])])])),
+      (e) => e instanceof LpdfRenderError && /<fn> is not supported in a table/.test(e.message),
+    );
+    await assert.rejects(
+      engine.render(counted('book')),
+      (e) => e instanceof LpdfRenderError && /invalid footnote-counter 'book'/.test(e.message),
     );
   });
 

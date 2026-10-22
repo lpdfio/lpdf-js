@@ -22,7 +22,7 @@ import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
-export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, BuiltinFont, PageScope } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
     DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
@@ -35,7 +35,7 @@ export type {
     FontAttr, ImageAttr, LayoutAttr,
 } from './attrs';
 export type {
-    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
+    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfFnNode, LpdfDividerNode,
     LpdfImgNode, LpdfShapeNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
     LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';

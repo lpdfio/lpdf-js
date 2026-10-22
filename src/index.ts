@@ -6,7 +6,7 @@ export type { EncryptPermissions, EncryptOptions } from './engine';
 export type { RenderOptions, EngineOptions } from './_shared';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
-export { FieldType, Pin, Orientation, SectionType, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, BuiltinFont, PageScope } from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────
 export type {
@@ -27,7 +27,7 @@ export type {
 
 // ── Layout node types ─────────────────────────────────────────────────────────
 export type {
-    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfDividerNode,
+    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfFnNode, LpdfDividerNode,
     LpdfImgNode, LpdfShapeNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
     LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
