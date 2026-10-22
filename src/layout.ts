@@ -1,7 +1,7 @@
 import type {
   ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
-  ImgAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
+  ImgAttr, ShapeAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
 import { buildAttrs } from './_shared';
 
@@ -32,6 +32,11 @@ export interface LpdfDividerNode {
 
 export interface LpdfImgNode {
   type:  'img';
+  attrs: Record<string, string>;
+}
+
+export interface LpdfShapeNode {
+  type:  'shape';
   attrs: Record<string, string>;
 }
 
@@ -87,6 +92,7 @@ export type LpdfNode =
   | LpdfDividerNode
   | LpdfTableNode
   | LpdfImgNode
+  | LpdfShapeNode
   | LpdfBarcodeNode
   | LpdfRegionNode
   | LpdfFieldNode
@@ -156,6 +162,11 @@ function img(attrs: ImgAttr): LpdfImgNode {
   return { type: 'img', attrs: buildAttrs(attrs) };
 }
 
+/** A rect, circle or ellipse that takes its box in the layout, as an image does. */
+function shape(attrs: ShapeAttr): LpdfShapeNode {
+  return { type: 'shape', attrs: buildAttrs(attrs) };
+}
+
 function barcode(attrs: BarcodeAttr): LpdfBarcodeNode {
   return { type: 'barcode', attrs: buildAttrs(attrs) };
 }
@@ -186,6 +197,7 @@ export const LpdfLayout = Object.freeze({
   span,
   divider,
   img,
+  shape,
   barcode,
   table,
   thead,
