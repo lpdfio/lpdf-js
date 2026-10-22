@@ -60,6 +60,8 @@ export interface DocumentTokens {
   border?:  Record<string, string>;
   radius?:  Record<string, string>;
   width?:   Record<string, string>;
+  /** The heights `height` names: `{ xs: '16pt', s: '24pt', m: '32pt', l: '48pt', xl: '64pt', xxl: '96pt' }` by default. */
+  height?:  Record<string, string>;
   textSize?: Record<string, string>;
   lineHeight?: Record<string, string>;
 }

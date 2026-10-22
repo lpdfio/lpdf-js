@@ -354,6 +354,38 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits a height row inside <tokens>, and a height that names one of its slots', () => {
+    const document = L.document(
+      { tokens: { height: { xs: '10pt', s: '20pt', m: '30pt', l: '40pt', xl: '50pt', xxl: '60pt' } } },
+      [L.section(null, [L.layout(null, [L.column({ height: 'm' }, [])])])],
+    );
+    const xml = L.toXml(document);
+    const row = /<height ([^>]*)\/>/.exec(xml)?.[1];
+    assert(row, xml);
+    for (const slot of ['xs="10pt"', 's="20pt"', 'm="30pt"', 'l="40pt"', 'xl="50pt"', 'xxl="60pt"']) {
+      assert(row.includes(slot), `the row lacks ${slot}: ${row}`);
+    }
+    assert.match(xml, /<column height="m"/, xml);
+  });
+
+  it('renders a height as the slot it names, and rejects a name that is not one', async () => {
+    const build = (height, row) => L.document(
+      row ? { tokens: { height: row } } : null,
+      [L.section(null, [L.layout(null, [L.column({ background: '#cccccc', height }, [])])])],
+    );
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    const slot = await render(build('m'));
+    assert.equal(slot, await render(build('32pt')), 'm is 32pt in the default row');
+    assert.notEqual(slot, await render(build('xl')));
+    const row = { xs: '10pt', s: '20pt', m: '50pt', l: '60pt', xl: '70pt', xxl: '80pt' };
+    assert.equal(await render(build('m', row)), await render(build('50pt')), 'the document\'s own row');
+    await assert.rejects(
+      engine.render(build('medum')),
+      (e) => e instanceof LpdfRenderError && /invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a pt value/.test(e.message),
+    );
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
