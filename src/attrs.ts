@@ -340,6 +340,39 @@ export interface ImgAttr {
 }
 
 /**
+ * A rectangle, a circle or an ellipse in the layout, for a status dot, a color swatch or a progress
+ * bar. It takes its box in the flow as an image does, with no children, and is drawn centered in
+ * that box, which the parent's align places. A rect and an ellipse need a width and a height, and a
+ * circle an r. A shape with no fill and no stroke draws nothing, but keeps its box. A stroke is
+ * centered on the edge of the box, so half of it lies outside. To put a shape at a place on the
+ * page, use a rect, circle or ellipse in a layer.
+ */
+export interface ShapeAttr {
+  type: string;
+  /**
+   * Width of a rect or an ellipse, a length or a name from the width row of the tokens. A circle
+   * takes r instead.
+   */
+  width?: string;
+  /**
+   * Height of a rect or an ellipse, a length or a name from the height row of the tokens. A circle
+   * takes r instead.
+   */
+  height?: string;
+  /** Radius of a circle. Its box is the square of side 2r. */
+  r?: string;
+  /** Rounding of the corners of a rect. A circle and an ellipse are round already. */
+  radius?: string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: string;
+  strokeDash?: string;
+  /** How opaque the shape is, from 0 to 1. Default 1. */
+  opacity?: string;
+  debug?: string;
+}
+
+/**
  * A QR code, a Code 128 or an EAN-13. It is never stretched. With only a width or a height, the
  * other follows the barcode's proportions. With both, they are a maximum: the barcode takes the
  * largest size that fits in them, and its box becomes that size, which the parent's align places.

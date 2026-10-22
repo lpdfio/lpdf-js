@@ -386,6 +386,42 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits a shape of the layout under its schema name, with the attributes of its type', () => {
+    const document = kitDoc([
+      L.row({ align: 'center', gap: 's' }, [
+        L.shape({ type: 'circle', r: '5pt', fill: 'primary' }),
+        L.shape({ type: 'rect', width: '14pt', height: 'm', radius: '2pt', stroke: '#000000', strokeWidth: '1pt', strokeDash: '3 2', opacity: '0.5' }),
+        L.shape({ type: 'ellipse', width: '40pt', height: '20pt' }),
+      ]),
+    ]);
+    const xml = L.toXml(document);
+    const shapes = [...xml.matchAll(/<shape ([^>]*)\/>/g)].map(([, attrs]) =>
+      Object.fromEntries([...attrs.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, name, value]) => [name, value])));
+    assert.deepEqual(shapes, [
+      { type: 'circle', r: '5pt', fill: 'primary' },
+      { type: 'rect', width: '14pt', height: 'm', radius: '2pt', stroke: '#000000', 'stroke-width': '1pt', 'stroke-dash': '3 2', opacity: '0.5' },
+      { type: 'ellipse', width: '40pt', height: '20pt' },
+    ], xml);
+  });
+
+  it('renders a shape of each type, and says what a shape lacks', async () => {
+    const build = (...shapes) => kitDoc([L.row({ align: 'center' }, [...shapes, L.text(null, ['After'])])]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    const without = await render(build());
+    for (const shape of [
+      L.shape({ type: 'rect', width: '60pt', height: '12pt', fill: '#00aa00' }),
+      L.shape({ type: 'circle', r: '8pt', fill: '#00aa00' }),
+      L.shape({ type: 'ellipse', width: '40pt', height: '20pt', fill: '#00aa00' }),
+    ]) {
+      assert.notEqual(await render(build(shape)), without, `a ${shape.attrs.type} is not drawn`);
+    }
+    await assert.rejects(
+      engine.render(build(L.shape({ type: 'circle' }))),
+      (e) => e instanceof LpdfRenderError && /a circle needs 'r'/.test(e.message),
+    );
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
