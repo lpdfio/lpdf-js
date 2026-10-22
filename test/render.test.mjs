@@ -460,6 +460,23 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits keep on a table row under its schema name, and a kept row moves on with the row after it', async () => {
+    // The table starts 30pt above the foot of the page, so rows A and B fit and C does not.
+    const build = (keep) => kitDoc([
+      L.frame({ height: '739pt' }),
+      L.table({ cols: '1fr' }, [
+        L.tr(null, [L.td(null, [L.text(null, ['A'])])]),
+        L.tr(keep, [L.td(null, [L.text(null, ['B'])])]),
+        L.tr(null, [L.td(null, [L.text(null, ['C'])])]),
+      ]),
+    ]);
+    const kept = build({ keep: 'with-next' });
+    assert.match(L.toXml(kept), /<tr keep="with-next">/);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    assert.notEqual(await render(kept), await render(build(null)), 'a kept row stays at the foot of the page');
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
