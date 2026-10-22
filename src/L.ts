@@ -56,6 +56,7 @@ export const L = Object.freeze({
     td:      LpdfLayout.td,
     text:    LpdfLayout.text,
     span:    LpdfLayout.span,
+    fn:      LpdfLayout.fn,
     divider: LpdfLayout.divider,
     img:     LpdfLayout.img,
     shape:   LpdfLayout.shape,

@@ -91,6 +91,7 @@ export interface SectionAttr {
   debug?:       string;
   type?:        string;
   tocIndentStep?: string;
+  footnoteCounter?: string;
 }
 
 export interface DocumentAttr {
@@ -102,6 +103,7 @@ export interface DocumentAttr {
   tokens?:      DocumentTokens;
   meta?:        DocumentMeta;
   debug?:       string;
+  footnoteCounter?: string;
 }
 
 // ── Section block types ───────────────────────────────────────────────────────

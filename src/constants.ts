@@ -37,6 +37,15 @@ export const SectionType = {
 
 export type SectionType = (typeof SectionType)[keyof typeof SectionType];
 
+/** The values of the `footnote-counter` attribute of a document or a section. */
+export const FootnoteCounter = {
+  Page: 'page',
+  Section: 'section',
+  Document: 'document',
+} as const;
+
+export type FootnoteCounter = (typeof FootnoteCounter)[keyof typeof FootnoteCounter];
+
 /** The values of the `core` attribute of a font: the built-in PDF fonts, which need no file. */
 export const BuiltinFont = {
   Courier: 'Courier',
