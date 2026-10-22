@@ -477,6 +477,23 @@ describe('kitToXml', () => {
     assert.notEqual(await render(kept), await render(build(null)), 'a kept row stays at the foot of the page');
   });
 
+  it('emits colspan on a table cell under its schema name, and a spanning cell moves the cells after it', async () => {
+    const build = (colspan) => kitDoc([
+      L.table({ cols: '1fr 1fr 1fr' }, [
+        L.tr(null, [L.td(colspan, [L.text(null, ['A'])]), L.td(null, [L.text(null, ['B'])])]),
+      ]),
+    ]);
+    const spanning = build({ colspan: '2' });
+    assert.match(L.toXml(spanning), /<td colspan="2">/);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    assert.notEqual(await render(spanning), await render(build(null)), 'the second cell starts at the third column');
+    await assert.rejects(
+      engine.render(build({ colspan: '3' })),
+      (e) => e instanceof LpdfRenderError && /span 4 columns, but the table has 3/.test(e.message),
+    );
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
