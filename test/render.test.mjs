@@ -494,6 +494,24 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits rowspan on a table cell under its schema name, and a cell that spans rows moves the cells under it', async () => {
+    const build = (rowspan) => kitDoc([
+      L.table({ cols: '1fr 1fr' }, [
+        L.tr(null, [L.td(rowspan, [L.text(null, ['A'])]), L.td(null, [L.text(null, ['B'])])]),
+        L.tr(null, [L.td(null, [L.text(null, ['C'])])]),
+      ]),
+    ]);
+    const spanning = build({ rowspan: '2' });
+    assert.match(L.toXml(spanning), /<td rowspan="2">/);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    assert.notEqual(await render(spanning), await render(build(null)), 'the second row starts at the second column');
+    await assert.rejects(
+      engine.render(build({ rowspan: '3' })),
+      (e) => e instanceof LpdfRenderError && /a rowspan that runs 1 row past the last row of the table/.test(e.message),
+    );
+  });
+
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),

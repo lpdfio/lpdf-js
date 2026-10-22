@@ -550,6 +550,16 @@ export interface TdAttr {
    * 1.
    */
   colspan?: string;
+  /**
+   * How many rows the cell spans, its own included. It is as tall as those rows and the gaps
+   * between them, and the rows under it leave its columns out: their cells start at the first free
+   * columns. If the cell's content is taller than the rows are together, the last of them grows by
+   * the difference. A row with a cell too many for the free columns, and a span that runs past the
+   * last row of the table, are errors; a thead is one row and takes no rowspan. The rows a cell
+   * spans stay on one page: the group moves to the next page whole when it does not fit, and one
+   * taller than a page is clipped at the page's end. Default 1.
+   */
+  rowspan?: string;
   align?: string;
   valign?: string;
 }
