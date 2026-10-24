@@ -121,6 +121,51 @@ describe('LpdfEngine', () => {
     assert(text.includes('/Encrypt'), 'encrypted PDF should contain /Encrypt entry');
   });
 
+  it('setEncryption encrypts with AES-256 unless told otherwise', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: 'open', ownerPassword: 's3cr3t' });
+    const text = Buffer.from(await lpdf.render(doc(''))).toString('latin1');
+    assert(text.includes('/V 5') && text.includes('/R 6'), 'the default is V=5 R=6');
+    assert(text.includes('/CFM /AESV3'), 'the default is AES-256');
+  });
+
+  it('setEncryption with rc4-128 writes the RC4 dictionary', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: '', ownerPassword: 's3cr3t', algorithm: 'rc4-128' });
+    const text = Buffer.from(await lpdf.render(doc(''))).toString('latin1');
+    assert(text.includes('/V 2') && text.includes('/R 3'), 'rc4-128 is V=2 R=3');
+    assert(!text.includes('AESV3'), 'rc4-128 does not use AES');
+  });
+
+  it('every AES-256 render of one document gets a fresh key', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: '', ownerPassword: 's3cr3t' });
+    const first  = Buffer.from(await lpdf.render(doc('')));
+    const second = Buffer.from(await lpdf.render(doc('')));
+    assert.notDeepEqual(first, second);
+  });
+
+  it('rc4-128 renders of one document are identical', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: '', ownerPassword: 's3cr3t', algorithm: 'rc4-128' });
+    const first  = Buffer.from(await lpdf.render(doc('')));
+    const second = Buffer.from(await lpdf.render(doc('')));
+    assert.deepEqual(first, second);
+  });
+
+  it('setEncryption with an unknown algorithm fails the render', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: '', ownerPassword: 's3cr3t', algorithm: 'aes-128' });
+    await assert.rejects(() => lpdf.render(doc('')), (e) => e instanceof LpdfRenderError && e.message.includes('aes-128'));
+  });
+
+  it('encrypts a document built with the kit API', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    lpdf.setEncryption({ userPassword: '', ownerPassword: 's3cr3t' });
+    const text = Buffer.from(await lpdf.render(kitDoc([L.text(null, ['Hello PDF'])]))).toString('latin1');
+    assert(text.includes('/CFM /AESV3'), 'the JSON path encrypts with AES-256 too');
+  });
+
   it('loadImage does not throw and produces a valid PDF', async () => {
     const png1x1 = Buffer.from(
       '89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b55' +

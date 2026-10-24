@@ -1,6 +1,6 @@
 // ── Engine ────────────────────────────────────────────────────────────────────
 export { PdfEngine, LpdfRenderError } from './engine';
-export type { EncryptPermissions, EncryptOptions } from './engine';
+export type { EncryptAlgorithm, EncryptPermissions, EncryptOptions } from './engine';
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 export type { RenderOptions, EngineOptions } from './_shared';

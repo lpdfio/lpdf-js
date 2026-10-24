@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { RenderOptions } from './_shared';
 import type { DocumentAssets, PdfDocument } from './kit';
@@ -10,7 +11,7 @@ interface IWasmEngine {
   load_image(name: string, bytes: Uint8Array): void;
   set_created_on(iso: string): void;
   set_now(unix: bigint): void;
-  set_encryption(user_password: string, owner_password: string, permissions_json: string): void;
+  set_encryption(user_password: string, owner_password: string, permissions_json: string, algorithm: string, entropy: Uint8Array): void;
   clear_encryption(): void;
   free(): void;
 }
@@ -79,7 +80,7 @@ export class LpdfRenderError extends Error {
   }
 }
 
-/** PDF permission flags for RC4-128 encryption. All flags default to `true` (allowed). */
+/** PDF permission flags. All flags default to `true` (allowed). */
 export interface EncryptPermissions {
   print?:         boolean;
   modify?:        boolean;
@@ -91,7 +92,13 @@ export interface EncryptPermissions {
   print_hq?:      boolean;
 }
 
-/** RC4-128 encryption options passed to {@link PdfEngine.setEncryption}. */
+/**
+ * The cipher a PDF is encrypted with. `'aes-256'` is the default. `'rc4-128'` is deprecated by
+ * PDF 2.0; use it only for readers that cannot open AES-256.
+ */
+export type EncryptAlgorithm = 'aes-256' | 'rc4-128';
+
+/** Encryption options passed to {@link PdfEngine.setEncryption}. */
 export interface EncryptOptions {
   /** Open password shown to readers. Empty string = no open password required. */
   userPassword:  string;
@@ -99,6 +106,22 @@ export interface EncryptOptions {
   ownerPassword: string;
   /** Permission flags applied to the document. Omitted flags default to `true`. */
   permissions?:  EncryptPermissions;
+  /**
+   * The cipher. Defaults to `'aes-256'`, which makes every render of the same document differ
+   * in its bytes, since each one gets a fresh random key.
+   */
+  algorithm?:    EncryptAlgorithm;
+}
+
+/**
+ * Hands the engine the encryption options. AES-256 needs random bytes, which the engine does not
+ * make: they come from Node's secure generator, 32 bytes for each render.
+ */
+function configureEncryption(engine: IWasmEngine, options: EncryptOptions): void {
+  const algorithm = options.algorithm ?? 'aes-256';
+  const entropy = algorithm === 'aes-256' ? new Uint8Array(randomBytes(32)) : new Uint8Array(0);
+  const permsJson = JSON.stringify(options.permissions ?? {});
+  engine.set_encryption(options.userPassword, options.ownerPassword, permsJson, algorithm, entropy);
 }
 
 export class PdfEngine {
@@ -156,8 +179,8 @@ export class PdfEngine {
   }
 
   /**
-   * Configure RC4-128 encryption for all subsequent `render` calls.
-   * Returns `this` for chaining.
+   * Configure encryption for all subsequent `render` calls: AES-256 unless
+   * `options.algorithm` says `'rc4-128'`. Returns `this` for chaining.
    */
   setEncryption(options: EncryptOptions): this {
     this._throwIfDisposed();
@@ -233,8 +256,7 @@ export class PdfEngine {
           }
         }
         if (this._encrypt) {
-          const permsJson = JSON.stringify(this._encrypt.permissions ?? {});
-          engine.set_encryption(this._encrypt.userPassword, this._encrypt.ownerPassword, permsJson);
+          configureEncryption(engine, this._encrypt);
         }
         const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
         pdf = engine.render_pdf(xml, dataJson);
@@ -261,8 +283,7 @@ export class PdfEngine {
           engine.load_image(name, bytes);
         }
         if (this._encrypt) {
-          const permsJson = JSON.stringify(this._encrypt.permissions ?? {});
-          engine.set_encryption(this._encrypt.userPassword, this._encrypt.ownerPassword, permsJson);
+          configureEncryption(engine, this._encrypt);
         }
         pdf = engine.render_tree_pdf(json);
       }

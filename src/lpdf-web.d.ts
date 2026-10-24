@@ -14,8 +14,8 @@ declare module '../wasm/lpdf-web.js' {
     set_created_on(iso: string): void;
     /** Set the host's clock, in Unix seconds, so the key's expiry can be checked. */
     set_now(unix: bigint): void;
-    /** Configure RC4-128 encryption. */
-    set_encryption(user_password: string, owner_password: string, permissions_json: string): void;
+    /** Configure encryption: `algorithm` is `"aes-256"` or `"rc4-128"`; AES-256 needs 32 or more random `entropy` bytes. */
+    set_encryption(user_password: string, owner_password: string, permissions_json: string, algorithm: string, entropy: Uint8Array): void;
     /** Remove any previously configured encryption. */
     clear_encryption(): void;
     /** Render XML to binary PDF bytes. */
