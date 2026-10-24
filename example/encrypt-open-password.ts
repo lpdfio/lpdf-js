@@ -1,5 +1,5 @@
 /**
- * encrypt-open-password.ts — render showcase-encryption.xml with RC4-128 encryption,
+ * encrypt-open-password.ts — render showcase-encryption.xml with AES-256 encryption,
  * open password required, copy disabled.
  *
  * Run from lpdf's root, after building the adapter (make build-sdk-node):

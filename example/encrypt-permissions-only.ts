@@ -1,5 +1,5 @@
 /**
- * encrypt-permissions-only.ts — render showcase-encryption.xml with RC4-128 encryption,
+ * encrypt-permissions-only.ts — render showcase-encryption.xml with AES-256 encryption,
  * no open password, print and copy disabled.
  *
  * Run from lpdf's root, after building the adapter (make build-sdk-node):
