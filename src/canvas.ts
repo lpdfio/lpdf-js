@@ -1,7 +1,7 @@
 import type {
   RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr, LayerAttr,
 } from './attrs';
-import type { LpdfSpanNode } from './layout';
+import type { LpdfSpanNode, LpdfCodeSpanNode } from './layout';
 import { buildAttrs } from './_shared';
 
 // ── CanvasTransform ───────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ export interface LpdfCanvasPathNode {
 export interface LpdfCanvasTextAtNode {
   type:  'text-at';
   attrs: Record<string, string>;
-  nodes: (string | LpdfSpanNode)[];
+  nodes: (string | LpdfSpanNode | LpdfCodeSpanNode)[];
 }
 
 export interface LpdfCanvasImgAtNode {
@@ -141,7 +141,7 @@ function path(attrs: PathAttr): LpdfCanvasPathNode {
   return { type: 'path', attrs: buildAttrs(attrs) };
 }
 
-function textAt(attrs: TextAtAttr, nodes: (string | LpdfSpanNode)[] = []): LpdfCanvasTextAtNode {
+function textAt(attrs: TextAtAttr, nodes: (string | LpdfSpanNode | LpdfCodeSpanNode)[] = []): LpdfCanvasTextAtNode {
   return { type: 'text-at', attrs: buildAttrs(attrs), nodes };
 }
 

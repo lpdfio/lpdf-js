@@ -1,6 +1,6 @@
 import type {
   ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
-  TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
+  TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
   ImgAttr, ShapeAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
 import { buildAttrs } from './_shared';
@@ -9,6 +9,13 @@ import { buildAttrs } from './_shared';
 
 export interface LpdfSpanNode {
   type:  'span';
+  attrs: Record<string, string>;
+  nodes: string[];
+}
+
+/** A run of code inside a text: its words in the code font on a tint. */
+export interface LpdfCodeSpanNode {
+  type:  'code-span';
   attrs: Record<string, string>;
   nodes: string[];
 }
@@ -29,7 +36,14 @@ export interface LpdfContainerNode {
 export interface LpdfTextNode {
   type:  'text';
   attrs: Record<string, string>;
-  nodes: (string | LpdfSpanNode | LpdfFnNode)[];
+  nodes: (string | LpdfSpanNode | LpdfCodeSpanNode | LpdfFnNode)[];
+}
+
+/** Code in a box. Its strings keep their spaces and lines; its spans color parts of it. */
+export interface LpdfCodeNode {
+  type:  'code';
+  attrs: Record<string, string>;
+  nodes: (string | LpdfSpanNode)[];
 }
 
 export interface LpdfDividerNode {
@@ -96,6 +110,7 @@ export interface LpdfBookmarkNode {
 export type LpdfNode =
   | LpdfContainerNode
   | LpdfTextNode
+  | LpdfCodeNode
   | LpdfDividerNode
   | LpdfTableNode
   | LpdfImgNode
@@ -153,12 +168,25 @@ function td(attrs: TdAttr | null, nodes: LpdfNode[] = []): LpdfTdNode {
   return { type: 'td', attrs: buildAttrs(attrs), nodes };
 }
 
-function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode | LpdfFnNode)[] = []): LpdfTextNode {
+function text(attrs: TextAttr | null, nodes: (string | LpdfSpanNode | LpdfCodeSpanNode | LpdfFnNode)[] = []): LpdfTextNode {
   return { type: 'text', attrs: buildAttrs(attrs), nodes };
+}
+
+/**
+ * Code in a box that fills the width and grows with its lines. The strings are kept as they are written: every
+ * space, and a new line wherever a `\n` is. A line longer than the box wraps. The spans color parts of it.
+ */
+function code(attrs: CodeAttr | null, nodes: (string | LpdfSpanNode)[] = []): LpdfCodeNode {
+  return { type: 'code', attrs: buildAttrs(attrs), nodes };
 }
 
 function span(attrs: SpanAttr | null, nodes: string[] = []): LpdfSpanNode {
   return { type: 'span', attrs: buildAttrs(attrs), nodes };
+}
+
+/** A run of code in the nodes of a text: its words in the code font on a tint. */
+function codeSpan(attrs: CodeSpanAttr | null, nodes: string[] = []): LpdfCodeSpanNode {
+  return { type: 'code-span', attrs: buildAttrs(attrs), nodes };
 }
 
 /**
@@ -210,7 +238,9 @@ export const LpdfLayout = Object.freeze({
   frame,
   link,
   text,
+  code,
   span,
+  codeSpan,
   fn,
   divider,
   img,

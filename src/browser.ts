@@ -29,13 +29,13 @@ export type {
 } from './kit';
 export type {
     ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
-    TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, SpanAttr, DividerAttr,
+    TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
     FontAttr, ImageAttr, LayoutAttr,
 } from './attrs';
 export type {
-    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfSpanNode, LpdfFnNode, LpdfDividerNode,
+    LpdfNode, LpdfContainerNode, LpdfTextNode, LpdfCodeNode, LpdfSpanNode, LpdfCodeSpanNode, LpdfFnNode, LpdfDividerNode,
     LpdfImgNode, LpdfShapeNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
     LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
