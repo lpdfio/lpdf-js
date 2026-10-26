@@ -945,6 +945,303 @@ export interface RegionAttr {
 }
 
 /**
+ * Markdown as the content of a section, where a layout would go. It holds only Markdown: optional
+ * markdown-styles, which say how each part of it looks, and one markdown-content, which holds the
+ * text. The page, a header, a footer or a cover are not Markdown, so they stay in the XML: layers
+ * paint a header and a footer in the margin, and a cover or a table of contents is a section of its
+ * own. CommonMark with tables, strikethrough and footnotes; raw HTML and math are an error that
+ * names the line. A heading is a bookmark, so the table of contents and the outline of the viewer
+ * fill themselves.
+ */
+export interface MarkdownAttr {
+  /**
+   * The space between the page edges and the Markdown: one value for all four sides, or two to four
+   * in the order top, right, bottom, left. Defaults to 36pt. A layer draws a header or a footer in
+   * it.
+   */
+  margin?: string;
+  /** The font of the Markdown, which a rule can change. Defaults to the document's. */
+  font?: string;
+  /** The size of the text of the Markdown, which a rule can change. Defaults to 11pt. */
+  fontSize?: string;
+  /**
+   * The color of the text of the Markdown, which a rule can change. Defaults to the text token.
+   */
+  color?: string;
+  /**
+   * The space between the blocks: headings, paragraphs, lists, code, quotes, tables and images.
+   * Default none.
+   */
+  gap?: string;
+  /**
+   * How many levels of headings become bookmarks, for the outline of the viewer and the table of
+   * contents: n keeps the levels 1 to n, 0 none. Default 6.
+   */
+  bookmarks?: string;
+  debug?: string;
+}
+
+/**
+ * How the parts of the Markdown look. A rule is named after the Markdown it styles and takes the
+ * attributes of the element it becomes, so that h1 takes what a text takes. A rule here overrides
+ * the same rule of the file that src names, which overrides the defaults: a style that is not set
+ * stays what it was. Values are the tokens' (font-size="xxl", color="primary") or plain lengths and
+ * colors, and fonts are names from assets. A built-in font needs no rule for italic and bold; an
+ * embedded font names the faces: em font="body-italic", strong font="body-bold".
+ */
+export interface MarkdownStylesAttr {
+  /**
+   * A file of rules, whose root is a markdown-styles. The rules written here override its rules.
+   * The engine reads no files: the SDK, the command line or the extension reads it, as it reads the
+   * src of a font or an image.
+   */
+  src?: string;
+}
+
+/**
+ * A heading of level 1, written # in Markdown.
+ */
+export interface MarkdownH1Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 2, written ## in Markdown.
+ */
+export interface MarkdownH2Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 3, written ### in Markdown.
+ */
+export interface MarkdownH3Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 4, written #### in Markdown.
+ */
+export interface MarkdownH4Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 5, written ##### in Markdown.
+ */
+export interface MarkdownH5Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 6, written ###### in Markdown.
+ */
+export interface MarkdownH6Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A paragraph, and the words of a list item, a quote and a footnote.
+ */
+export interface MarkdownPAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * Code: the box of a fenced or indented block, and the run of inline code, which takes the font,
+ * the color and the background. The language of a fence is ignored, since there is no highlighting
+ * by language.
+ */
+export interface MarkdownCodeAttr {
+  font?: string;
+  fontSize?: string;
+  color?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+  tabSize?: string;
+}
+
+/**
+ * A block quote, written > in Markdown: a bar beside its content. font, font-size, color,
+ * line-height and align set the words; padding, background, border and radius the box around the
+ * bar and the words; bar-color and bar-width the bar, a strip along the left of the box: bar-width
+ * is a length or a name from the space row of the tokens.
+ */
+export interface MarkdownQuoteAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+  barColor?: string;
+  barWidth?: string;
+}
+
+/**
+ * An item of a bullet or a numbered list. indent is the width of the marker's column and bullet the
+ * shape of a bullet list's marker, as on a list; gap goes between the blocks of an item.
+ */
+export interface MarkdownLiAttr {
+  font?: string;
+  fontSize?: string;
+  color?: string;
+  gap?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  indent?: string;
+  bullet?: string;
+}
+
+/**
+ * A link, written [text](url) in Markdown.
+ */
+export interface MarkdownAAttr {
+  font?: string;
+  color?: string;
+  bold?: string;
+  underline?: string;
+}
+
+/**
+ * Strong text, written **text** in Markdown. Bold in a built-in font; an embedded font names its
+ * bold face in font.
+ */
+export interface MarkdownStrongAttr {
+  font?: string;
+  color?: string;
+  bold?: string;
+}
+
+/**
+ * Emphasis, written *text* in Markdown. Italic in a built-in font; an embedded font names its
+ * italic face in font.
+ */
+export interface MarkdownEmAttr {
+  font?: string;
+  color?: string;
+}
+
+/**
+ * Struck-through text, written ~~text~~ in Markdown.
+ */
+export interface MarkdownDelAttr {
+  font?: string;
+  color?: string;
+  strike?: string;
+}
+
+/**
+ * A table. The columns share the width equally.
+ */
+export interface MarkdownTableAttr {
+  border?: string;
+  stripe?: string;
+  gap?: string;
+  padding?: string;
+  background?: string;
+}
+
+/**
+ * A cell of a table's header row.
+ */
+export interface MarkdownThAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+}
+
+/**
+ * A cell of a table's other rows.
+ */
+export interface MarkdownTdAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+}
+
+/**
  * Draws shapes, text, images and barcodes at exact positions on the page, independent of the
  * flowing layout: watermarks, stamps, page furniture. Coordinates start at the top left corner of
  * the whole page, not inside the layout's margin, and y grows downward. A layer before the

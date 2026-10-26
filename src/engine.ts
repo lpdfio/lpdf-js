@@ -9,6 +9,7 @@ interface IWasmEngine {
   render_tree_pdf(json: string): Uint8Array;
   load_font(name: string, bytes: Uint8Array): void;
   load_image(name: string, bytes: Uint8Array): void;
+  load_markdown_styles(src: string, xml: string): void;
   set_created_on(iso: string): void;
   set_now(unix: bigint): void;
   set_encryption(user_password: string, owner_password: string, permissions_json: string, algorithm: string, entropy: Uint8Array): void;
@@ -128,6 +129,7 @@ export class PdfEngine {
   private _licenseKey = '';
   private readonly _fonts:  Map<string, Uint8Array> = new Map();
   private readonly _images: Map<string, Uint8Array> = new Map();
+  private readonly _markdownStyles: Map<string, string> = new Map();
   private _disposed = false;
   private _encrypt: EncryptOptions | null = null;
 
@@ -179,6 +181,16 @@ export class PdfEngine {
   }
 
   /**
+   * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
+   * names it, as `<markdown-styles src="…">` does. Call before `render`. Returns `this` for chaining.
+   */
+  loadMarkdownStyles(src: string, text: string): this {
+    this._throwIfDisposed();
+    this._markdownStyles.set(src, text);
+    return this;
+  }
+
+  /**
    * Configure encryption for all subsequent `render` calls: AES-256 unless
    * `options.algorithm` says `'rc4-128'`. Returns `this` for chaining.
    */
@@ -207,6 +219,22 @@ export class PdfEngine {
   }
 
   [Symbol.dispose](): void { this.dispose(); }
+
+  /**
+   * Hand the engine the files of Markdown rules that a document names: the ones loaded here, and the ones read from
+   * their `src`. A file that can't be read is left for the engine to report, naming the `src`.
+   */
+  private _loadMarkdownStyles(engine: IWasmEngine, srcs: string[]): void {
+    const files = new Map<string, string>(this._markdownStyles);
+    for (const src of srcs) {
+      if (!files.has(src)) {
+        try { files.set(src, readFileSync(src, 'utf8')); } catch { /* not found; the engine says so */ }
+      }
+    }
+    for (const [src, text] of files) {
+      engine.load_markdown_styles(src, text);
+    }
+  }
 
   private _throwIfDisposed(): void {
     if (this._disposed) throw new Error('PdfEngine has been disposed.');
@@ -249,6 +277,7 @@ export class PdfEngine {
         for (const [name, bytes] of this._images) {
           engine.load_image(name, bytes);
         }
+        this._loadMarkdownStyles(engine, markdownStylesSrcs(xml));
         // Auto-load images declared via <image src="…"> that weren't pre-loaded.
         for (const [key, src] of extractAssetSrcs(xml, 'image')) {
           if (!this._images.has(key)) {
@@ -282,6 +311,7 @@ export class PdfEngine {
         for (const [name, bytes] of allImages) {
           engine.load_image(name, bytes);
         }
+        this._loadMarkdownStyles(engine, markdownStylesSrcsOfDocument(input));
         if (this._encrypt) {
           configureEncryption(engine, this._encrypt);
         }
@@ -312,6 +342,30 @@ function extractAssetSrcs(xml: string, tag: 'font' | 'image'): Map<string, strin
     if (key && src) result.set(key, src);
   }
   return result;
+}
+
+/** The `src` of each `<markdown-styles>` in XML. */
+function markdownStylesSrcs(xml: string): string[] {
+  const srcs: string[] = [];
+  for (const match of xml.matchAll(/<markdown-styles\s[^>]*>/g)) {
+    const src = /\bsrc="([^"]*)"/.exec(match[0])?.[1];
+    if (src) srcs.push(src);
+  }
+  return srcs;
+}
+
+/** The `src` of each `markdown-styles` a document holds, in the markdown of any of its sections. */
+function markdownStylesSrcsOfDocument(document: PdfDocument): string[] {
+  const srcs: string[] = [];
+  for (const section of document.nodes) {
+    for (const child of section.nodes) {
+      if (child.type !== 'markdown') continue;
+      for (const part of child.nodes) {
+        if (part.type === 'markdown-styles' && part.attrs['src']) srcs.push(part.attrs['src']);
+      }
+    }
+  }
+  return srcs;
 }
 
 /** The `ref ?? name → src` pairs of the fonts or images a document declares in `attrs.assets`. */

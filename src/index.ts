@@ -23,6 +23,9 @@ export type {
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
     FontAttr, ImageAttr, LayoutAttr,
+    MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
+    MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
+    MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
 } from './attrs';
 
 // ── Layout node types ─────────────────────────────────────────────────────────
@@ -31,6 +34,12 @@ export type {
     LpdfImgNode, LpdfShapeNode, LpdfBarcodeNode, LpdfTableNode, LpdfTheadNode, LpdfTrNode,
     LpdfTdNode, LpdfRegionNode, LpdfFieldNode, LpdfBookmarkNode,
 } from './layout';
+
+// ── Markdown ──────────────────────────────────────────────────────────────────
+export { LMarkdown } from './markdown';
+export type {
+    LpdfMarkdownNode, LpdfMarkdownStylesNode, LpdfMarkdownContentNode, LpdfMarkdownRuleNode,
+} from './markdown';
 
 // ── Layer types ───────────────────────────────────────────────────────────────
 export { CanvasTransform } from './canvas';
