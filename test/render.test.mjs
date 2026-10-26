@@ -509,6 +509,39 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits a list with its items, and the PDF of the tree is the PDF of its XML', async () => {
+    const document = kitDoc([
+      L.list({ type: 'number', format: 'lower-alpha', suffix: ')' }, [
+        L.li(null, [L.text(null, ['One'])]),
+        L.li(null, [L.text(null, ['Two']), L.list({ bullet: 'dash' }, [L.li(null, [L.text(null, ['Nested'])])])]),
+      ]),
+    ]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<list format="lower-alpha" suffix="\)" type="number">/, xml);
+    assert.match(xml, /<li>\s*<text>One<\/text>\s*<\/li>/, xml);
+    assert.match(xml, /<list bullet="dash">\s*<li>\s*<text>Nested<\/text>/, xml);
+    assert.deepEqual(L.li(null, []), { type: 'li', attrs: {}, nodes: [] });
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    assert.equal(await render(document), await render(xml));
+  });
+
+  it('writes the numbers of a list, and says what a bullet list cannot take', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    const items = [L.li(null, [L.text(null, ['A'])]), L.li(null, [L.text(null, ['B'])])];
+    const bullets = await render(kitDoc([L.list(null, items)]));
+    const numbers = await render(kitDoc([L.list({ type: 'number' }, items)]));
+    const roman = await render(kitDoc([L.list({ type: 'number', format: 'lower-roman', start: '3' }, items)]));
+    assert.notEqual(bullets, numbers, 'the numbers are written');
+    assert.notEqual(numbers, roman, 'the format and start are read');
+    await assert.rejects(
+      engine.render(kitDoc([L.list({ format: 'lower-alpha' }, items)])),
+      (e) => e instanceof LpdfRenderError && /numbers the items of a list/.test(e.message),
+    );
+  });
+
   it('renders a footnote at the foot of the page, and says where one cannot stand', async () => {
     const engine = new PdfEngine().setLicenseKey('test-key');
     const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');

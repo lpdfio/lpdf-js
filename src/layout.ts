@@ -1,5 +1,5 @@
 import type {
-  ColumnAttr, RowAttr, GridAttr, FrameAttr, LinkAttr,
+  ColumnAttr, RowAttr, GridAttr, ListAttr, LiAttr, FrameAttr, LinkAttr,
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
   ImgAttr, ShapeAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
@@ -29,6 +29,20 @@ export interface LpdfFnNode {
 
 export interface LpdfContainerNode {
   type:  'column' | 'row' | 'grid' | 'frame' | 'link';
+  attrs: Record<string, string>;
+  nodes: LpdfNode[];
+}
+
+/** A list of items, each marked with a bullet or a number the engine gives. */
+export interface LpdfListNode {
+  type:  'list';
+  attrs: Record<string, string>;
+  nodes: LpdfLiNode[];
+}
+
+/** One item of a list: what a layout holds, beside the item's marker. */
+export interface LpdfLiNode {
+  type:  'li';
   attrs: Record<string, string>;
   nodes: LpdfNode[];
 }
@@ -109,6 +123,7 @@ export interface LpdfBookmarkNode {
 
 export type LpdfNode =
   | LpdfContainerNode
+  | LpdfListNode
   | LpdfTextNode
   | LpdfCodeNode
   | LpdfDividerNode
@@ -150,6 +165,19 @@ function frame(attrs: FrameAttr | null, nodes: LpdfNode[] = []): LpdfContainerNo
 
 function link(attrs: LinkAttr, nodes: LpdfNode[] = []): LpdfContainerNode {
   return makeContainer('link', attrs, nodes);
+}
+
+/**
+ * A list of items, which are `li` nodes. A bullet list marks each item with a shape; with `type: 'number'` the
+ * engine numbers them, in the `format` given, and the numbers follow the items that `data-source` makes.
+ */
+function list(attrs: ListAttr | null, nodes: LpdfLiNode[] = []): LpdfListNode {
+  return { type: 'list', attrs: buildAttrs(attrs), nodes };
+}
+
+/** An item of a list. Its words go in a `text`; a `list` inside it is a list under the item. */
+function li(attrs: LiAttr | null, nodes: LpdfNode[] = []): LpdfLiNode {
+  return { type: 'li', attrs: buildAttrs(attrs), nodes };
 }
 
 function table(attrs: TableAttr, nodes: (LpdfTheadNode | LpdfTrNode)[] = []): LpdfTableNode {
@@ -235,6 +263,8 @@ export const LpdfLayout = Object.freeze({
   column,
   row,
   grid,
+  list,
+  li,
   frame,
   link,
   text,

@@ -48,6 +48,8 @@ export const L = Object.freeze({
     column:  LpdfLayout.column,
     row:     LpdfLayout.row,
     grid:    LpdfLayout.grid,
+    list:    LpdfLayout.list,
+    li:      LpdfLayout.li,
     frame:   LpdfLayout.frame,
     link:    LpdfLayout.link,
     table:   LpdfLayout.table,
