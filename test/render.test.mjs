@@ -480,6 +480,35 @@ describe('kitToXml', () => {
     assert.deepEqual(L.fn(NoAttr, ['a']), { type: 'fn', attrs: {}, nodes: ['a'] });
   });
 
+  it('emits a code and a code-span, and the PDF of the tree is the PDF of its XML', async () => {
+    const document = kitDoc([
+      L.code({ tabSize: '2' }, ['\nfn a() {\n\tb(', L.span({ color: '#c0392b' }, ['x']), ');\n}\n']),
+      L.text(null, ['Run ', L.codeSpan({ background: '#ffff00' }, ['cargo test']), ' now']),
+    ]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<code tab-size="2">\nfn a\(\) \{\n\tb\(<span color="#c0392b">x<\/span>\);\n\}\n<\/code>/, xml);
+    assert.match(xml, /Run <code-span background="#ffff00">cargo test<\/code-span> now/, xml);
+    assert.deepEqual(L.codeSpan(NoAttr, ['a']), { type: 'code-span', attrs: {}, nodes: ['a'] });
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    assert.equal(await render(document), await render(xml));
+  });
+
+  it('keeps the spaces of a code, and a code longer than a page goes on in the next one', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
+    assert.notEqual(await render(kitDoc([L.code(null, ['a    b'])])), await render(kitDoc([L.code(null, ['a b'])])),
+      'the spaces are drawn');
+    const lines = Array.from({ length: 150 }, (_, i) => `line ${i + 1}`).join('\n');
+    const pdf = await render(kitDoc([L.code(null, [lines])]));
+    assert((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length >= 2, 'the code splits across pages');
+    await assert.rejects(
+      engine.render(kitDoc([L.code({ tabSize: '0' }, ['x'])])),
+      (e) => e instanceof LpdfRenderError && /invalid tab-size/.test(e.message),
+    );
+  });
+
   it('renders a footnote at the foot of the page, and says where one cannot stand', async () => {
     const engine = new PdfEngine().setLicenseKey('test-key');
     const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
