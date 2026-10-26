@@ -855,7 +855,12 @@ export interface TrAttr {
  */
 export interface TableAttr {
   /**
-   * Column widths, separated by spaces, in fr, pt or % units: for example 2fr 1fr 120pt 20%.
+   * Column widths, separated by spaces, in fr, pt or % units, or auto: for example 2fr 1fr 120pt
+   * 20%. An auto column takes the width its cells need on one line, and the auto columns share what
+   * the pt and % columns leave, in proportion to what they need. When they do not fit, each keeps
+   * at least its longest word, and when not even those fit, the longest are cut and a short column
+   * keeps its width. auto and fr cannot be in one table: use pt or % for the fixed columns. For
+   * example auto 90pt 60pt.
    */
   cols: string;
   border?: string;
@@ -1203,7 +1208,9 @@ export interface MarkdownDelAttr {
 }
 
 /**
- * A table. The columns share the width equally.
+ * A table. Its columns are sized by their content: a column takes the width its cells need on one
+ * line, the room that is left is shared in proportion, and a name that does not fit breaks at the
+ * edge of its cell.
  */
 export interface MarkdownTableAttr {
   border?: string;
