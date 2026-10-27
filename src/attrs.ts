@@ -863,8 +863,23 @@ export interface TableAttr {
    * example auto 90pt 60pt.
    */
   cols: string;
+  /**
+   * A grid: a line around every cell, as thickness and color, for example 1pt #cccccc.
+   */
   border?: string;
+  /** The background of every other row below the header, or none. */
   stripe?: string;
+  /**
+   * The line under the header row, across the table, as thickness and color like border, or none:
+   * for example xs line.
+   */
+  headBorder?: string;
+  /**
+   * The line under each row, across the table, as thickness and color like border, or none: for
+   * example xs line-muted. Under the header row, head-border takes its place when it is set. A line
+   * stops where a cell spans on into the next row.
+   */
+  rowBorder?: string;
   gap?: string;
   padding?: string;
   background?: string;
@@ -1210,11 +1225,16 @@ export interface MarkdownDelAttr {
 /**
  * A table. Its columns are sized by their content: a column takes the width its cells need on one
  * line, the room that is left is shared in proportion, and a name that does not fit breaks at the
- * edge of its cell.
+ * edge of its cell. stripe is the color of every other row, or none; head-border is the line under
+ * the header row and row-border the line under each of the other rows, as thickness and color like
+ * border, or none. The default styles draw a line under the header in the line color and lines
+ * between the rows in line-muted, with no stripe.
  */
 export interface MarkdownTableAttr {
   border?: string;
   stripe?: string;
+  headBorder?: string;
+  rowBorder?: string;
   gap?: string;
   padding?: string;
   background?: string;
