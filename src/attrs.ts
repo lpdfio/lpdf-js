@@ -18,7 +18,8 @@ export interface ColumnAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -86,7 +87,8 @@ export interface RowAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -152,7 +154,8 @@ export interface GridAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -220,7 +223,8 @@ export interface ListAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -322,7 +326,8 @@ export interface LiAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -387,7 +392,8 @@ export interface FrameAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -697,7 +703,8 @@ export interface CodeAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -782,7 +789,8 @@ export interface TdAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
