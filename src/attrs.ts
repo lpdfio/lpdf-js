@@ -18,7 +18,8 @@ export interface ColumnAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -50,9 +51,10 @@ export interface ColumnAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -85,7 +87,8 @@ export interface RowAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -117,9 +120,10 @@ export interface RowAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -150,7 +154,8 @@ export interface GridAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -182,9 +187,10 @@ export interface GridAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -217,7 +223,8 @@ export interface ListAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -249,9 +256,10 @@ export interface ListAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -318,7 +326,8 @@ export interface LiAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -350,12 +359,21 @@ export interface LiAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
+  /**
+   * Makes the item's marker a checkbox in place of the bullet or the number: an outline in the line
+   * color, with a tick in the color of the item's words when this is true, and empty when it is
+   * false. The words start where those of a bullet do, and an item of a number list still takes its
+   * number. An item without it keeps its bullet or number. A task item of a Markdown, - [ ] or -
+   * [x], is one.
+   */
+  checked?: string;
 }
 
 /**
@@ -374,7 +392,8 @@ export interface FrameAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -406,9 +425,10 @@ export interface FrameAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -474,8 +494,9 @@ export interface SpanAttr {
 
 /**
  * A run of code inside a text: its words in Courier on a light tint, the tint drawn behind them. It
- * is the inline twin of code, and like a span it is not broken inside: a run longer than a line
- * runs on past it. White space in it collapses as in the text around it.
+ * is the inline twin of code, and like a span it is not broken inside, so it goes to the next line
+ * whole, and a run longer than a whole line breaks at the last character that fits, so nothing runs
+ * past the box. White space in it collapses as in the text around it.
  */
 export interface CodeSpanAttr {
   font?: string;
@@ -683,7 +704,8 @@ export interface CodeAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -715,9 +737,10 @@ export interface CodeAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -767,7 +790,8 @@ export interface TdAttr {
   /**
    * Space between the edge of the box and its content, written like CSS: one value for all sides,
    * two for top-bottom and left-right, three for top, left-right and bottom, four for top, right,
-   * bottom and left.
+   * bottom and left. Each value is a length or a name from the space row of the tokens, and they
+   * can be mixed: 0pt 0pt 0pt m.
    */
   padding?: string;
   /**
@@ -799,9 +823,10 @@ export interface TdAttr {
    * Where the box falls in the page flow. no: never split the box, and move it whole to the next
    * page when it does not fit. break-before: start it on a new page. break-after: start the next
    * sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving
-   * both to the next page if that sibling would not fit. break-before, break-after and keep-next
-   * take effect on the children of layout; on a box inside another box they are not applied. no
-   * applies at any depth.
+   * both to the next page if that sibling would not fit and cannot start on this page: a table
+   * splits after its header and a row, and a text after a few lines, and then it stays with that
+   * first part. break-before, break-after and keep-next take effect on the children of layout; on a
+   * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
   debug?: string;
@@ -855,11 +880,31 @@ export interface TrAttr {
  */
 export interface TableAttr {
   /**
-   * Column widths, separated by spaces, in fr, pt or % units: for example 2fr 1fr 120pt 20%.
+   * Column widths, separated by spaces, in fr, pt or % units, or auto: for example 2fr 1fr 120pt
+   * 20%. An auto column takes the width its cells need on one line, and the auto columns share what
+   * the pt and % columns leave, in proportion to what they need. When they do not fit, each keeps
+   * at least its longest word, and when not even those fit, the longest are cut and a short column
+   * keeps its width. auto and fr cannot be in one table: use pt or % for the fixed columns. For
+   * example auto 90pt 60pt.
    */
   cols: string;
+  /**
+   * A grid: a line around every cell, as thickness and color, for example 1pt #cccccc.
+   */
   border?: string;
+  /** The background of every other row below the header, or none. */
   stripe?: string;
+  /**
+   * The line under the header row, across the table, as thickness and color like border, or none:
+   * for example xs line.
+   */
+  headBorder?: string;
+  /**
+   * The line under each row, across the table, as thickness and color like border, or none: for
+   * example xs line-muted. Under the header row, head-border takes its place when it is set. A line
+   * stops where a cell spans on into the next row.
+   */
+  rowBorder?: string;
   gap?: string;
   padding?: string;
   background?: string;
@@ -942,6 +987,310 @@ export interface RegionAttr {
   page?: string;
   w?: string;
   debug?: string;
+}
+
+/**
+ * Markdown as the content of a section, where a layout would go. It holds only Markdown: optional
+ * markdown-styles, which say how each part of it looks, and one markdown-content, which holds the
+ * text. The page, a header, a footer or a cover are not Markdown, so they stay in the XML: layers
+ * paint a header and a footer in the margin, and a cover or a table of contents is a section of its
+ * own. CommonMark with tables, strikethrough and footnotes; raw HTML is an error that names the
+ * line, and a $ is text. A heading is a bookmark, so the table of contents and the outline of the
+ * viewer fill themselves.
+ */
+export interface MarkdownAttr {
+  /**
+   * The space between the page edges and the Markdown: one value for all four sides, or two to four
+   * in the order top, right, bottom, left. Defaults to 36pt. A layer draws a header or a footer in
+   * it.
+   */
+  margin?: string;
+  /** The font of the Markdown, which a rule can change. Defaults to the document's. */
+  font?: string;
+  /** The size of the text of the Markdown, which a rule can change. Defaults to 11pt. */
+  fontSize?: string;
+  /**
+   * The color of the text of the Markdown, which a rule can change. Defaults to the text token.
+   */
+  color?: string;
+  /**
+   * The space between the blocks: headings, paragraphs, lists, code, quotes, tables and images.
+   * Default none.
+   */
+  gap?: string;
+  /**
+   * How many levels of headings become bookmarks, for the outline of the viewer and the table of
+   * contents: n keeps the levels 1 to n, 0 none. Default 6.
+   */
+  bookmarks?: string;
+  debug?: string;
+}
+
+/**
+ * How the parts of the Markdown look. A rule is named after the Markdown it styles and takes the
+ * attributes of the element it becomes, so that h1 takes what a text takes. A rule here overrides
+ * the same rule of the file that src names, which overrides the defaults: a style that is not set
+ * stays what it was. Values are the tokens' (font-size="xxl", color="primary") or plain lengths and
+ * colors, and fonts are names from assets. A built-in font needs no rule for italic and bold; an
+ * embedded font names the faces: em font="body-italic", strong font="body-bold".
+ */
+export interface MarkdownStylesAttr {
+  /**
+   * A file of rules, whose root is a markdown-styles. The rules written here override its rules.
+   * The engine reads no files: the SDK, the command line or the extension reads it, as it reads the
+   * src of a font or an image.
+   */
+  src?: string;
+}
+
+/**
+ * A heading of level 1, written # in Markdown.
+ */
+export interface MarkdownH1Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 2, written ## in Markdown.
+ */
+export interface MarkdownH2Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 3, written ### in Markdown.
+ */
+export interface MarkdownH3Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 4, written #### in Markdown.
+ */
+export interface MarkdownH4Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 5, written ##### in Markdown.
+ */
+export interface MarkdownH5Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A heading of level 6, written ###### in Markdown.
+ */
+export interface MarkdownH6Attr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * A paragraph, and the words of a list item, a quote and a footnote.
+ */
+export interface MarkdownPAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+}
+
+/**
+ * Code: the box of a fenced or indented block, and the run of inline code, which takes the font,
+ * the color and the background. The language of a fence is ignored, since there is no highlighting
+ * by language.
+ */
+export interface MarkdownCodeAttr {
+  font?: string;
+  fontSize?: string;
+  color?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+  tabSize?: string;
+}
+
+/**
+ * A block quote, written > in Markdown: a bar beside its content. font, font-size, color,
+ * line-height and align set the words; padding, background, border and radius the box around the
+ * bar and the words; bar-color and bar-width the bar, a strip along the left of the box: bar-width
+ * is a length or a name from the space row of the tokens.
+ */
+export interface MarkdownQuoteAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  lineHeight?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  radius?: string;
+  barColor?: string;
+  barWidth?: string;
+}
+
+/**
+ * An item of a bullet or a numbered list. indent is the width of the marker's column and bullet the
+ * shape of a bullet list's marker, as on a list; gap goes between the blocks of an item.
+ */
+export interface MarkdownLiAttr {
+  font?: string;
+  fontSize?: string;
+  color?: string;
+  gap?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+  indent?: string;
+  bullet?: string;
+}
+
+/**
+ * A link, written [text](url) in Markdown.
+ */
+export interface MarkdownAAttr {
+  font?: string;
+  color?: string;
+  bold?: string;
+  underline?: string;
+}
+
+/**
+ * Strong text, written **text** in Markdown. Bold in a built-in font; an embedded font names its
+ * bold face in font.
+ */
+export interface MarkdownStrongAttr {
+  font?: string;
+  color?: string;
+  bold?: string;
+}
+
+/**
+ * Emphasis, written *text* in Markdown. Italic in a built-in font; an embedded font names its
+ * italic face in font.
+ */
+export interface MarkdownEmAttr {
+  font?: string;
+  color?: string;
+}
+
+/**
+ * Struck-through text, written ~~text~~ in Markdown.
+ */
+export interface MarkdownDelAttr {
+  font?: string;
+  color?: string;
+  strike?: string;
+}
+
+/**
+ * A table. Its columns are sized by their content: a column takes the width its cells need on one
+ * line, the room that is left is shared in proportion, and a name that does not fit breaks at the
+ * edge of its cell. stripe is the color of every other row, or none; head-border is the line under
+ * the header row and row-border the line under each of the other rows, as thickness and color like
+ * border, or none. The default styles draw a line in line-muted under the header and under each
+ * row, with no stripe.
+ */
+export interface MarkdownTableAttr {
+  border?: string;
+  stripe?: string;
+  headBorder?: string;
+  rowBorder?: string;
+  gap?: string;
+  padding?: string;
+  background?: string;
+}
+
+/**
+ * A cell of a table's header row.
+ */
+export interface MarkdownThAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
+}
+
+/**
+ * A cell of a table's other rows.
+ */
+export interface MarkdownTdAttr {
+  font?: string;
+  fontSize?: string;
+  bold?: string;
+  color?: string;
+  align?: string;
+  padding?: string;
+  background?: string;
+  border?: string;
 }
 
 /**

@@ -2,6 +2,7 @@ import type { DocumentAssets, DocumentTokens, PdfDocument } from './kit';
 import { LpdfKit } from './kit';
 import { LpdfLayout } from './layout';
 import { LpdfCanvas } from './canvas';
+import { LpdfMarkdown } from './markdown';
 import { PdfEngine } from './engine';
 import { kitToXml } from './kit-to-xml';
 
@@ -41,6 +42,7 @@ export const L = Object.freeze({
     document: LpdfKit.document,
     section:  LpdfKit.section,
     layout:   LpdfKit.layout,
+    markdown: LpdfMarkdown.markdown,
     assets:   (attrs: DocumentAssets): DocumentAssets => attrs,
     tokens:   (attrs: DocumentTokens): DocumentTokens => attrs,
 

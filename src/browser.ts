@@ -33,6 +33,9 @@ export type {
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
     FontAttr, ImageAttr, LayoutAttr,
+    MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
+    MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
+    MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
 } from './attrs';
 export type {
     LpdfNode, LpdfContainerNode, LpdfListNode, LpdfLiNode, LpdfTextNode, LpdfCodeNode, LpdfSpanNode, LpdfCodeSpanNode, LpdfFnNode, LpdfDividerNode,
@@ -67,6 +70,11 @@ export interface LpdfBrowser {
      */
     loadImage(name: string, bytes: Uint8Array): void;
     /**
+     * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
+     * names it in `<markdown-styles src="…">`. Call before `render`. Mutates the renderer in-place.
+     */
+    loadMarkdownStyles(src: string, text: string): void;
+    /**
      * Render an lpdf XML document or `PdfDocument` tree to PDF bytes.
      * Custom fonts must be registered via `loadFont()`; src-path loading is
      * not available in the browser.
@@ -100,6 +108,7 @@ export async function initLpdf(
 
     const fontMap  = new Map<string, Uint8Array>();
     const imageMap = new Map<string, Uint8Array>();
+    const markdownStyles = new Map<string, string>();
 
     return {
         loadFont(name: string, bytes: Uint8Array): void {
@@ -108,6 +117,10 @@ export async function initLpdf(
 
         loadImage(name: string, bytes: Uint8Array): void {
             imageMap.set(name, bytes);
+        },
+
+        loadMarkdownStyles(src: string, text: string): void {
+            markdownStyles.set(src, text);
         },
 
         checkLicenseKey(key?: string): LicenseCheck {
@@ -125,6 +138,9 @@ export async function initLpdf(
             }
             for (const [name, bytes] of imageMap) {
                 engine.load_image(name, bytes);
+            }
+            for (const [src, text] of markdownStyles) {
+                engine.load_markdown_styles(src, text);
             }
 
             if (callOptions.createdOn) {

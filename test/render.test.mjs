@@ -10,7 +10,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  PdfEngine, L, LpdfRenderError, CanvasTransform,
+  PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
   FieldType, Pin, Orientation, SectionType, FootnoteCounter, PageScope, BuiltinFont, NoAttr,
 } from '../dist/index.js';
 
@@ -1186,4 +1186,96 @@ describe('attributes follow the schema', () => {
     assert.notEqual(bold, plain);
   });
 
+});
+
+describe('markdown', () => {
+  const body = '# Release notes\n\nSome *emphasis*, **strong** text and `code`.\n\n- one\n- two\n\n> a quote\n';
+
+  function markdownDoc(markdownAttrs = null, styles = null, text = body) {
+    return L.document(null, [
+      L.section(null, [
+        L.markdown(markdownAttrs, [...(styles ? [styles] : []), LMarkdown.content(NoAttr, [text])]),
+      ]),
+    ]);
+  }
+
+  async function renderText(input, engine = new PdfEngine().setLicenseKey('test-key')) {
+    return Buffer.from(await engine.render(input)).toString('latin1');
+  }
+
+  it('builds a markdown, its styles, its content and their rules as nodes', () => {
+    assert.deepEqual(L.markdown({ margin: '54pt', gap: 'm' }, []), { type: 'markdown', attrs: { margin: '54pt', gap: 'm' }, nodes: [] });
+    assert.deepEqual(LMarkdown.styles({ src: 'styles.xml' }, [LMarkdown.h1({ color: 'muted', fontSize: 'xl' })]), {
+      type: 'markdown-styles', attrs: { src: 'styles.xml' }, nodes: [{ type: 'h1', attrs: { color: 'muted', 'font-size': 'xl' } }],
+    });
+    assert.deepEqual(LMarkdown.content(NoAttr, ['# a']), { type: 'markdown-content', attrs: {}, nodes: ['# a'] });
+    assert.deepEqual(LMarkdown.quote({ barColor: 'primary' }), { type: 'quote', attrs: { 'bar-color': 'primary' } });
+    assert.deepEqual(LMarkdown.em(), { type: 'em', attrs: {} });
+  });
+
+  it('writes the Markdown as it is in a CDATA section, and the PDF of the tree is the PDF of its XML', async () => {
+    const document = markdownDoc({ gap: '8pt' }, LMarkdown.styles(NoAttr, [LMarkdown.h1({ color: '#ff0000' })]), 'a < b & c ]]> d\n\n    code\n');
+    const xml = L.toXml(document);
+    assert.match(xml, /<markdown gap="8pt">/, xml);
+    assert.match(xml, /<markdown-styles>\s*<h1 color="#ff0000"\/>\s*<\/markdown-styles>/, xml);
+    assert.match(xml, /<markdown-content><!\[CDATA\[a < b & c \]\]\]\]><!\[CDATA\[> d/, xml);
+    assert.equal(await renderText(document), await renderText(xml));
+  });
+
+  it('renders the text it is given, and a rule that sets a color changes the page', async () => {
+    const plain = await renderText(markdownDoc());
+    assert.equal(plain.slice(0, 5), '%PDF-');
+    assert.notEqual(plain, await renderText(markdownDoc(null, LMarkdown.styles(NoAttr, [LMarkdown.h1({ color: '#ff0000' })]))));
+    assert.notEqual(plain, await renderText(markdownDoc(null, null, '# Another title')));
+  });
+
+  it('puts the layers of a section around the markdown, as around a layout', async () => {
+    const withLayer = L.document(null, [L.section(null, [
+      L.layer(NoAttr, [L.textAt({ x: '40pt', y: '40pt' }, ['Header'])]),
+      L.markdown(null, [LMarkdown.content(NoAttr, [body])]),
+    ])]);
+    assert.notEqual(await renderText(withLayer), await renderText(markdownDoc()));
+  });
+
+  it('reads a file of rules from the src of its styles, in XML and in a tree', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-markdown-'));
+    const file = join(dir, 'styles.xml');
+    writeFileSync(file, '<markdown-styles><h1 color="#ff0000"/></markdown-styles>');
+    const inline = await renderText(markdownDoc(null, LMarkdown.styles(NoAttr, [LMarkdown.h1({ color: '#ff0000' })])));
+    const fromFile = markdownDoc(null, LMarkdown.styles({ src: file }, []));
+    assert.equal(await renderText(fromFile), inline);
+    assert.equal(await renderText(L.toXml(fromFile)), inline);
+  });
+
+  it('takes the text of a file of rules from loadMarkdownStyles', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key').loadMarkdownStyles('theme.xml', '<markdown-styles><h1 color="#00aa00"/></markdown-styles>');
+    const loaded = await renderText(markdownDoc(null, LMarkdown.styles({ src: 'theme.xml' }, [])), engine);
+    const inline = await renderText(markdownDoc(null, LMarkdown.styles(NoAttr, [LMarkdown.h1({ color: '#00aa00' })])));
+    assert.equal(loaded, inline);
+  });
+
+  it('is an error that names the src when the file of rules is not there', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    await assert.rejects(
+      engine.render(markdownDoc(null, LMarkdown.styles({ src: 'missing-styles.xml' }, []))),
+      (e) => e instanceof LpdfRenderError && /missing-styles\.xml/.test(e.message),
+    );
+  });
+
+  it('is an error that names the line when the Markdown has raw HTML', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    await assert.rejects(
+      engine.render(markdownDoc(null, null, 'fine\n\n<div>no</div>\n')),
+      (e) => e instanceof LpdfRenderError && /markdown line 3/.test(e.message) && /raw HTML/.test(e.message),
+    );
+  });
+
+  it('takes the Markdown from the data of an XML document, or the text written in it without data', async () => {
+    const xml = '<lpdf version="1"><document><section><markdown><markdown-content data-value="body"><![CDATA[# From the text]]></markdown-content></markdown></section></document></lpdf>';
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const rendered = async (options) => Buffer.from(await engine.render(xml, options)).toString('latin1');
+    const fromData = await rendered({ data: { body: '# From the data' } });
+    const fromText = await rendered();
+    assert.notEqual(fromData, fromText);
+  });
 });

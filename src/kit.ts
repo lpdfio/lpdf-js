@@ -22,6 +22,7 @@
 
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
+import type { LpdfMarkdownNode } from './markdown';
 import type { FontAttr, ImageAttr, LayoutAttr } from './attrs';
 import { buildAttrs } from './_shared';
 
@@ -124,10 +125,10 @@ export interface LpdfSectionNode {
 }
 
 /**
- * What a section holds: a bookmark first, then layers, then at most one layout, then layers. Layers before
- * the layout paint under it, and layers after it paint over it.
+ * What a section holds: a bookmark first, then layers, then at most one layout or one markdown, then layers.
+ * Layers before the layout paint under it, and layers after it paint over it.
  */
-export type LpdfSectionChild = LpdfBookmarkNode | LpdfCanvasLayerNode | LpdfLayoutBlock;
+export type LpdfSectionChild = LpdfBookmarkNode | LpdfCanvasLayerNode | LpdfLayoutBlock | LpdfMarkdownNode;
 
 export interface PdfDocument {
   version:  1;
