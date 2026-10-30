@@ -1262,12 +1262,9 @@ describe('markdown', () => {
     );
   });
 
-  it('is an error that names the line when the Markdown has raw HTML', async () => {
-    const engine = new PdfEngine().setLicenseKey('test-key');
-    await assert.rejects(
-      engine.render(markdownDoc(null, null, 'fine\n\n<div>no</div>\n')),
-      (e) => e instanceof LpdfRenderError && /markdown line 3/.test(e.message) && /raw HTML/.test(e.message),
-    );
+  it('leaves raw HTML out of the Markdown and keeps the words in it', async () => {
+    const withHtml = await renderText(markdownDoc(null, null, 'fine\n\n<div>kept</div>\n'));
+    assert.equal(withHtml, await renderText(markdownDoc(null, null, 'fine\n\nkept\n')));
   });
 
   it('takes the Markdown from the data of an XML document, or the text written in it without data', async () => {
