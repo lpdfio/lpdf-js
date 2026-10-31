@@ -28,7 +28,10 @@ import { buildAttrs } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
-/** One color of a gradient: `color` is hex or a color token, at an `offset` from `'0%'` to `'100%'`. */
+/**
+ * One color of a gradient: `color` is hex, `cmyk()`, `rgb()`, `hsl()` or a color token, at an `offset` from `'0%'` to
+ * `'100%'`. The stops of a gradient are all CMYK or all RGB.
+ */
 export interface GradientStop {
   offset: string;
   color:  string;
