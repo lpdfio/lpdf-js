@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
-  FieldType, Pin, Orientation, SectionType, FootnoteCounter, PageScope, BuiltinFont, Cipher, Permission, NoAttr,
+  FieldType, Pin, Orientation, SectionType, FootnoteCounter, PageScope, BuiltinFont, Cipher, Permission, FileRelationship, NoAttr,
 } from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1225,6 +1225,92 @@ describe('attributes follow the schema', () => {
     assert.equal(BuiltinFont.TimesBold, 'Times-Bold');
     assert.equal(Cipher.Rc4128, 'rc4-128');
     assert.equal(Permission.FillForms, 'fill-forms');
+    assert.equal(FileRelationship.Data, 'data');
+  });
+
+  it('a file the document carries is embedded, from loadFile or from its src', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    const terms = join(dir, 'terms.txt');
+    writeFileSync(terms, 'Terms of sale');
+    const built = L.document({
+      attachments: [
+        { name: 'invoice.xml', ref: 'invoice', mime: 'text/xml', relationship: FileRelationship.Data },
+        { name: 'terms.txt', src: terms, description: 'The terms' },
+      ],
+    }, [L.section(null, [L.layout(null, [L.text(NoAttr, ['Invoice'])])])]);
+    const engine = new PdfEngine().setLicenseKey('test-key').loadFile('invoice', Buffer.from('<invoice/>'));
+    const pdf = Buffer.from(await engine.render(built)).toString('latin1');
+    assert.equal(pdf.split('/Type /EmbeddedFile').length - 1, 2, 'both files are embedded');
+    assert(pdf.includes('/AFRelationship /Data') && pdf.includes('/Subtype /text#2Fxml'), 'the file has its relationship and type');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
+  });
+
+  it('reads the src of a file as the engine reads its XML: entities, comments, single quotes', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'R&D terms.txt'), 'Terms');
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    const built = L.document({
+      attachments: [
+        { name: 'Terms & Conditions.txt', src: join(dir, 'R&D terms.txt') },
+        { name: 'rows.csv', description: 'Rows > 100', src: join(dir, 'rows.csv') },
+      ],
+    }, [L.section(null, [L.layout(null, [L.text(NoAttr, ['x'])])])]);
+    const xml = L.toXml(built).replace('<attachments>', '<attachments><!-- <file name="old.csv" src="/no/such/old.csv"/> -->');
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const fromXml = Buffer.from(await engine.render(xml)).toString('latin1');
+    assert.equal(fromXml.split('/Type /EmbeddedFile').length - 1, 2, 'both files are embedded, and the one in a comment is not read');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(xml)));
+
+    const quoted = `<lpdf version="1"><document><attachments><file name='rows.csv' src='${join(dir, 'rows.csv')}'/></attachments>`
+      + '<section><layout><text>x</text></layout></section></document></lpdf>';
+    assert(Buffer.from(await engine.render(quoted)).toString('latin1').includes('/Type /EmbeddedFile'), 'single quotes are read');
+  });
+
+  it('reads the src of a file after an attribute with a literal > in it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    const xml = '<lpdf version="1"><document><attachments>'
+      + `<file name="rows.csv" description="Rows > 100" src="${join(dir, 'rows.csv')}"/>`
+      + '</attachments><section><layout><text>x</text></layout></section></document></lpdf>';
+    const pdf = Buffer.from(await new PdfEngine().setLicenseKey('test-key').render(xml)).toString('latin1');
+    assert.equal(pdf.split('/Type /EmbeddedFile').length - 1, 1);
+  });
+
+  it('leaves out a <file> that is text in a CDATA section, as a Markdown block shows it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    writeFileSync(join(dir, 'other.csv'), 'not the rows');
+    const built = L.document({ attachments: [{ name: 'rows.csv', src: join(dir, 'rows.csv') }] }, [
+      L.section(null, [L.markdown(NoAttr, [LMarkdown.content(NoAttr, ['Attach it with `<file name="rows.csv" src="other.csv"/>`.'])])]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const xml = L.toXml(built);
+    assert(xml.includes('<![CDATA['), 'the Markdown is in a CDATA section');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(xml)));
+
+    const code = '<lpdf version="1"><document><section><layout>'
+      + '<code><![CDATA[<file name="invoice.xml" src="/no/such/invoice.xml"/>]]></code>'
+      + '</layout></section></document></lpdf>';
+    assert(!Buffer.from(await engine.render(code)).toString('latin1').includes('/Type /EmbeddedFile'));
+  });
+
+  it('a file whose src cannot be read is an error that names it', async () => {
+    const built = L.document({ attachments: [{ name: 'data.csv', src: '/no/such/data.csv' }] }, [
+      L.section(null, [L.layout(null, [L.text(NoAttr, ['x'])])]),
+    ]);
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(built),
+      (e) => e instanceof LpdfRenderError && /file 'data\.csv'/.test(e.message) && /no\/such\/data\.csv/.test(e.message),
+    );
+  });
+
+  it('a file with no bytes is an error that says how to load it', async () => {
+    const xml = '<lpdf version="1"><document><attachments><file name="a.xml"/></attachments>'
+      + '<section><layout><text>x</text></layout></section></document></lpdf>';
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(xml),
+      (e) => e instanceof LpdfRenderError && /loadFile\('a\.xml', bytes\)/.test(e.message),
+    );
   });
 
   it('bold text is the bold face of the font', async () => {

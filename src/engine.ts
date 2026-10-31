@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { encryptionArguments, type RenderOptions } from './_shared';
+import type { FileAttr } from './attrs';
 import type { DocumentAssets, PdfDocument } from './kit';
 
 // The WASM CJS module is loaded at runtime; we declare only what we use.
@@ -15,6 +16,7 @@ interface IWasmEngine {
   ): Uint8Array;
   load_font(name: string, bytes: Uint8Array): void;
   load_image(name: string, bytes: Uint8Array): void;
+  load_file(name: string, bytes: Uint8Array): void;
   load_markdown_styles(src: string, xml: string): void;
   set_created_on(iso: string): void;
   set_now(unix: bigint): void;
@@ -94,6 +96,7 @@ export class PdfEngine {
   private _licenseKey = '';
   private readonly _fonts:  Map<string, Uint8Array> = new Map();
   private readonly _images: Map<string, Uint8Array> = new Map();
+  private readonly _files:  Map<string, Uint8Array> = new Map();
   private readonly _markdownStyles: Map<string, string> = new Map();
   private _disposed = false;
 
@@ -145,6 +148,16 @@ export class PdfEngine {
   }
 
   /**
+   * Register the bytes of a file the document carries, for the `<file>` of its `<attachments>` whose `ref`, or with
+   * no ref whose name, is `name`. The PDF carries them as they are. Call before `render`. Returns `this` for chaining.
+   */
+  loadFile(name: string, bytes: Uint8Array): this {
+    this._throwIfDisposed();
+    this._files.set(name, bytes);
+    return this;
+  }
+
+  /**
    * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
    * names it, as `<markdown-styles src="…">` does. Call before `render`. Returns `this` for chaining.
    */
@@ -177,6 +190,25 @@ export class PdfEngine {
     }
     for (const [src, text] of files) {
       engine.load_markdown_styles(src, text);
+    }
+  }
+
+  /**
+   * Hand the engine the files the document carries: the ones loaded here, and the ones read from the `src` of a file
+   * that wasn't. A `src` that can't be read is an error that names the file and the path.
+   */
+  private _loadFiles(engine: IWasmEngine, srcs: Map<string, string>): void {
+    const files = new Map<string, Uint8Array>(this._files);
+    for (const [key, src] of srcs) {
+      if (files.has(key)) continue;
+      try {
+        files.set(key, readFileSync(src));
+      } catch (e) {
+        throw new LpdfRenderError(`file '${key}' of <attachments>: cannot read its src '${src}': ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    for (const [key, bytes] of files) {
+      engine.load_file(key, bytes);
     }
   }
 
@@ -222,6 +254,7 @@ export class PdfEngine {
           engine.load_image(name, bytes);
         }
         this._loadMarkdownStyles(engine, markdownStylesSrcs(xml));
+        this._loadFiles(engine, extractAssetSrcs(xml, 'file'));
         // Auto-load images declared via <image src="…"> that weren't pre-loaded.
         for (const [key, src] of extractAssetSrcs(xml, 'image')) {
           if (!this._images.has(key)) {
@@ -253,10 +286,12 @@ export class PdfEngine {
           engine.load_image(name, bytes);
         }
         this._loadMarkdownStyles(engine, markdownStylesSrcsOfDocument(input));
+        this._loadFiles(engine, fileSrcsOfDocument(input));
         pdf = engine.render_tree_pdf(json, ...encryptionArguments(callOptions, secureRandomBytes));
       }
     } catch (e) {
       engine.free();
+      if (e instanceof LpdfRenderError) throw e;
       const msg = e instanceof Error ? e.message : String(e);
       throw new LpdfRenderError(msg);
     }
@@ -267,16 +302,35 @@ export class PdfEngine {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Extract `ref??name → src` pairs from `<font>` or `<image>` tags in XML. */
-function extractAssetSrcs(xml: string, tag: 'font' | 'image'): Map<string, string> {
+// Comments and CDATA sections, whose text is not markup: a <file> shown in a Markdown block is text, not a file.
+const XML_NOT_MARKUP_RE = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>/g;
+const XML_ATTRIBUTE_RE = /([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+const XML_ENTITY_RE    = /&(?:(amp|lt|gt|quot|apos)|#(\d+)|#x([0-9a-fA-F]+));/g;
+const XML_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+/** An attribute value as the XML means it, with its entities and character references decoded. */
+function decodeXml(value: string): string {
+  return value.replace(XML_ENTITY_RE, (_, name: string | undefined, decimal: string | undefined, hex: string | undefined) =>
+    // XML_ENTITY_RE matches exactly one of its three groups, so without a name or a decimal there is a hex.
+    name ? XML_ENTITIES[name] : String.fromCodePoint(parseInt(decimal ?? hex!, decimal ? 10 : 16)));
+}
+
+/**
+ * Extract `ref??name → src` pairs from `<font>`, `<image>` or `<file>` tags in XML, read as the engine reads them:
+ * comments and CDATA sections are left out, a quoted value may hold a `>`, either quote may be used, and the values
+ * are decoded.
+ */
+function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
   const result = new Map<string, string>();
-  const re = tag === 'font' ? /<font\s[^>]*>/g : /<image\s[^>]*>/g;
-  for (const match of xml.matchAll(re)) {
-    const t    = match[0];
-    const name = /\bname="([^"]*)"/.exec(t)?.[1];
-    const ref  = /\bref="([^"]*)"/.exec(t)?.[1];
-    const src  = /\bsrc="([^"]*)"/.exec(t)?.[1];
-    const key  = ref ?? name;
+  // Attribute values may contain '>', so quoted runs are matched whole.
+  const re = new RegExp(`<${tag}\\b((?:[^>"']|"[^"]*"|'[^']*')*)>`, 'g');
+  for (const match of xml.replace(XML_NOT_MARKUP_RE, '').matchAll(re)) {
+    const attributes = new Map<string, string>();
+    for (const attribute of match[1].matchAll(XML_ATTRIBUTE_RE)) {
+      attributes.set(attribute[1], decodeXml(attribute[2] ?? attribute[3]));
+    }
+    const key = attributes.get('ref') ?? attributes.get('name');
+    const src = attributes.get('src');
     if (key && src) result.set(key, src);
   }
   return result;
@@ -304,6 +358,15 @@ function markdownStylesSrcsOfDocument(document: PdfDocument): string[] {
     }
   }
   return srcs;
+}
+
+/** The `ref ?? name → src` pairs of the files a document carries in `attrs.attachments`. */
+function fileSrcsOfDocument(document: PdfDocument): Map<string, string> {
+  const result = new Map<string, string>();
+  for (const { name, ref, src } of (document.attrs['attachments'] as FileAttr[] | undefined) ?? []) {
+    if (src) result.set(ref ?? name, src);
+  }
+  return result;
 }
 
 /** The `ref ?? name → src` pairs of the fonts or images a document declares in `attrs.assets`. */

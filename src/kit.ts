@@ -23,7 +23,7 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FontAttr, ImageAttr, LayoutAttr } from './attrs';
+import type { FileAttr, FontAttr, ImageAttr, LayoutAttr } from './attrs';
 import { buildAttrs } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -128,6 +128,11 @@ export interface DocumentAttr {
   tokens?:      DocumentTokens;
   meta?:        DocumentMeta;
   output?:      DocumentOutput;
+  /**
+   * Files the PDF carries inside it, as the `attachments` element of the XML does: a reader lists them in its
+   * attachments panel. Each file's bytes are read from its `src`, or loaded with `loadFile` under its `ref` or name.
+   */
+  attachments?: FileAttr[];
   debug?:       string;
   footnoteCounter?: string;
 }
@@ -177,7 +182,7 @@ function section(attrs: SectionAttr | null, nodes: LpdfSectionChild[] = []): Lpd
 }
 
 function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): PdfDocument {
-  const { assets, tokens, meta, output, ...restOpts } = attrs ?? {};
+  const { assets, tokens, meta, output, attachments, ...restOpts } = attrs ?? {};
   const attrsObj: Record<string, unknown> = {
     ...buildAttrs(restOpts),
   };
@@ -192,6 +197,7 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
   }
   if (meta   !== undefined) attrsObj['meta']   = meta;
   if (output !== undefined) attrsObj['output'] = output;
+  if (attachments !== undefined) attrsObj['attachments'] = attachments;
   return {
     version: 1,
     type:    'document',

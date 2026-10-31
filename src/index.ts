@@ -5,7 +5,9 @@ export { PdfEngine, LpdfRenderError } from './engine';
 export type { RenderOptions, EngineOptions } from './_shared';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
-export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, BuiltinFont, PageScope } from './constants';
+export {
+    FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
+} from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────
 export type {
@@ -21,7 +23,7 @@ export type {
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
-    FontAttr, ImageAttr, LayoutAttr,
+    FontAttr, ImageAttr, FileAttr, LayoutAttr,
     MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
     MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
     MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,

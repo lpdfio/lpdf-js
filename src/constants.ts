@@ -67,6 +67,17 @@ export const Permission = {
 
 export type Permission = (typeof Permission)[keyof typeof Permission];
 
+/** The values of the `relationship` attribute of a file the PDF carries: how it relates to the document. */
+export const FileRelationship = {
+  Source: 'source',
+  Data: 'data',
+  Alternative: 'alternative',
+  Supplement: 'supplement',
+  Unspecified: 'unspecified',
+} as const;
+
+export type FileRelationship = (typeof FileRelationship)[keyof typeof FileRelationship];
+
 /** The values of the `core` attribute of a font: the built-in PDF fonts, which need no file. */
 export const BuiltinFont = {
   Courier: 'Courier',
