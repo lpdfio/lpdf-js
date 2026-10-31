@@ -24,7 +24,7 @@ import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
 import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr } from './attrs';
-import { buildAttrs, type AttrValue } from './_shared';
+import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
@@ -173,6 +173,8 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
   };
   if (assets !== undefined) attrsObj['assets'] = assets;
   if (tokens !== undefined) {
+    // A factor of the line-height row and a gradient's angle are numbers, which JSON can't hold as NaN or infinity.
+    assertFiniteIn('tokens', tokens);
     const { textSize, lineHeight, ...rest } = tokens;
     attrsObj['tokens'] = {
       ...rest,

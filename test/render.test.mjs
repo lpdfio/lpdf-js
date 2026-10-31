@@ -1142,9 +1142,6 @@ describe('attributes follow the schema', () => {
       [[L.text({ bold: 'true' }, ['a'])], /text: bold must be true or false, not "true"/],
       [[L.column({ opacity: '0.5' }, [])], /column: opacity must be a number from 0 to 1, not "0.5"/],
       [[L.text({ lineHeight: '1.5' }, ['a'])], /text: line-height must be a name or a number above 0, not "1.5"/],
-      // JSON has no NaN or infinity: each goes as its text, which the engine refuses rather than taking it as absent.
-      [[L.column({ opacity: NaN }, [])], /column: opacity must be a number from 0 to 1, not "NaN"/],
-      [[L.grid({ cols: 6 / 0 }, [L.text(null, ['a'])])], /grid: cols must be a whole number from 1 to 12, not "Infinity"/],
     ]) {
       await assert.rejects(engine.render(kitDoc(nodes)), (e) => e instanceof LpdfRenderError && says.test(e.message));
     }
@@ -1152,6 +1149,21 @@ describe('attributes follow the schema', () => {
       L.section(null, [L.layout(null, [])]),
     ]);
     await assert.rejects(engine.render(gradient), (e) => /gradient: angle must be a number, not "90"/.test(e.message));
+  });
+
+  it('a builder refuses a number a document cannot hold, naming where it is', () => {
+    for (const [build, says] of [
+      [() => L.column({ opacity: NaN }, []), /^opacity must be a finite number, not NaN$/],
+      [() => L.grid({ cols: 6 / 0 }, []), /^cols must be a finite number, not Infinity$/],
+      // A string attribute too: as text, NaN would be a label.
+      [() => L.bookmark({ label: NaN }), /^label must be a finite number, not NaN$/],
+      [() => L.document({ tokens: { lineHeight: { xs: 1, s: 1.1, m: NaN, l: 1.4, xl: 1.6, xxl: 2 } } }, []),
+        /^tokens\.lineHeight\.m must be a finite number, not NaN$/],
+      [() => L.document({ tokens: { gradients: { fade: { type: 'linear', from: '#f00', to: '#00f', angle: -Infinity } } } }, []),
+        /^tokens\.gradients\.fade\.angle must be a finite number, not -Infinity$/],
+    ]) {
+      assert.throws(build, (e) => e instanceof RangeError && says.test(e.message));
+    }
   });
 
   it('the engine refuses an attribute the element does not have, naming the ones it has', async () => {
