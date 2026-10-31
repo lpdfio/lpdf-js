@@ -6,7 +6,7 @@
 
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import fs, { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -1411,4 +1411,91 @@ describe('markdown', () => {
     const fromText = await rendered();
     assert.notEqual(fromData, fromText);
   });
+});
+
+describe('the src of the files an XML document names', () => {
+  const RED_TITLES = '<markdown-styles><h1 color="#ff0000"/></markdown-styles>';
+
+  function xml({ assets = '', attachments = '', section = '<layout><text>x</text></layout>' } = {}) {
+    return `<lpdf version="1"><assets>${assets}</assets><document><attachments>${attachments}</attachments>`
+      + `<section>${section}</section></document></lpdf>`;
+  }
+
+  /** A new folder holding `files`, and `declaration` with `{dir}` set to it. */
+  function inFolder(files, declaration) {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-srcs-'));
+    for (const [name, bytes] of Object.entries(files)) writeFileSync(join(dir, name), bytes);
+    return { dir, declaration: declaration.replaceAll('{dir}', dir) };
+  }
+
+  const engine = () => new PdfEngine().setLicenseKey('test-key');
+
+  for (const [what, font, file, key] of [
+    ['an entity', '<font name="brand" ref="R&amp;D Sans" src="{dir}/R&amp;D Sans.ttf"/>', 'R&D Sans.ttf', 'R&D Sans'],
+    ['a > in an earlier attribute', '<font name="brand" ref="rows > 1000" src="{dir}/brand.ttf"/>', 'brand.ttf', 'rows > 1000'],
+    ['single quotes', "<font name='brand' src='{dir}/brand.ttf'/>", 'brand.ttf', 'brand'],
+  ]) {
+    it(`reads the src of a font with ${what} and loads it under its ref or name`, async () => {
+      const { declaration } = inFolder({ [file]: 'not a font' }, font);
+      // The bytes are not a font, so the engine says which font it was given them for.
+      await assert.rejects(
+        engine().render(xml({ assets: declaration, section: '<layout><text font="brand">x</text></layout>' })),
+        (e) => e instanceof LpdfRenderError && e.message.includes(`font '${key}'`),
+      );
+    });
+  }
+
+  for (const [what, image, file] of [
+    ['an entity', '<image name="logo" ref="R&amp;D logo" src="{dir}/R&amp;D logo.png"/>', 'R&D logo.png'],
+    ['a > in an earlier attribute', '<image name="logo" ref="rows > 1000" src="{dir}/logo.png"/>', 'logo.png'],
+    ['single quotes', "<image name='logo' src='{dir}/logo.png'/>", 'logo.png'],
+  ]) {
+    it(`reads the src of an image with ${what} and loads it under its ref or name`, async () => {
+      const { declaration } = inFolder({ [file]: PIXEL }, image);
+      // The engine refuses an image it has no bytes for under its ref, or with no ref its name.
+      const pdf = await engine().render(xml({ assets: declaration, section: '<layout><img name="logo" width="40pt"/></layout>' }));
+      assert.equal(Buffer.from(pdf.slice(0, 5)).toString('ascii'), '%PDF-');
+    });
+  }
+
+  for (const [what, file, name] of [
+    ['an entity', '<file name="R&amp;D.csv" src="{dir}/R&amp;D.csv"/>', 'R&D.csv'],
+    ['a > in an earlier attribute', '<file name="rows.csv" description="rows > 1000" src="{dir}/rows.csv"/>', 'rows.csv'],
+    ['single quotes', "<file name='rows.csv' src='{dir}/rows.csv'/>", 'rows.csv'],
+  ]) {
+    it(`reads the src of a file with ${what} and loads it under its ref or name`, async () => {
+      const { declaration } = inFolder({ [name]: 'a,b' }, file);
+      // The engine refuses a file it has no bytes for under its ref, or with no ref its name.
+      const pdf = Buffer.from(await engine().render(xml({ attachments: declaration }))).toString('latin1');
+      assert.equal(pdf.split('/Type /EmbeddedFile').length - 1, 1);
+    });
+  }
+
+  for (const [what, styles, file] of [
+    ['an entity', '<markdown-styles src="{dir}/R&amp;D styles.xml"/>', 'R&D styles.xml'],
+    ['a > in an earlier attribute', '<markdown-styles xmlns:rows="urn:rows>1000" src="{dir}/styles.xml"/>', 'styles.xml'],
+    ['single quotes', "<markdown-styles src='{dir}/styles.xml'/>", 'styles.xml'],
+  ]) {
+    it(`reads the file of rules that a markdown-styles with ${what} names`, async () => {
+      const { declaration } = inFolder({ [file]: RED_TITLES }, styles);
+      const markdown = (part) => xml({ section: `<markdown>${part}<markdown-content># Title</markdown-content></markdown>` });
+      // The engine refuses a src whose file was not loaded.
+      assert.equal(normalised(await engine().render(markdown(declaration))), normalised(await engine().render(markdown(RED_TITLES))));
+    });
+  }
+
+  for (const [what, hidden] of [
+    ['a font', '<assets><font name="brand" src="{dir}/hidden"/></assets>'],
+    ['an image', '<assets><image name="logo" src="{dir}/hidden"/></assets>'],
+    ['a file', '<attachments><file name="rows.csv" src="{dir}/hidden"/></attachments>'],
+    ['a file of rules', '<markdown><markdown-styles src="{dir}/hidden"/></markdown>'],
+  ]) {
+    it(`does not read the src of ${what} in a comment or a CDATA section`, async (t) => {
+      const { declaration } = inFolder({ hidden: 'hidden' }, hidden);
+      const read = t.mock.method(fs, 'readFileSync');
+      const pdf = await engine().render(xml({ section: `<layout><!-- ${declaration} --><code><![CDATA[${declaration}]]></code></layout>` }));
+      assert.deepEqual(read.mock.calls.map((call) => call.arguments[0]), []);
+      assert.equal(Buffer.from(pdf.slice(0, 5)).toString('ascii'), '%PDF-');
+    });
+  }
 });
