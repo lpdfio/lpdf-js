@@ -14,12 +14,19 @@ declare module '../wasm/lpdf-web.js' {
     set_created_on(iso: string): void;
     /** Set the host's clock, in Unix seconds, so the key's expiry can be checked. */
     set_now(unix: bigint): void;
-    /** Configure encryption: `algorithm` is `"aes-256"` or `"rc4-128"`; AES-256 needs 32 or more random `entropy` bytes. */
-    set_encryption(user_password: string, owner_password: string, permissions_json: string, algorithm: string, entropy: Uint8Array): void;
-    /** Remove any previously configured encryption. */
-    clear_encryption(): void;
-    /** Render XML to binary PDF bytes. */
-    render_pdf(xml: string, json_data?: string | null): Uint8Array;
+    /**
+     * Render XML to binary PDF bytes. The passwords and `skip_encryption` are for a document that asks for
+     * encryption in its `<output>`; AES-256 needs 32 or more random `entropy` bytes.
+     */
+    render_pdf(
+      xml: string, json_data: string | null, user_password: string | null, owner_password: string | null,
+      skip_encryption: boolean, entropy: Uint8Array,
+    ): Uint8Array;
+    /** Render a `PdfDocument` tree, as JSON, to binary PDF bytes, with the encryption arguments of `render_pdf`. */
+    render_tree_pdf(
+      json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
+      entropy: Uint8Array,
+    ): Uint8Array;
     free(): void;
     [Symbol.dispose](): void;
   }

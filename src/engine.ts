@@ -1,19 +1,23 @@
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { RenderOptions } from './_shared';
+import { encryptionArguments, type RenderOptions } from './_shared';
 import type { DocumentAssets, PdfDocument } from './kit';
 
 // The WASM CJS module is loaded at runtime; we declare only what we use.
 interface IWasmEngine {
-  render_pdf(xml: string, json_data?: string | null): Uint8Array;
-  render_tree_pdf(json: string): Uint8Array;
+  render_pdf(
+    xml: string, json_data: string | null, user_password: string | null, owner_password: string | null,
+    skip_encryption: boolean, entropy: Uint8Array,
+  ): Uint8Array;
+  render_tree_pdf(
+    json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
+    entropy: Uint8Array,
+  ): Uint8Array;
   load_font(name: string, bytes: Uint8Array): void;
   load_image(name: string, bytes: Uint8Array): void;
   load_markdown_styles(src: string, xml: string): void;
   set_created_on(iso: string): void;
   set_now(unix: bigint): void;
-  set_encryption(user_password: string, owner_password: string, permissions_json: string, algorithm: string, entropy: Uint8Array): void;
-  clear_encryption(): void;
   free(): void;
 }
 interface IWasmModule {
@@ -81,48 +85,9 @@ export class LpdfRenderError extends Error {
   }
 }
 
-/** PDF permission flags. All flags default to `true` (allowed). */
-export interface EncryptPermissions {
-  print?:         boolean;
-  modify?:        boolean;
-  copy?:          boolean;
-  annotate?:      boolean;
-  fill_forms?:    boolean;
-  accessibility?: boolean;
-  assemble?:      boolean;
-  print_hq?:      boolean;
-}
-
-/**
- * The cipher a PDF is encrypted with. `'aes-256'` is the default. `'rc4-128'` is deprecated by
- * PDF 2.0; use it only for readers that cannot open AES-256.
- */
-export type EncryptAlgorithm = 'aes-256' | 'rc4-128';
-
-/** Encryption options passed to {@link PdfEngine.setEncryption}. */
-export interface EncryptOptions {
-  /** Open password shown to readers. Empty string = no open password required. */
-  userPassword:  string;
-  /** Owner (permissions) password. Required; must be non-empty. */
-  ownerPassword: string;
-  /** Permission flags applied to the document. Omitted flags default to `true`. */
-  permissions?:  EncryptPermissions;
-  /**
-   * The cipher. Defaults to `'aes-256'`, which makes every render of the same document differ
-   * in its bytes, since each one gets a fresh random key.
-   */
-  algorithm?:    EncryptAlgorithm;
-}
-
-/**
- * Hands the engine the encryption options. AES-256 needs random bytes, which the engine does not
- * make: they come from Node's secure generator, 32 bytes for each render.
- */
-function configureEncryption(engine: IWasmEngine, options: EncryptOptions): void {
-  const algorithm = options.algorithm ?? 'aes-256';
-  const entropy = algorithm === 'aes-256' ? new Uint8Array(randomBytes(32)) : new Uint8Array(0);
-  const permsJson = JSON.stringify(options.permissions ?? {});
-  engine.set_encryption(options.userPassword, options.ownerPassword, permsJson, algorithm, entropy);
+/** Node's secure generator, for the entropy of AES-256. */
+function secureRandomBytes(count: number): Uint8Array {
+  return new Uint8Array(randomBytes(count));
 }
 
 export class PdfEngine {
@@ -131,7 +96,6 @@ export class PdfEngine {
   private readonly _images: Map<string, Uint8Array> = new Map();
   private readonly _markdownStyles: Map<string, string> = new Map();
   private _disposed = false;
-  private _encrypt: EncryptOptions | null = null;
 
   constructor() {}
 
@@ -187,26 +151,6 @@ export class PdfEngine {
   loadMarkdownStyles(src: string, text: string): this {
     this._throwIfDisposed();
     this._markdownStyles.set(src, text);
-    return this;
-  }
-
-  /**
-   * Configure encryption for all subsequent `render` calls: AES-256 unless
-   * `options.algorithm` says `'rc4-128'`. Returns `this` for chaining.
-   */
-  setEncryption(options: EncryptOptions): this {
-    this._throwIfDisposed();
-    this._encrypt = options;
-    return this;
-  }
-
-  /**
-   * Remove any previously configured encryption.
-   * Returns `this` for chaining.
-   */
-  clearEncryption(): this {
-    this._throwIfDisposed();
-    this._encrypt = null;
     return this;
   }
 
@@ -284,11 +228,8 @@ export class PdfEngine {
             try { engine.load_image(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
           }
         }
-        if (this._encrypt) {
-          configureEncryption(engine, this._encrypt);
-        }
         const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-        pdf = engine.render_pdf(xml, dataJson);
+        pdf = engine.render_pdf(xml, dataJson, ...encryptionArguments(callOptions, secureRandomBytes));
       } else {
         // JSON (Kit tree) path — pass JSON directly to render_tree_pdf. Fonts and images the
         // document declares with a src are read from there, as on the XML path.
@@ -312,10 +253,7 @@ export class PdfEngine {
           engine.load_image(name, bytes);
         }
         this._loadMarkdownStyles(engine, markdownStylesSrcsOfDocument(input));
-        if (this._encrypt) {
-          configureEncryption(engine, this._encrypt);
-        }
-        pdf = engine.render_tree_pdf(json);
+        pdf = engine.render_tree_pdf(json, ...encryptionArguments(callOptions, secureRandomBytes));
       }
     } catch (e) {
       engine.free();

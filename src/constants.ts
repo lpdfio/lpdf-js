@@ -46,6 +46,27 @@ export const FootnoteCounter = {
 
 export type FootnoteCounter = (typeof FootnoteCounter)[keyof typeof FootnoteCounter];
 
+/** The values of the `encrypt` attribute of the output: the cipher the PDF is encrypted with. */
+export const Cipher = {
+  Aes256: 'aes-256',
+  Rc4128: 'rc4-128',
+} as const;
+
+export type Cipher = (typeof Cipher)[keyof typeof Cipher];
+
+/** The words of the `allow` attribute of the output, separated by spaces: what a reader of an encrypted PDF may do. */
+export const Permission = {
+  Print: 'print',
+  Modify: 'modify',
+  Copy: 'copy',
+  Annotate: 'annotate',
+  FillForms: 'fill-forms',
+  Accessibility: 'accessibility',
+  Assemble: 'assemble',
+} as const;
+
+export type Permission = (typeof Permission)[keyof typeof Permission];
+
 /** The values of the `core` attribute of a font: the built-in PDF fonts, which need no file. */
 export const BuiltinFont = {
   Courier: 'Courier',
