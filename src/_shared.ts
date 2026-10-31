@@ -70,14 +70,17 @@ export type AttrValue = string | number | boolean;
  * The attributes of an element: an attribute object's own properties, with each camelCase name
  * written as the schema's kebab-case one (`fontSize` as `font-size`) and each value as it is given:
  * `bold: true` and `cols: 3` stay a boolean and a number. The engine refuses a value of the wrong
- * type, such as `cols: '3'` from plain JavaScript, when it renders. Properties that are `undefined`
- * are left out.
+ * type, such as `cols: '3'` from plain JavaScript, when it renders. A `NaN` or an infinity goes as
+ * its text, so the engine refuses it too. Properties that are `undefined` are left out.
  */
 export function buildAttrs(options: object | null | undefined): Record<string, AttrValue> {
   const result: Record<string, AttrValue> = {};
   for (const [key, value] of Object.entries(options ?? {})) {
     if (value !== undefined && value !== null) {
-      result[key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value as AttrValue;
+      // JSON has no NaN or infinity, and JSON.stringify would write null, which leaves the attribute out: such a
+      // number goes as its text, which the engine refuses by name.
+      const kept = typeof value === 'number' && !Number.isFinite(value) ? String(value) : value;
+      result[key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = kept as AttrValue;
     }
   }
   return result;

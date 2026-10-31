@@ -1142,6 +1142,9 @@ describe('attributes follow the schema', () => {
       [[L.text({ bold: 'true' }, ['a'])], /text: bold must be true or false, not "true"/],
       [[L.column({ opacity: '0.5' }, [])], /column: opacity must be a number from 0 to 1, not "0.5"/],
       [[L.text({ lineHeight: '1.5' }, ['a'])], /text: line-height must be a name or a number above 0, not "1.5"/],
+      // JSON has no NaN or infinity: each goes as its text, which the engine refuses rather than taking it as absent.
+      [[L.column({ opacity: NaN }, [])], /column: opacity must be a number from 0 to 1, not "NaN"/],
+      [[L.grid({ cols: 6 / 0 }, [L.text(null, ['a'])])], /grid: cols must be a whole number from 1 to 12, not "Infinity"/],
     ]) {
       await assert.rejects(engine.render(kitDoc(nodes)), (e) => e instanceof LpdfRenderError && says.test(e.message));
     }
