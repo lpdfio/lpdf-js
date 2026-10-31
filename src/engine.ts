@@ -302,16 +302,32 @@ export class PdfEngine {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Extract `ref??name → src` pairs from `<font>`, `<image>` or `<file>` tags in XML. */
+const XML_COMMENT_RE   = /<!--[\s\S]*?-->/g;
+const XML_ATTRIBUTE_RE = /([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+const XML_ENTITY_RE    = /&(?:(amp|lt|gt|quot|apos)|#(\d+)|#x([0-9a-fA-F]+));/g;
+const XML_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+/** An attribute value as the XML means it, with its entities and character references decoded. */
+function decodeXml(value: string): string {
+  return value.replace(XML_ENTITY_RE, (_, name: string | undefined, decimal: string | undefined, hex: string | undefined) =>
+    name ? XML_ENTITIES[name] : String.fromCodePoint(parseInt(decimal ?? hex!, decimal ? 10 : 16)));
+}
+
+/**
+ * Extract `ref??name → src` pairs from `<font>`, `<image>` or `<file>` tags in XML, read as the engine reads them:
+ * comments are left out, a quoted value may hold a `>`, either quote may be used, and the values are decoded.
+ */
 function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
   const result = new Map<string, string>();
-  const re = new RegExp(`<${tag}\\s[^>]*>`, 'g');
-  for (const match of xml.matchAll(re)) {
-    const t    = match[0];
-    const name = /\bname="([^"]*)"/.exec(t)?.[1];
-    const ref  = /\bref="([^"]*)"/.exec(t)?.[1];
-    const src  = /\bsrc="([^"]*)"/.exec(t)?.[1];
-    const key  = ref ?? name;
+  // Attribute values may contain '>', so quoted runs are matched whole.
+  const re = new RegExp(`<${tag}\\b((?:[^>"']|"[^"]*"|'[^']*')*)>`, 'g');
+  for (const match of xml.replace(XML_COMMENT_RE, '').matchAll(re)) {
+    const attributes = new Map<string, string>();
+    for (const attribute of match[1].matchAll(XML_ATTRIBUTE_RE)) {
+      attributes.set(attribute[1], decodeXml(attribute[2] ?? attribute[3]));
+    }
+    const key = attributes.get('ref') ?? attributes.get('name');
+    const src = attributes.get('src');
     if (key && src) result.set(key, src);
   }
   return result;

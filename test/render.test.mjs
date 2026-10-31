@@ -1245,6 +1245,27 @@ describe('attributes follow the schema', () => {
     assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
   });
 
+  it('reads the src of a file as the engine reads its XML: entities, a > in a value, comments', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'R&D terms.txt'), 'Terms');
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    const built = L.document({
+      attachments: [
+        { name: 'Terms & Conditions.txt', src: join(dir, 'R&D terms.txt') },
+        { name: 'rows.csv', description: 'Rows > 100', src: join(dir, 'rows.csv') },
+      ],
+    }, [L.section(null, [L.layout(null, [L.text(NoAttr, ['x'])])])]);
+    const xml = L.toXml(built).replace('<attachments>', '<attachments><!-- <file name="old.csv" src="/no/such/old.csv"/> -->');
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const fromXml = Buffer.from(await engine.render(xml)).toString('latin1');
+    assert.equal(fromXml.split('/Type /EmbeddedFile').length - 1, 2, 'both files are embedded, and the one in a comment is not read');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(xml)));
+
+    const quoted = `<lpdf version="1"><document><attachments><file name='rows.csv' src='${join(dir, 'rows.csv')}'/></attachments>`
+      + '<section><layout><text>x</text></layout></section></document></lpdf>';
+    assert(Buffer.from(await engine.render(quoted)).toString('latin1').includes('/Type /EmbeddedFile'), 'single quotes are read');
+  });
+
   it('a file whose src cannot be read is an error that names it', async () => {
     const built = L.document({ attachments: [{ name: 'data.csv', src: '/no/such/data.csv' }] }, [
       L.section(null, [L.layout(null, [L.text(NoAttr, ['x'])])]),
