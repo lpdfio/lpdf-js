@@ -80,9 +80,9 @@ export interface DocumentOutput {
   /** The cipher the PDF is encrypted with, `aes-256` or `rc4-128` (`Cipher`). Without it the PDF is not encrypted. */
   encrypt?: string;
   /**
-   * What a reader may do without the owner password, separated by spaces (`Permission`): `print`, `modify`,
-   * `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. Without it everything is allowed; `''` allows
-   * nothing. It needs `encrypt`.
+   * What a reader may do without the owner password, separated by spaces (`Permission`): `all`, or any of
+   * `print`, `modify`, `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. A permission comes only from
+   * naming it: without `allow`, or with `''`, nothing is allowed, and `all` allows everything. It needs `encrypt`.
    */
   allow?: string;
   /**

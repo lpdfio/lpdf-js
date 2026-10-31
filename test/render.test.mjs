@@ -1271,6 +1271,7 @@ describe('attributes follow the schema', () => {
     assert.equal(BuiltinFont.TimesBold, 'Times-Bold');
     assert.equal(Cipher.Rc4128, 'rc4-128');
     assert.equal(Permission.FillForms, 'fill-forms');
+    assert.equal(Permission.All, 'all');
     assert.equal(FileRelationship.Data, 'data');
   });
 
