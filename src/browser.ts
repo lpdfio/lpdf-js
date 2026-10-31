@@ -22,7 +22,9 @@ import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
-export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, BuiltinFont, PageScope } from './constants';
+export {
+    FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
+} from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
     DocumentTokens, DocumentAssets, DocumentMeta, DocumentOutput, SectionAttr, DocumentAttr,
@@ -32,7 +34,7 @@ export type {
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
-    FontAttr, ImageAttr, LayoutAttr,
+    FontAttr, ImageAttr, FileAttr, LayoutAttr,
     MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
     MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
     MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
@@ -75,6 +77,11 @@ export interface LpdfBrowser {
      */
     loadImage(name: string, bytes: Uint8Array): void;
     /**
+     * Register the bytes of a file the document carries, for the `<file>` of its `<attachments>` whose `ref`, or
+     * with no ref whose name, is `name`. A `src` is not read in the browser. Call before `render`.
+     */
+    loadFile(name: string, bytes: Uint8Array): void;
+    /**
      * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
      * names it in `<markdown-styles src="…">`. Call before `render`. Mutates the renderer in-place.
      */
@@ -113,6 +120,7 @@ export async function initLpdf(
 
     const fontMap  = new Map<string, Uint8Array>();
     const imageMap = new Map<string, Uint8Array>();
+    const fileMap  = new Map<string, Uint8Array>();
     const markdownStyles = new Map<string, string>();
 
     return {
@@ -122,6 +130,10 @@ export async function initLpdf(
 
         loadImage(name: string, bytes: Uint8Array): void {
             imageMap.set(name, bytes);
+        },
+
+        loadFile(name: string, bytes: Uint8Array): void {
+            fileMap.set(name, bytes);
         },
 
         loadMarkdownStyles(src: string, text: string): void {
@@ -143,6 +155,9 @@ export async function initLpdf(
             }
             for (const [name, bytes] of imageMap) {
                 engine.load_image(name, bytes);
+            }
+            for (const [name, bytes] of fileMap) {
+                engine.load_file(name, bytes);
             }
             for (const [src, text] of markdownStyles) {
                 engine.load_markdown_styles(src, text);
