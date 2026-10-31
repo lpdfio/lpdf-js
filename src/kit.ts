@@ -28,6 +28,12 @@ import { buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
+/** A slot of a token row, from the smallest to the largest. */
+export type TokenSlot = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
+
+/** A token row: a value for each slot it sets. */
+export type TokenRow<T> = Partial<Record<TokenSlot, T>>;
+
 export interface DocumentTokens {
   colors?:  Record<string, string>;
   gradients?: Record<string, GradientToken>;
@@ -37,16 +43,16 @@ export interface DocumentTokens {
    * starting with a letter, and is neither a slot nor `fill` or `full`.
    */
   aliases?: Record<string, string>;
-  space?:   Record<string, string>;
-  grid?:    Record<string, string>;
-  border?:  Record<string, string>;
-  radius?:  Record<string, string>;
-  width?:   Record<string, string>;
+  space?:   TokenRow<string>;
+  grid?:    TokenRow<string>;
+  border?:  TokenRow<string>;
+  radius?:  TokenRow<string>;
+  width?:   TokenRow<string>;
   /** The heights `height` names: `{ xs: '16pt', s: '24pt', m: '32pt', l: '48pt', xl: '64pt', xxl: '96pt' }` by default. */
-  height?:  Record<string, string>;
-  textSize?: Record<string, string>;
+  height?:  TokenRow<string>;
+  textSize?: TokenRow<string>;
   /** The factors `lineHeight` names, each a number above 0: `{ xs: 1, s: 1.1, m: 1.2, l: 1.4, xl: 1.6, xxl: 2 }` by default. */
-  lineHeight?: Record<string, number>;
+  lineHeight?: TokenRow<number>;
 }
 
 /**

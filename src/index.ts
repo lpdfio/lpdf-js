@@ -13,7 +13,7 @@ export {
 export type {
     PdfDocument,
     LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
-    DocumentTokens, DocumentAssets, DocumentMeta, DocumentOutput,
+    DocumentTokens, TokenSlot, TokenRow, DocumentAssets, DocumentMeta, DocumentOutput,
     SectionAttr, DocumentAttr,
 } from './kit';
 
