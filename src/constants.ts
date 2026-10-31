@@ -56,6 +56,7 @@ export type Cipher = (typeof Cipher)[keyof typeof Cipher];
 
 /** The words of the `allow` attribute of the output, separated by spaces: what a reader of an encrypted PDF may do. */
 export const Permission = {
+  All: 'all',
   Print: 'print',
   Modify: 'modify',
   Copy: 'copy',

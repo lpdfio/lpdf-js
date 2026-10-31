@@ -3,122 +3,122 @@ import type {
   TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
   ImgAttr, ShapeAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
-import { buildAttrs } from './_shared';
+import { buildAttrs, type AttrValue } from './_shared';
 
 // ── Output node interfaces ────────────────────────────────────────────────────
 
 export interface LpdfSpanNode {
   type:  'span';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: string[];
 }
 
 /** A run of code inside a text: its words in the code font on a tint. */
 export interface LpdfCodeSpanNode {
   type:  'code-span';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: string[];
 }
 
 /** A footnote: its words go at the bottom of the page where its number lands. */
 export interface LpdfFnNode {
   type:  'fn';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (string | LpdfSpanNode)[];
 }
 
 export interface LpdfContainerNode {
   type:  'column' | 'row' | 'grid' | 'frame' | 'link';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
 /** A list of items, each marked with a bullet or a number the engine gives. */
 export interface LpdfListNode {
   type:  'list';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfLiNode[];
 }
 
 /** One item of a list: what a layout holds, beside the item's marker. */
 export interface LpdfLiNode {
   type:  'li';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
 export interface LpdfTextNode {
   type:  'text';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (string | LpdfSpanNode | LpdfCodeSpanNode | LpdfFnNode)[];
 }
 
 /** Code in a box. Its strings keep their spaces and lines; its spans color parts of it. */
 export interface LpdfCodeNode {
   type:  'code';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (string | LpdfSpanNode)[];
 }
 
 export interface LpdfDividerNode {
   type:  'divider';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfImgNode {
   type:  'img';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfShapeNode {
   type:  'shape';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfBarcodeNode {
   type:  'barcode';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfTheadNode {
   type:  'thead';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfTdNode[];
 }
 
 export interface LpdfTrNode {
   type:  'tr';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfTdNode[];
 }
 
 export interface LpdfTdNode {
   type:  'td';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
 export interface LpdfTableNode {
   type:  'table';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (LpdfTheadNode | LpdfTrNode)[];
 }
 
 export interface LpdfRegionNode {
   type:  'region';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
 export interface LpdfFieldNode {
   type:  'field';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 /** An outline entry and link target that marks the node after it; it draws nothing. */
 export interface LpdfBookmarkNode {
   type:  'bookmark';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export type LpdfNode =

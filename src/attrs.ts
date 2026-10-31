@@ -37,7 +37,7 @@ export interface ColumnAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -57,7 +57,7 @@ export interface ColumnAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   align?: string;
   justify?: string;
   /**
@@ -106,7 +106,7 @@ export interface RowAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -126,7 +126,7 @@ export interface RowAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   align?: string;
   justify?: string;
   /**
@@ -173,7 +173,7 @@ export interface GridAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -193,7 +193,7 @@ export interface GridAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -201,7 +201,7 @@ export interface GridAttr {
    */
   width?: string;
   colWidth?: string;
-  cols?: string;
+  cols?: number;
 }
 
 /**
@@ -242,7 +242,7 @@ export interface ListAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -262,7 +262,7 @@ export interface ListAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /** bullet marks each item with a shape, number with a number. Default bullet. */
   type?: string;
   /**
@@ -276,7 +276,7 @@ export interface ListAttr {
    * The number of a number list's first item, to continue a list that something cut in two. Default
    * 1.
    */
-  start?: string;
+  start?: number;
   /**
    * Text before each number of a number list: prefix="(" and suffix=")" write (a). Default none.
    */
@@ -345,7 +345,7 @@ export interface LiAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -365,7 +365,7 @@ export interface LiAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /**
    * Makes the item's marker a checkbox in place of the bullet or the number: an outline in the line
    * color, with a tick in the color of the item's words when this is true, and empty when it is
@@ -373,7 +373,7 @@ export interface LiAttr {
    * number. An item without it keeps its bullet or number. A task item of a Markdown, - [ ] or -
    * [x], is one.
    */
-  checked?: string;
+  checked?: boolean;
 }
 
 /**
@@ -411,7 +411,7 @@ export interface FrameAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -431,7 +431,7 @@ export interface FrameAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -457,7 +457,7 @@ export interface LinkAttr {
    */
   width?: string;
   height?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -473,7 +473,7 @@ export interface DividerAttr {
    * line; in a column it takes the full width.
    */
   width?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -481,15 +481,15 @@ export interface DividerAttr {
  */
 export interface SpanAttr {
   font?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   /**
    * Makes the span a link: a URL, or #id to jump to the bookmark with that id. In an entry of a
    * table of contents, # alone jumps to that entry's bookmark.
    */
   href?: string;
-  underline?: string;
-  strike?: string;
+  underline?: boolean;
+  strike?: boolean;
 }
 
 /**
@@ -529,7 +529,7 @@ export interface ImgAttr {
   border?: string;
   radius?: string;
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -561,8 +561,8 @@ export interface ShapeAttr {
   strokeWidth?: string;
   strokeDash?: string;
   /** How opaque the shape is, from 0 to 1. Default 1. */
-  opacity?: string;
-  debug?: string;
+  opacity?: number;
+  debug?: boolean;
 }
 
 /**
@@ -586,7 +586,7 @@ export interface BarcodeAttr {
    */
   height?: string;
   ec?: string;
-  hrt?: string;
+  hrt?: boolean;
   color?: string;
   background?: string;
   /**
@@ -596,7 +596,7 @@ export interface BarcodeAttr {
    */
   width?: string;
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -611,28 +611,28 @@ export interface TextAttr {
    * Helvetica-Bold, Times-Roman becomes Times-Bold, Courier becomes Courier-Bold, and the oblique
    * and italic faces their bold forms. A custom font has no bold face to pick, so name one in font.
    */
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
   /**
    * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
    * name from the line-height row of the tokens. Default 1.2, which is the token m.
    */
-  lineHeight?: string;
+  lineHeight?: string | number;
   /**
    * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
    * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
    * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
    * default, and above 1 needs a width to wrap within.
    */
-  maxLines?: string;
+  maxLines?: number;
   /**
    * End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width.
    * Off by default: the text stops at the end of a line. A text-at also ends a line in one when it
    * is cut off at its width. A text in the layout without max-lines is never cut, so there it has
    * no effect.
    */
-  ellipsis?: string;
+  ellipsis?: boolean;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -644,14 +644,14 @@ export interface TextAttr {
    * Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the
    * protection off.
    */
-  widows?: string;
+  widows?: number;
   /**
    * The fewest lines of the text that may stand alone at the bottom of a page when it splits.
    * Default 2. If fewer would fit, the whole text moves to the next page; 1 turns the protection
    * off. When no split can keep both widows and orphans, even on an empty page, the text splits
    * where the lines fit.
    */
-  orphans?: string;
+  orphans?: number;
   /**
    * Records the words of this text under a name as the pages are filled, so a text with capture-ref
    * in a header or a footer can show them. Put it on a heading in the flow. The page that holds the
@@ -678,7 +678,7 @@ export interface TextAttr {
    */
   captureFallback?: string;
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -723,7 +723,7 @@ export interface CodeAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -743,7 +743,7 @@ export interface CodeAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -754,24 +754,24 @@ export interface CodeAttr {
    * How many columns a tab fills to: it moves the next character to the next multiple of this many
    * characters from the start of the line. Default 4.
    */
-  tabSize?: string;
+  tabSize?: number;
   /**
    * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
    * name from the line-height row of the tokens. Default 1.2, which is the token m.
    */
-  lineHeight?: string;
+  lineHeight?: string | number;
   /**
    * The fewest lines of the code that may stand alone at the top of the next page when it splits.
    * Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the
    * protection off.
    */
-  widows?: string;
+  widows?: number;
   /**
    * The fewest lines of the code that may stand alone at the bottom of a page when it splits.
    * Default 2. If fewer would fit, the whole code moves to the next page; 1 turns the protection
    * off.
    */
-  orphans?: string;
+  orphans?: number;
 }
 
 /**
@@ -809,7 +809,7 @@ export interface TdAttr {
    * that overlap do not show through each other, and a box inside a faded box is faded further: 0.5
    * inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.
    */
-  opacity?: string;
+  opacity?: number;
   /**
    * A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative
    * is left and up) and filled with the color, drawn under the box with the same radius. An opacity
@@ -829,7 +829,7 @@ export interface TdAttr {
    * box inside another box they are not applied. no applies at any depth.
    */
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
   /**
    * How many of the table's columns the cell spans. It is as wide as those columns and the gaps
    * between them, and the cells after it in the row start at the column after its last. A row whose
@@ -837,7 +837,7 @@ export interface TdAttr {
    * last columns empty. It changes widths only: row heights and page breaks work as before. Default
    * 1.
    */
-  colspan?: string;
+  colspan?: number;
   /**
    * How many rows the cell spans, its own included. It is as tall as those rows and the gaps
    * between them, and the rows under it leave its columns out: their cells start at the first free
@@ -847,7 +847,7 @@ export interface TdAttr {
    * spans stay on one page: the group moves to the next page whole when it does not fit, and one
    * taller than a page is clipped at the page's end. Default 1.
    */
-  rowspan?: string;
+  rowspan?: number;
   align?: string;
   valign?: string;
 }
@@ -916,7 +916,7 @@ export interface TableAttr {
   width?: string;
   height?: string;
   paginate?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -929,10 +929,10 @@ export interface FieldAttr {
   label?: string;
   options?: string;
   group?: string;
-  checked?: string;
-  required?: string;
-  readonly?: string;
-  maxLen?: string;
+  checked?: boolean;
+  required?: boolean;
+  readonly?: boolean;
+  maxLen?: number;
   actionUrl?: string;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
@@ -943,7 +943,7 @@ export interface FieldAttr {
   height?: string;
   background?: string;
   border?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -959,7 +959,7 @@ export interface BookmarkAttr {
    * Depth in the outline, 1 to 6. Defaults to 1. An entry nests under the closest entry before it
    * with a lower level.
    */
-  level?: string;
+  level?: number;
   /**
    * The name links use to jump here, as href="#id". Leave it out to make it from the label:
    * lowercase, with other characters than letters and digits turned into hyphens, and -2, -3 added
@@ -986,7 +986,7 @@ export interface RegionAttr {
    */
   page?: string;
   w?: string;
-  debug?: string;
+  debug?: boolean;
 }
 
 /**
@@ -1026,8 +1026,8 @@ export interface MarkdownAttr {
    * How many levels of headings become bookmarks, for the outline of the viewer and the table of
    * contents: n keeps the levels 1 to n, 0 none. Default 6.
    */
-  bookmarks?: string;
-  debug?: string;
+  bookmarks?: number;
+  debug?: boolean;
 }
 
 /**
@@ -1053,10 +1053,10 @@ export interface MarkdownStylesAttr {
 export interface MarkdownH1Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1069,10 +1069,10 @@ export interface MarkdownH1Attr {
 export interface MarkdownH2Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1085,10 +1085,10 @@ export interface MarkdownH2Attr {
 export interface MarkdownH3Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1101,10 +1101,10 @@ export interface MarkdownH3Attr {
 export interface MarkdownH4Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1117,10 +1117,10 @@ export interface MarkdownH4Attr {
 export interface MarkdownH5Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1133,10 +1133,10 @@ export interface MarkdownH5Attr {
 export interface MarkdownH6Attr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1149,10 +1149,10 @@ export interface MarkdownH6Attr {
 export interface MarkdownPAttr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1168,12 +1168,12 @@ export interface MarkdownCodeAttr {
   font?: string;
   fontSize?: string;
   color?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
   radius?: string;
-  tabSize?: string;
+  tabSize?: number;
 }
 
 /**
@@ -1185,10 +1185,10 @@ export interface MarkdownCodeAttr {
 export interface MarkdownQuoteAttr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
-  lineHeight?: string;
+  lineHeight?: string | number;
   padding?: string;
   background?: string;
   border?: string;
@@ -1219,8 +1219,8 @@ export interface MarkdownLiAttr {
 export interface MarkdownAAttr {
   font?: string;
   color?: string;
-  bold?: string;
-  underline?: string;
+  bold?: boolean;
+  underline?: boolean;
 }
 
 /**
@@ -1230,7 +1230,7 @@ export interface MarkdownAAttr {
 export interface MarkdownStrongAttr {
   font?: string;
   color?: string;
-  bold?: string;
+  bold?: boolean;
 }
 
 /**
@@ -1248,7 +1248,7 @@ export interface MarkdownEmAttr {
 export interface MarkdownDelAttr {
   font?: string;
   color?: string;
-  strike?: string;
+  strike?: boolean;
 }
 
 /**
@@ -1275,7 +1275,7 @@ export interface MarkdownTableAttr {
 export interface MarkdownThAttr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
   padding?: string;
@@ -1289,7 +1289,7 @@ export interface MarkdownThAttr {
 export interface MarkdownTdAttr {
   font?: string;
   fontSize?: string;
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
   padding?: string;
@@ -1311,7 +1311,7 @@ export interface LayerAttr {
    * How opaque everything in the layer is, from 0 to 1. To fade one element, put it in a layer of
    * its own.
    */
-  opacity?: string;
+  opacity?: number;
   transform?: string;
   /**
    * A rectangle that cuts off what the layer draws outside it: x y w h, in points from the top left
@@ -1465,28 +1465,28 @@ export interface TextAtAttr {
    * Helvetica-Bold, Times-Roman becomes Times-Bold, Courier becomes Courier-Bold, and the oblique
    * and italic faces their bold forms. A custom font has no bold face to pick, so name one in font.
    */
-  bold?: string;
+  bold?: boolean;
   color?: string;
   align?: string;
   /**
    * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
    * name from the line-height row of the tokens. Default 1.2, which is the token m.
    */
-  lineHeight?: string;
+  lineHeight?: string | number;
   /**
    * The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text
    * in the layout has no cap by default and wraps at the width it has; the lines it drops take no
    * room, and a text that splits across pages keeps the cap across them. A text-at is one line by
    * default, and above 1 needs a width to wrap within.
    */
-  maxLines?: string;
+  maxLines?: number;
   /**
    * End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width.
    * Off by default: the text stops at the end of a line. A text-at also ends a line in one when it
    * is cut off at its width. A text in the layout without max-lines is never cut, so there it has
    * no effect.
    */
-  ellipsis?: string;
+  ellipsis?: boolean;
   /**
    * Width of the box. Without it the text is one line of the width its characters need, and align
    * has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in
@@ -1533,7 +1533,7 @@ export interface BarcodeAtAttr {
    */
   height?: string;
   ec?: string;
-  hrt?: string;
+  hrt?: boolean;
   color?: string;
   background?: string;
   x?: string;
@@ -1621,4 +1621,53 @@ export interface FileAttr {
   relationship?: string;
   /** A line about the file, which a reader shows beside its name. */
   description?: string;
+}
+
+/**
+ * One color of a gradient, at an offset along it.
+ */
+export interface GradientStop {
+  /**
+   * Where the color is reached along the gradient, from 0% (the start) to 100% (the end). Stops go
+   * in increasing order.
+   */
+  offset: string;
+  /**
+   * The color at the stop: hex, cmyk(), rgb(), hsl() or a color token. The stops of a gradient are
+   * all CMYK or all RGB.
+   */
+  color: string;
+}
+
+/**
+ * A named blend of colors. A background or a fill uses it as gradient:name, and the blend spans the
+ * box it fills. Give from and to for two colors, or stop children for more.
+ */
+export interface GradientToken {
+  /**
+   * linear runs along a line across the box. radial runs from the center out to the farthest
+   * corner.
+   */
+  type: 'linear' | 'radial';
+  /**
+   * The first color: hex, cmyk(), rgb(), hsl() or a color token, CMYK if to is and RGB if it is
+   * not. Used with to, when there are no stop children. For a radial gradient it is the center.
+   */
+  from?: string;
+  /**
+   * The last color: hex, cmyk(), rgb(), hsl() or a color token. Used with from, when there are no
+   * stop children. For a radial gradient it is the edge.
+   */
+  to?: string;
+  /**
+   * The direction of a linear gradient, in degrees: 0 runs from the top to the bottom, 90 from the
+   * left to the right, 180 from the bottom to the top. Default 0. A radial gradient has no
+   * direction.
+   */
+  angle?: number;
+  /**
+   * The colors of the gradient, for more than two: each at an offset, in increasing order. Give
+   * these, or from and to.
+   */
+  stops?: GradientStop[];
 }

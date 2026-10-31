@@ -364,7 +364,7 @@ describe('kitToXml', () => {
 
   it('emits text tokens inside <tokens>', () => {
     const document = L.document(
-      { tokens: { textSize: { body: '12pt', heading: '20pt' } } },
+      { tokens: { textSize: { m: '12pt', xl: '20pt' } } },
       [L.section(null, [L.layout(null, [])])],
     );
     const xml = L.toXml(document);
@@ -374,10 +374,10 @@ describe('kitToXml', () => {
 
   it('emits a line-height row inside <tokens>, and a line-height on a text as a token or a factor', () => {
     const document = L.document(
-      { tokens: { lineHeight: { xs: '1', s: '1.1', m: '1.2', l: '1.4', xl: '1.6', xxl: '2' } } },
+      { tokens: { lineHeight: { xs: 1, s: 1.1, m: 1.2, l: 1.4, xl: 1.6, xxl: 2 } } },
       [L.section(null, [L.layout(null, [
         L.text({ lineHeight: 'l' }, ['A token']),
-        L.text({ lineHeight: '1.5' }, ['A factor']),
+        L.text({ lineHeight: 1.5 }, ['A factor']),
       ])])],
     );
     const xml = L.toXml(document);
@@ -482,7 +482,7 @@ describe('kitToXml', () => {
     const document = kitDoc([
       L.row({ align: 'center', gap: 's' }, [
         L.shape({ type: 'circle', r: '5pt', fill: 'primary' }),
-        L.shape({ type: 'rect', width: '14pt', height: 'm', radius: '2pt', stroke: '#000000', strokeWidth: '1pt', strokeDash: '3 2', opacity: '0.5' }),
+        L.shape({ type: 'rect', width: '14pt', height: 'm', radius: '2pt', stroke: '#000000', strokeWidth: '1pt', strokeDash: '3 2', opacity: 0.5 }),
         L.shape({ type: 'ellipse', width: '40pt', height: '20pt' }),
       ]),
     ]);
@@ -517,7 +517,7 @@ describe('kitToXml', () => {
   it('emits a footnote as an fn child of a text, and the counter on the document and a section', () => {
     const document = L.document({ footnoteCounter: FootnoteCounter.Document }, [
       L.section({ footnoteCounter: FootnoteCounter.Page }, [L.layout(null, [
-        L.text(null, ['Total', L.fn(NoAttr, ['See ', L.span({ bold: 'true' }, ['this']), '.']), ' here']),
+        L.text(null, ['Total', L.fn(NoAttr, ['See ', L.span({ bold: true }, ['this']), '.']), ' here']),
       ])]),
     ]);
     const xml = L.toXml(document);
@@ -529,7 +529,7 @@ describe('kitToXml', () => {
 
   it('emits a code and a code-span, and the PDF of the tree is the PDF of its XML', async () => {
     const document = kitDoc([
-      L.code({ tabSize: '2' }, ['\nfn a() {\n\tb(', L.span({ color: '#c0392b' }, ['x']), ');\n}\n']),
+      L.code({ tabSize: 2 }, ['\nfn a() {\n\tb(', L.span({ color: '#c0392b' }, ['x']), ');\n}\n']),
       L.text(null, ['Run ', L.codeSpan({ background: '#ffff00' }, ['cargo test']), ' now']),
     ]);
     const xml = L.toXml(document);
@@ -551,8 +551,8 @@ describe('kitToXml', () => {
     const pdf = await render(kitDoc([L.code(null, [lines])]));
     assert((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length >= 2, 'the code splits across pages');
     await assert.rejects(
-      engine.render(kitDoc([L.code({ tabSize: '0' }, ['x'])])),
-      (e) => e instanceof LpdfRenderError && /invalid tab-size/.test(e.message),
+      engine.render(kitDoc([L.code({ tabSize: 0 }, ['x'])])),
+      (e) => e instanceof LpdfRenderError && /tab-size must be a whole number from 1 to 16, not 0/.test(e.message),
     );
   });
 
@@ -580,7 +580,7 @@ describe('kitToXml', () => {
     const items = [L.li(null, [L.text(null, ['A'])]), L.li(null, [L.text(null, ['B'])])];
     const bullets = await render(kitDoc([L.list(null, items)]));
     const numbers = await render(kitDoc([L.list({ type: 'number' }, items)]));
-    const roman = await render(kitDoc([L.list({ type: 'number', format: 'lower-roman', start: '3' }, items)]));
+    const roman = await render(kitDoc([L.list({ type: 'number', format: 'lower-roman', start: 3 }, items)]));
     assert.notEqual(bullets, numbers, 'the numbers are written');
     assert.notEqual(numbers, roman, 'the format and start are read');
     await assert.rejects(
@@ -637,13 +637,13 @@ describe('kitToXml', () => {
         L.tr(null, [L.td(colspan, [L.text(null, ['A'])]), L.td(null, [L.text(null, ['B'])])]),
       ]),
     ]);
-    const spanning = build({ colspan: '2' });
+    const spanning = build({ colspan: 2 });
     assert.match(L.toXml(spanning), /<td colspan="2">/);
     const engine = new PdfEngine().setLicenseKey('test-key');
     const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
     assert.notEqual(await render(spanning), await render(build(null)), 'the second cell starts at the third column');
     await assert.rejects(
-      engine.render(build({ colspan: '3' })),
+      engine.render(build({ colspan: 3 })),
       (e) => e instanceof LpdfRenderError && /span 4 columns, but the table has 3/.test(e.message),
     );
   });
@@ -655,13 +655,13 @@ describe('kitToXml', () => {
         L.tr(null, [L.td(null, [L.text(null, ['C'])])]),
       ]),
     ]);
-    const spanning = build({ rowspan: '2' });
+    const spanning = build({ rowspan: 2 });
     assert.match(L.toXml(spanning), /<td rowspan="2">/);
     const engine = new PdfEngine().setLicenseKey('test-key');
     const render = async (document) => Buffer.from(await engine.render(document)).toString('latin1');
     assert.notEqual(await render(spanning), await render(build(null)), 'the second row starts at the second column');
     await assert.rejects(
-      engine.render(build({ rowspan: '3' })),
+      engine.render(build({ rowspan: 3 })),
       (e) => e instanceof LpdfRenderError && /a rowspan that runs 1 row past the last row of the table/.test(e.message),
     );
   });
@@ -669,7 +669,7 @@ describe('kitToXml', () => {
   it('emits a color and an opacity on a box, and a font, a size and a color on a layer', () => {
     const document = L.document(null, [L.section(null, [
       L.layer({ font: 'Courier', fontSize: 's', color: 'danger' }, [L.textAt({ x: '10pt', y: '20pt' }, ['In a layer'])]),
-      L.layout(null, [L.column({ color: 'text-muted', opacity: '0.5' }, [L.text(null, ['In a column'])])]),
+      L.layout(null, [L.column({ color: 'text-muted', opacity: 0.5 }, [L.text(null, ['In a column'])])]),
     ])]);
     const xml = L.toXml(document);
     assert.match(xml, /<layer color="danger" font="Courier" font-size="s">/, xml);
@@ -817,12 +817,12 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('text takes its attributes first and its content second', () => {
-    const node = L.textAt({ x: '10pt', y: '20pt', font: 'Helvetica', fontSize: '12pt', color: '#000', lineHeight: '1.5' }, ['Hello']);
+    const node = L.textAt({ x: '10pt', y: '20pt', font: 'Helvetica', fontSize: '12pt', color: '#000', lineHeight: 1.5 }, ['Hello']);
     assert.equal(node.type, 'text-at');
     assert.deepEqual(node.nodes, ['Hello']);
     assert.equal(node.attrs.x, '10pt');
     assert.equal(node.attrs['font-size'], '12pt');
-    assert.equal(node.attrs['line-height'], '1.5');
+    assert.equal(node.attrs['line-height'], 1.5);
   });
 
   it('text content can mix strings and spans', () => {
@@ -849,7 +849,7 @@ describe('LpdfCanvas serialization', () => {
   it('a text-at, an img-at and a barcode-at are written under their element names', () => {
     const document = L.document(null, [
       L.section(null, [L.layer(null, [
-        L.textAt({ x: '10pt', y: '20pt', maxLines: '2', width: '80pt' }, ['Hello']),
+        L.textAt({ x: '10pt', y: '20pt', maxLines: 2, width: '80pt' }, ['Hello']),
         L.barcodeAt({ type: 'qr', data: 'x', x: '0pt', y: '0pt', width: '40pt' }),
       ])]),
     ]);
@@ -886,10 +886,10 @@ describe('LpdfCanvas serialization', () => {
   });
 
   it('layer attributes are written as given', () => {
-    const node = L.layer({ page: 'first', opacity: '0.5', transform: 'rotate(45 100 100)', clip: '0pt 0pt 200pt 100pt' }, []);
+    const node = L.layer({ page: 'first', opacity: 0.5, transform: 'rotate(45 100 100)', clip: '0pt 0pt 200pt 100pt' }, []);
     assert.equal(node.attrs.clip, '0pt 0pt 200pt 100pt');
     assert.equal(node.attrs.page, 'first');
-    assert.equal(node.attrs.opacity, '0.5');
+    assert.equal(node.attrs.opacity, 0.5);
     assert.equal(node.attrs.transform, 'rotate(45 100 100)');
   });
 
@@ -1034,8 +1034,8 @@ describe('LpdfLayout region', () => {
 describe('bookmarks', () => {
 
   it('bookmark carries its attributes, in a layout and directly in a section', () => {
-    const node = L.bookmark({ label: 'Methods', level: '2', id: 'methods' });
-    assert.deepEqual(node, { type: 'bookmark', attrs: { label: 'Methods', level: '2', id: 'methods' } });
+    const node = L.bookmark({ label: 'Methods', level: 2, id: 'methods' });
+    assert.deepEqual(node, { type: 'bookmark', attrs: { label: 'Methods', level: 2, id: 'methods' } });
     const sec = L.section({ type: SectionType.Toc, tocIndentStep: '14pt' }, [L.bookmark({ label: 'Contents' }), L.layout(null, [])]);
     assert.deepEqual(sec.attrs, { type: 'toc', 'toc-indent-step': '14pt' });
     assert.equal(sec.nodes[0].type, 'bookmark');
@@ -1131,8 +1131,54 @@ function normalised(bytes) {
 describe('attributes follow the schema', () => {
 
   it('text align and bold are written as the schema names them', () => {
-    const node = L.text({ align: 'right', bold: 'true' }, ['x']);
-    assert.deepEqual(node.attrs, { align: 'right', bold: 'true' });
+    const node = L.text({ align: 'right', bold: true }, ['x']);
+    assert.deepEqual(node.attrs, { align: 'right', bold: true });
+  });
+
+  it('the engine refuses a value of the wrong type, as plain JavaScript can give it', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    for (const [nodes, says] of [
+      [[L.grid({ cols: '3' }, [L.text(null, ['a'])])], /grid: cols must be a whole number from 1 to 12, not "3"/],
+      [[L.text({ bold: 'true' }, ['a'])], /text: bold must be true or false, not "true"/],
+      [[L.column({ opacity: '0.5' }, [])], /column: opacity must be a number from 0 to 1, not "0.5"/],
+      [[L.text({ lineHeight: '1.5' }, ['a'])], /text: line-height must be a name or a number above 0, not "1.5"/],
+    ]) {
+      await assert.rejects(engine.render(kitDoc(nodes)), (e) => e instanceof LpdfRenderError && says.test(e.message));
+    }
+    const gradient = L.document({ tokens: { gradients: { fade: { type: 'linear', from: '#f00', to: '#00f', angle: '90' } } } }, [
+      L.section(null, [L.layout(null, [])]),
+    ]);
+    await assert.rejects(engine.render(gradient), (e) => /gradient: angle must be a number, not "90"/.test(e.message));
+  });
+
+  it('a builder refuses a number a document cannot hold, naming where it is', () => {
+    for (const [build, says] of [
+      [() => L.column({ opacity: NaN }, []), /^opacity must be a finite number, not NaN$/],
+      [() => L.grid({ cols: 6 / 0 }, []), /^cols must be a finite number, not Infinity$/],
+      // A string attribute too: as text, NaN would be a label.
+      [() => L.bookmark({ label: NaN }), /^label must be a finite number, not NaN$/],
+      [() => L.document({ tokens: { lineHeight: { xs: 1, s: 1.1, m: NaN, l: 1.4, xl: 1.6, xxl: 2 } } }, []),
+        /^tokens\.lineHeight\.m must be a finite number, not NaN$/],
+      [() => L.document({ tokens: { gradients: { fade: { type: 'linear', from: '#f00', to: '#00f', angle: -Infinity } } } }, []),
+        /^tokens\.gradients\.fade\.angle must be a finite number, not -Infinity$/],
+    ]) {
+      assert.throws(build, (e) => e instanceof RangeError && says.test(e.message));
+    }
+  });
+
+  it('the engine refuses an attribute the element does not have, naming the ones it has', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    await assert.rejects(
+      engine.render(kitDoc([L.text({ colr: 'red' }, ['a'])])),
+      (e) => e instanceof LpdfRenderError && /text: unknown attribute 'colr' — expected font-size, font, bold, color,/.test(e.message),
+    );
+  });
+
+  it('a typed value renders as its text does in XML', async () => {
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const built = await engine.render(kitDoc([L.grid({ cols: 2, opacity: 0.5 }, [L.text({ bold: true, lineHeight: 1.5 }, ['a']), L.text({ lineHeight: 'l' }, ['b'])])]));
+    const xml = await engine.render(doc('<grid cols="2" opacity="0.5"><text bold="true" line-height="1.5">a</text><text line-height="l">b</text></grid>'));
+    assert.equal(normalised(built), normalised(xml));
   });
 
   it('link and span carry href', () => {
@@ -1141,8 +1187,8 @@ describe('attributes follow the schema', () => {
   });
 
   it('field carries its type and name as attributes', () => {
-    const node = L.field({ type: 'text', name: 'email', maxLen: '40', actionUrl: 'https://lpdf.io' });
-    assert.deepEqual(node.attrs, { type: 'text', name: 'email', 'max-len': '40', 'action-url': 'https://lpdf.io' });
+    const node = L.field({ type: 'text', name: 'email', maxLen: 40, actionUrl: 'https://lpdf.io' });
+    assert.deepEqual(node.attrs, { type: 'text', name: 'email', 'max-len': 40, 'action-url': 'https://lpdf.io' });
   });
 
   it('layout builders take their content as optional', () => {
@@ -1156,8 +1202,8 @@ describe('attributes follow the schema', () => {
       L.section(null, [
         L.layout(null, [
           L.column({ gap: '12pt' }, [
-            L.text({ align: 'right', bold: 'true' }, ['Title']),
-            L.text(null, ['Body ', L.span({ bold: 'true' }, ['bold']), ' text']),
+            L.text({ align: 'right', bold: true }, ['Title']),
+            L.text(null, ['Body ', L.span({ bold: true }, ['bold']), ' text']),
             L.link({ href: 'https://lpdf.io' }, [L.text(null, ['link'])]),
           ]),
         ]),
@@ -1225,6 +1271,7 @@ describe('attributes follow the schema', () => {
     assert.equal(BuiltinFont.TimesBold, 'Times-Bold');
     assert.equal(Cipher.Rc4128, 'rc4-128');
     assert.equal(Permission.FillForms, 'fill-forms');
+    assert.equal(Permission.All, 'all');
     assert.equal(FileRelationship.Data, 'data');
   });
 

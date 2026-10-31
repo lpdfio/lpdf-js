@@ -23,32 +23,16 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FileAttr, FontAttr, ImageAttr, LayoutAttr } from './attrs';
-import { buildAttrs } from './_shared';
+import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr } from './attrs';
+import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
 
-/**
- * One color of a gradient: `color` is hex, `cmyk()`, `rgb()`, `hsl()` or a color token, at an `offset` from `'0%'` to
- * `'100%'`. The stops of a gradient are all CMYK or all RGB.
- */
-export interface GradientStop {
-  offset: string;
-  color:  string;
-}
+/** A slot of a token row, from the smallest to the largest. */
+export type TokenSlot = 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
 
-/**
- * A gradient of the tokens, which a background or a fill uses as `gradient:name`. Give `from` and `to` for two
- * colors, or `stops` for more. `angle` is the direction of a linear gradient in degrees: 0 runs top to bottom
- * and 90 left to right. A radial gradient runs from the center of the box out to its farthest corner.
- */
-export interface GradientToken {
-  type:   'linear' | 'radial';
-  from?:  string;
-  to?:    string;
-  angle?: number | string;
-  stops?: GradientStop[];
-}
+/** A token row: a value for each slot it sets. */
+export type TokenRow<T> = Partial<Record<TokenSlot, T>>;
 
 export interface DocumentTokens {
   colors?:  Record<string, string>;
@@ -59,15 +43,16 @@ export interface DocumentTokens {
    * starting with a letter, and is neither a slot nor `fill` or `full`.
    */
   aliases?: Record<string, string>;
-  space?:   Record<string, string>;
-  grid?:    Record<string, string>;
-  border?:  Record<string, string>;
-  radius?:  Record<string, string>;
-  width?:   Record<string, string>;
+  space?:   TokenRow<string>;
+  grid?:    TokenRow<string>;
+  border?:  TokenRow<string>;
+  radius?:  TokenRow<string>;
+  width?:   TokenRow<string>;
   /** The heights `height` names: `{ xs: '16pt', s: '24pt', m: '32pt', l: '48pt', xl: '64pt', xxl: '96pt' }` by default. */
-  height?:  Record<string, string>;
-  textSize?: Record<string, string>;
-  lineHeight?: Record<string, string>;
+  height?:  TokenRow<string>;
+  textSize?: TokenRow<string>;
+  /** The factors `lineHeight` names, each a number above 0: `{ xs: 1, s: 1.1, m: 1.2, l: 1.4, xl: 1.6, xxl: 2 }` by default. */
+  lineHeight?: TokenRow<number>;
 }
 
 /**
@@ -95,9 +80,9 @@ export interface DocumentOutput {
   /** The cipher the PDF is encrypted with, `aes-256` or `rc4-128` (`Cipher`). Without it the PDF is not encrypted. */
   encrypt?: string;
   /**
-   * What a reader may do without the owner password, separated by spaces (`Permission`): `print`, `modify`,
-   * `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. Without it everything is allowed; `''` allows
-   * nothing. It needs `encrypt`.
+   * What a reader may do without the owner password, separated by spaces (`Permission`): `all`, or any of
+   * `print`, `modify`, `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. A permission comes only from
+   * naming it: without `allow`, or with `''`, nothing is allowed, and `all` allows everything. It needs `encrypt`.
    */
   allow?: string;
   /**
@@ -113,7 +98,7 @@ export interface SectionAttr {
   orientation?: string;
   background?:  string;
   title?:       string;
-  debug?:       string;
+  debug?:       boolean;
   type?:        string;
   tocIndentStep?: string;
   footnoteCounter?: string;
@@ -133,7 +118,7 @@ export interface DocumentAttr {
    * attachments panel. Each file's bytes are read from its `src`, or loaded with `loadFile` under its `ref` or name.
    */
   attachments?: FileAttr[];
-  debug?:       string;
+  debug?:       boolean;
   footnoteCounter?: string;
 }
 
@@ -142,7 +127,7 @@ export interface DocumentAttr {
 /** A layout block — wraps an ordered list of layout nodes. */
 export interface LpdfLayoutBlock {
   type:  'layout';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
@@ -150,7 +135,7 @@ export interface LpdfLayoutBlock {
 
 export interface LpdfSectionNode {
   type:  'section';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfSectionChild[];
 }
 
@@ -188,6 +173,8 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
   };
   if (assets !== undefined) attrsObj['assets'] = assets;
   if (tokens !== undefined) {
+    // A factor of the line-height row and a gradient's angle are numbers, which JSON can't hold as NaN or infinity.
+    assertFiniteIn('tokens', tokens);
     const { textSize, lineHeight, ...rest } = tokens;
     attrsObj['tokens'] = {
       ...rest,
