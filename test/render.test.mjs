@@ -125,6 +125,37 @@ describe('LpdfEngine', () => {
     assert(text.includes('/V 5') && text.includes('/R 6') && text.includes('/CFM /AESV3'), 'AES-256 is V=5 R=6');
   });
 
+  /** A document with no text of its own that asks for PDF/A: the attribution line's name, in its embedded face, is its one text. */
+  function pdfaDoc(level = '2b', body = '<column background="#e8f0fc" height="40pt"/>') {
+    return `<lpdf version="1"><document><output pdfa="${level}"/><section><layout>${body}</layout></section></document></lpdf>`;
+  }
+
+  it('writes PDF/A when the output asks for it, dated by createdOn', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    const text = latin1(await lpdf.render(pdfaDoc('2u'), { createdOn: '2026-10-31T09:30:00Z' }));
+    assert(text.includes('<pdfaid:part>2</pdfaid:part>'), 'the part in the XMP packet');
+    assert(text.includes('<pdfaid:conformance>U</pdfaid:conformance>'), 'the level in the XMP packet');
+    assert(text.includes('/S /GTS_PDFA1'), 'the sRGB output intent');
+    assert(text.includes('/ModDate (D:20261031093000Z)'), 'the date of the render');
+  });
+
+  it('takes pdfa from the output of a kit document', async () => {
+    const document = L.document({ output: { pdfa: '2b' } }, [
+      L.section(null, [L.layout(null, [L.column({ background: '#e8f0fc', height: '40pt' }, [])])]),
+    ]);
+    const text = latin1(await new PdfEngine().setLicenseKey('test-key').render(document, { createdOn: '2026-10-31' }));
+    assert(text.includes('<pdfaid:conformance>B</pdfaid:conformance>'), 'the level of the kit document');
+  });
+
+  it('refuses PDF/A without createdOn, and text in a built-in font', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key');
+    await assert.rejects(() => lpdf.render(pdfaDoc()), /created_on/);
+    await assert.rejects(
+      () => lpdf.render(pdfaDoc('2b', '<text>Hello</text>'), { createdOn: '2026-10-31' }),
+      /"Hello" is in Helvetica/,
+    );
+  });
+
   it('takes the cipher from the output', async () => {
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const text = latin1(await lpdf.render(encryptedDoc('encrypt="rc4-128"'), { ownerPassword: 's3cr3t' }));
