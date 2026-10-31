@@ -1,6 +1,6 @@
 /**
- * encrypt-open-password.ts — render showcase-encryption.xml with AES-256 encryption,
- * open password required, copy disabled.
+ * encrypt-open-password.ts — render showcase-encryption.xml, whose <output> asks for AES-256
+ * and allows neither copying nor modifying, with an open password.
  *
  * Run from lpdf's root, after building the adapter (make build-sdk-node):
  *   make example-node
@@ -20,13 +20,11 @@ import { L } from '../dist/index.js';
   const xml = readFileSync(xmlFile, 'utf8');
 
   // With open password — viewers prompt for 'password' before displaying content.
-  const engine = L.engine().setEncryption({
+  // The cipher and the permissions come from the document's <output>, the passwords from here.
+  const bytes = await L.engine().render(xml, {
     userPassword:  'password',
     ownerPassword: 'owner',
-    permissions:   { copy: false },
   });
-
-  const bytes = await engine.render(xml);
 
   mkdirSync(output, { recursive: true });
   writeFileSync(resolve(output, outputFile), bytes);

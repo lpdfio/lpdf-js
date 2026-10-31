@@ -1,6 +1,6 @@
 /**
- * encrypt-permissions-only.ts — render showcase-encryption.xml with AES-256 encryption,
- * no open password, print and copy disabled.
+ * encrypt-permissions-only.ts — render showcase-encryption.xml, whose <output> asks for AES-256
+ * and allows neither copying nor modifying, with no open password.
  *
  * Run from lpdf's root, after building the adapter (make build-sdk-node):
  *   make example-node
@@ -20,14 +20,10 @@ import { L } from '../dist/index.js';
   const xml = readFileSync(xmlFile, 'utf8');
 
   // Permissions only — no open password.
-  // File opens freely; cooperative viewers enforce print: false, copy: false.
-  const engine = L.engine().setEncryption({
-    userPassword:  '',
+  // File opens freely; cooperative viewers enforce the allow of the document's <output>.
+  const bytes = await L.engine().render(xml, {
     ownerPassword: 's3cr3t',
-    permissions:   { print: false, copy: false },
   });
-
-  const bytes = await engine.render(xml);
 
   mkdirSync(output, { recursive: true });
   writeFileSync(resolve(output, outputFile), bytes);

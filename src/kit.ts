@@ -87,6 +87,21 @@ export interface DocumentMeta {
   creator?:  string;
 }
 
+/**
+ * How the PDF file is written, as the `output` element of the XML is: whether it is encrypted, and what a reader
+ * may do with it. The passwords are not here: they come with the render call.
+ */
+export interface DocumentOutput {
+  /** The cipher the PDF is encrypted with, `aes-256` or `rc4-128` (`Cipher`). Without it the PDF is not encrypted. */
+  encrypt?: string;
+  /**
+   * What a reader may do without the owner password, separated by spaces (`Permission`): `print`, `modify`,
+   * `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. Without it everything is allowed; `''` allows
+   * nothing. It needs `encrypt`.
+   */
+  allow?: string;
+}
+
 export interface SectionAttr {
   size?:        string;
   orientation?: string;
@@ -106,6 +121,7 @@ export interface DocumentAttr {
   assets?:      DocumentAssets;
   tokens?:      DocumentTokens;
   meta?:        DocumentMeta;
+  output?:      DocumentOutput;
   debug?:       string;
   footnoteCounter?: string;
 }
@@ -155,7 +171,7 @@ function section(attrs: SectionAttr | null, nodes: LpdfSectionChild[] = []): Lpd
 }
 
 function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): PdfDocument {
-  const { assets, tokens, meta, ...restOpts } = attrs ?? {};
+  const { assets, tokens, meta, output, ...restOpts } = attrs ?? {};
   const attrsObj: Record<string, unknown> = {
     ...buildAttrs(restOpts),
   };
@@ -169,6 +185,7 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
     };
   }
   if (meta   !== undefined) attrsObj['meta']   = meta;
+  if (output !== undefined) attrsObj['output'] = output;
   return {
     version: 1,
     type:    'document',

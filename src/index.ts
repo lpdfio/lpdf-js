@@ -1,18 +1,17 @@
 // ── Engine ────────────────────────────────────────────────────────────────────
 export { PdfEngine, LpdfRenderError } from './engine';
-export type { EncryptAlgorithm, EncryptPermissions, EncryptOptions } from './engine';
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 export type { RenderOptions, EngineOptions } from './_shared';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
-export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, BuiltinFont, PageScope } from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────
 export type {
     PdfDocument,
     LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
-    DocumentTokens, GradientToken, GradientStop, DocumentAssets, DocumentMeta,
+    DocumentTokens, GradientToken, GradientStop, DocumentAssets, DocumentMeta, DocumentOutput,
     SectionAttr, DocumentAttr,
 } from './kit';
 

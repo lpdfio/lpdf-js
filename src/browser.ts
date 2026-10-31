@@ -17,15 +17,15 @@
  * filesystem fallback in the browser.
  */
 import initWasm, { LpdfEngine as WasmEngine, check_license } from '../wasm/lpdf-web.js';
-import type { RenderOptions } from './_shared';
+import { encryptionArguments, type RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 
 export type { RenderOptions } from './_shared';
-export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, BuiltinFont, PageScope } from './constants';
+export { FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, BuiltinFont, PageScope } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
-    DocumentTokens, DocumentAssets, DocumentMeta, SectionAttr, DocumentAttr,
+    DocumentTokens, DocumentAssets, DocumentMeta, DocumentOutput, SectionAttr, DocumentAttr,
 } from './kit';
 export type {
     ColumnAttr, RowAttr, GridAttr, ListAttr, LiAttr, FrameAttr, LinkAttr,
@@ -56,6 +56,11 @@ export type { LicenseCheck, LicenseStatus } from './engine';
  */
 function nowUnix(): bigint {
     return BigInt(Math.floor(Date.now() / 1000));
+}
+
+/** The browser's secure generator, for the entropy of AES-256. */
+function secureRandomBytes(count: number): Uint8Array {
+    return crypto.getRandomValues(new Uint8Array(count));
 }
 
 export interface LpdfBrowser {
@@ -147,23 +152,18 @@ export async function initLpdf(
                 engine.set_created_on(callOptions.createdOn);
             }
 
+            const encryption = encryptionArguments(callOptions, secureRandomBytes);
             let pdf: Uint8Array;
-            if (typeof input === 'string') {
-                const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-                pdf = engine.render_pdf(input, dataJson);
-            } else {
-                // PdfDocument — serialise to JSON and use render_tree_pdf
-                const wasmExt = engine as typeof engine & { render_tree_pdf?(json: string): Uint8Array };
-                if (typeof wasmExt.render_tree_pdf === 'function') {
-                    pdf = wasmExt.render_tree_pdf(JSON.stringify(input));
+            try {
+                if (typeof input === 'string') {
+                    const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
+                    pdf = engine.render_pdf(input, dataJson, ...encryption);
                 } else {
-                    // Fallback: convert to XML via kit_to_xml module-level export
-                    const mod = engine as unknown as { constructor: { kit_to_xml?: (json: string) => string } };
-                    const xml = mod.constructor.kit_to_xml?.(JSON.stringify(input)) ?? '';
-                    pdf = engine.render_pdf(xml, null);
+                    pdf = engine.render_tree_pdf(JSON.stringify(input), ...encryption);
                 }
+            } finally {
+                engine.free();
             }
-            engine.free();
             return pdf;
         },
     };

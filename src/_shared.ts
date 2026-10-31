@@ -19,6 +19,47 @@ export interface RenderOptions {
    * Only applies when `input` is an XML string.
    */
   data?: Record<string, unknown> | null;
+
+  /**
+   * The password a reader asks for before showing the PDF, for a document that asks for encryption in its
+   * `output`. Leave it out, or pass `''`, for a PDF anyone can open, which only the `allow` of the `output`
+   * restricts.
+   */
+  userPassword?: string;
+
+  /**
+   * The password that opens the PDF with every permission. A document that asks for encryption in its `output`
+   * renders only with it, or with `skipEncryption`; a document that doesn't ask for encryption refuses it, so a
+   * file never goes out unencrypted while you believe it is locked.
+   */
+  ownerPassword?: string;
+
+  /**
+   * Renders a document that asks for encryption unencrypted, for a render that cannot have the passwords, such as
+   * a preview. Not together with the passwords.
+   */
+  skipEncryption?: boolean;
+}
+
+/** The random bytes AES-256 needs from the host, one 256-bit key's worth. The engine makes none itself. */
+const ENTROPY_BYTES = 32;
+
+/**
+ * The arguments of the engine's render calls after the document: the passwords and `skipEncryption` as given,
+ * and, when there is a password, 32 bytes from the platform's secure generator for AES-256 to cut its key, salts
+ * and IVs from, fresh for each render.
+ */
+export function encryptionArguments(
+  options: RenderOptions,
+  randomBytes: (count: number) => Uint8Array,
+): [string | null, string | null, boolean, Uint8Array] {
+  const hasPassword = options.userPassword !== undefined || options.ownerPassword !== undefined;
+  return [
+    options.userPassword ?? null,
+    options.ownerPassword ?? null,
+    options.skipEncryption ?? false,
+    hasPassword ? randomBytes(ENTROPY_BYTES) : new Uint8Array(0),
+  ];
 }
 
 /**
