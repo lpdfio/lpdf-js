@@ -1245,7 +1245,7 @@ describe('attributes follow the schema', () => {
     assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
   });
 
-  it('reads the src of a file as the engine reads its XML: entities, a > in a value, comments', async () => {
+  it('reads the src of a file as the engine reads its XML: entities, comments, single quotes', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
     writeFileSync(join(dir, 'R&D terms.txt'), 'Terms');
     writeFileSync(join(dir, 'rows.csv'), 'a,b');
@@ -1264,6 +1264,34 @@ describe('attributes follow the schema', () => {
     const quoted = `<lpdf version="1"><document><attachments><file name='rows.csv' src='${join(dir, 'rows.csv')}'/></attachments>`
       + '<section><layout><text>x</text></layout></section></document></lpdf>';
     assert(Buffer.from(await engine.render(quoted)).toString('latin1').includes('/Type /EmbeddedFile'), 'single quotes are read');
+  });
+
+  it('reads the src of a file after an attribute with a literal > in it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    const xml = '<lpdf version="1"><document><attachments>'
+      + `<file name="rows.csv" description="Rows > 100" src="${join(dir, 'rows.csv')}"/>`
+      + '</attachments><section><layout><text>x</text></layout></section></document></lpdf>';
+    const pdf = Buffer.from(await new PdfEngine().setLicenseKey('test-key').render(xml)).toString('latin1');
+    assert.equal(pdf.split('/Type /EmbeddedFile').length - 1, 1);
+  });
+
+  it('leaves out a <file> that is text in a CDATA section, as a Markdown block shows it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-files-'));
+    writeFileSync(join(dir, 'rows.csv'), 'a,b');
+    writeFileSync(join(dir, 'other.csv'), 'not the rows');
+    const built = L.document({ attachments: [{ name: 'rows.csv', src: join(dir, 'rows.csv') }] }, [
+      L.section(null, [L.markdown(NoAttr, [LMarkdown.content(NoAttr, ['Attach it with `<file name="rows.csv" src="other.csv"/>`.'])])]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const xml = L.toXml(built);
+    assert(xml.includes('<![CDATA['), 'the Markdown is in a CDATA section');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(xml)));
+
+    const code = '<lpdf version="1"><document><section><layout>'
+      + '<code><![CDATA[<file name="invoice.xml" src="/no/such/invoice.xml"/>]]></code>'
+      + '</layout></section></document></lpdf>';
+    assert(!Buffer.from(await engine.render(code)).toString('latin1').includes('/Type /EmbeddedFile'));
   });
 
   it('a file whose src cannot be read is an error that names it', async () => {

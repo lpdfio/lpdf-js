@@ -302,7 +302,8 @@ export class PdfEngine {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const XML_COMMENT_RE   = /<!--[\s\S]*?-->/g;
+// Comments and CDATA sections, whose text is not markup: a <file> shown in a Markdown block is text, not a file.
+const XML_NOT_MARKUP_RE = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>/g;
 const XML_ATTRIBUTE_RE = /([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
 const XML_ENTITY_RE    = /&(?:(amp|lt|gt|quot|apos)|#(\d+)|#x([0-9a-fA-F]+));/g;
 const XML_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
@@ -310,18 +311,20 @@ const XML_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot:
 /** An attribute value as the XML means it, with its entities and character references decoded. */
 function decodeXml(value: string): string {
   return value.replace(XML_ENTITY_RE, (_, name: string | undefined, decimal: string | undefined, hex: string | undefined) =>
+    // XML_ENTITY_RE matches exactly one of its three groups, so without a name or a decimal there is a hex.
     name ? XML_ENTITIES[name] : String.fromCodePoint(parseInt(decimal ?? hex!, decimal ? 10 : 16)));
 }
 
 /**
  * Extract `ref??name → src` pairs from `<font>`, `<image>` or `<file>` tags in XML, read as the engine reads them:
- * comments are left out, a quoted value may hold a `>`, either quote may be used, and the values are decoded.
+ * comments and CDATA sections are left out, a quoted value may hold a `>`, either quote may be used, and the values
+ * are decoded.
  */
 function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
   const result = new Map<string, string>();
   // Attribute values may contain '>', so quoted runs are matched whole.
   const re = new RegExp(`<${tag}\\b((?:[^>"']|"[^"]*"|'[^']*')*)>`, 'g');
-  for (const match of xml.replace(XML_COMMENT_RE, '').matchAll(re)) {
+  for (const match of xml.replace(XML_NOT_MARKUP_RE, '').matchAll(re)) {
     const attributes = new Map<string, string>();
     for (const attribute of match[1].matchAll(XML_ATTRIBUTE_RE)) {
       attributes.set(attribute[1], decodeXml(attribute[2] ?? attribute[3]));
