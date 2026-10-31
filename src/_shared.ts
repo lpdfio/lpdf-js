@@ -63,16 +63,21 @@ export function encryptionArguments(
   ];
 }
 
+/** The value of an attribute in a document tree: a string, a number or a boolean, as the schema types it. */
+export type AttrValue = string | number | boolean;
+
 /**
  * The attributes of an element: an attribute object's own properties, with each camelCase name
- * written as the schema's kebab-case one (`fontSize` as `font-size`) and each value as a string.
- * Properties that are `undefined` are left out.
+ * written as the schema's kebab-case one (`fontSize` as `font-size`) and each value as it is given:
+ * `bold: true` and `cols: 3` stay a boolean and a number. The engine refuses a value of the wrong
+ * type, such as `cols: '3'` from plain JavaScript, when it renders. Properties that are `undefined`
+ * are left out.
  */
-export function buildAttrs(options: object | null | undefined): Record<string, string> {
-  const result: Record<string, string> = {};
+export function buildAttrs(options: object | null | undefined): Record<string, AttrValue> {
+  const result: Record<string, AttrValue> = {};
   for (const [key, value] of Object.entries(options ?? {})) {
     if (value !== undefined && value !== null) {
-      result[key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = String(value);
+      result[key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value as AttrValue;
     }
   }
   return result;

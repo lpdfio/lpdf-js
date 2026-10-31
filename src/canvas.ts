@@ -2,7 +2,7 @@ import type {
   RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr, LayerAttr,
 } from './attrs';
 import type { LpdfSpanNode, LpdfCodeSpanNode } from './layout';
-import { buildAttrs } from './_shared';
+import { buildAttrs, type AttrValue } from './_shared';
 
 // ── CanvasTransform ───────────────────────────────────────────────────────────
 
@@ -64,43 +64,43 @@ export class CanvasTransform {
 
 export interface LpdfCanvasRectNode {
   type:  'rect';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasLineNode {
   type:  'line';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasEllipseNode {
   type:  'ellipse';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasCircleNode {
   type:  'circle';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasPathNode {
   type:  'path';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasTextAtNode {
   type:  'text-at';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (string | LpdfSpanNode | LpdfCodeSpanNode)[];
 }
 
 export interface LpdfCanvasImgAtNode {
   type:  'img-at';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export interface LpdfCanvasBarcodeAtNode {
   type:  'barcode-at';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 export type LpdfCanvasPrimitiveNode =
@@ -115,7 +115,7 @@ export type LpdfCanvasPrimitiveNode =
 
 export interface LpdfCanvasLayerNode {
   type:  'layer';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfCanvasPrimitiveNode[];
 }
 

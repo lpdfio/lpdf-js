@@ -4,7 +4,7 @@ import type {
   MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr, MarkdownStrongAttr, MarkdownEmAttr,
   MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
 } from './attrs';
-import { buildAttrs } from './_shared';
+import { buildAttrs, type AttrValue } from './_shared';
 
 // ── Output node interfaces ────────────────────────────────────────────────────
 
@@ -12,27 +12,27 @@ import { buildAttrs } from './_shared';
 export interface LpdfMarkdownRuleNode {
   type:  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'code' | 'quote' | 'li' | 'a' | 'strong' | 'em' | 'del'
        | 'table' | 'th' | 'td';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
 }
 
 /** The rules that say how the parts of a markdown look, with a file of them in `src` when it has one. */
 export interface LpdfMarkdownStylesNode {
   type:  'markdown-styles';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfMarkdownRuleNode[];
 }
 
 /** The Markdown itself, as strings. */
 export interface LpdfMarkdownContentNode {
   type:  'markdown-content';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: string[];
 }
 
 /** A markdown, which takes the place of a layout in a section and holds only Markdown. */
 export interface LpdfMarkdownNode {
   type:  'markdown';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: (LpdfMarkdownStylesNode | LpdfMarkdownContentNode)[];
 }
 

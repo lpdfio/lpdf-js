@@ -23,32 +23,10 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FileAttr, FontAttr, ImageAttr, LayoutAttr } from './attrs';
-import { buildAttrs } from './_shared';
+import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr } from './attrs';
+import { buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
-
-/**
- * One color of a gradient: `color` is hex, `cmyk()`, `rgb()`, `hsl()` or a color token, at an `offset` from `'0%'` to
- * `'100%'`. The stops of a gradient are all CMYK or all RGB.
- */
-export interface GradientStop {
-  offset: string;
-  color:  string;
-}
-
-/**
- * A gradient of the tokens, which a background or a fill uses as `gradient:name`. Give `from` and `to` for two
- * colors, or `stops` for more. `angle` is the direction of a linear gradient in degrees: 0 runs top to bottom
- * and 90 left to right. A radial gradient runs from the center of the box out to its farthest corner.
- */
-export interface GradientToken {
-  type:   'linear' | 'radial';
-  from?:  string;
-  to?:    string;
-  angle?: number | string;
-  stops?: GradientStop[];
-}
 
 export interface DocumentTokens {
   colors?:  Record<string, string>;
@@ -67,7 +45,8 @@ export interface DocumentTokens {
   /** The heights `height` names: `{ xs: '16pt', s: '24pt', m: '32pt', l: '48pt', xl: '64pt', xxl: '96pt' }` by default. */
   height?:  Record<string, string>;
   textSize?: Record<string, string>;
-  lineHeight?: Record<string, string>;
+  /** The factors `lineHeight` names, each a number above 0: `{ xs: 1, s: 1.1, m: 1.2, l: 1.4, xl: 1.6, xxl: 2 }` by default. */
+  lineHeight?: Record<string, number>;
 }
 
 /**
@@ -113,7 +92,7 @@ export interface SectionAttr {
   orientation?: string;
   background?:  string;
   title?:       string;
-  debug?:       string;
+  debug?:       boolean;
   type?:        string;
   tocIndentStep?: string;
   footnoteCounter?: string;
@@ -133,7 +112,7 @@ export interface DocumentAttr {
    * attachments panel. Each file's bytes are read from its `src`, or loaded with `loadFile` under its `ref` or name.
    */
   attachments?: FileAttr[];
-  debug?:       string;
+  debug?:       boolean;
   footnoteCounter?: string;
 }
 
@@ -142,7 +121,7 @@ export interface DocumentAttr {
 /** A layout block — wraps an ordered list of layout nodes. */
 export interface LpdfLayoutBlock {
   type:  'layout';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfNode[];
 }
 
@@ -150,7 +129,7 @@ export interface LpdfLayoutBlock {
 
 export interface LpdfSectionNode {
   type:  'section';
-  attrs: Record<string, string>;
+  attrs: Record<string, AttrValue>;
   nodes: LpdfSectionChild[];
 }
 
