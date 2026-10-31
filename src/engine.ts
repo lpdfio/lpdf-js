@@ -361,7 +361,8 @@ function markdownStylesSrcsOfDocument(document: PdfDocument): string[] {
     for (const child of section.nodes) {
       if (child.type !== 'markdown') continue;
       for (const part of child.nodes) {
-        if (part.type === 'markdown-styles' && part.attrs['src']) srcs.push(part.attrs['src']);
+        const src = part.type === 'markdown-styles' ? part.attrs['src'] : undefined;
+        if (typeof src === 'string' && src) srcs.push(src);
       }
     }
   }

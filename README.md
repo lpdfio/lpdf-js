@@ -25,10 +25,10 @@ const doc = L.document({ size: 'letter' }, [
             L.column({ gap: '24pt' }, [
                 L.row({ justify: 'between' }, [
                     L.text({ fontSize: '8pt', color: '#888888' }, ['ACME CORP']),
-                    L.text({ fontSize: '22pt', bold: 'true' }, ['Project Proposal']),
+                    L.text({ fontSize: '22pt', bold: true }, ['Project Proposal']),
                 ]),
                 L.divider({ thickness: 'xs' }),
-                L.text({ fontSize: '13pt', bold: 'true' }, ['Scope of Work']),
+                L.text({ fontSize: '13pt', bold: true }, ['Scope of Work']),
                 L.row({ gap: '12pt', align: 'start' }, [
                     L.text({ color: '#888888', width: '24pt' }, ['01']),
                     L.text({ width: 'fill' }, ['Discovery & Research']),
