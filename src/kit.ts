@@ -89,7 +89,7 @@ export interface DocumentMeta {
 
 /**
  * How the PDF file is written, as the `output` element of the XML is: whether it is encrypted, and what a reader
- * may do with it. The passwords are not here: they come with the render call.
+ * may do with it, and the standard it meets. The passwords are not here: they come with the render call.
  */
 export interface DocumentOutput {
   /** The cipher the PDF is encrypted with, `aes-256` or `rc4-128` (`Cipher`). Without it the PDF is not encrypted. */
@@ -100,6 +100,12 @@ export interface DocumentOutput {
    * nothing. It needs `encrypt`.
    */
   allow?: string;
+  /**
+   * Writes the PDF as PDF/A, the standard for files kept for the long term: `2b`, or `2u` when its text must also
+   * be searchable. The render needs `createdOn`, and every text a font of `assets`. What PDF/A cannot hold is an
+   * error that says what to change: a built-in font, a CMYK color, a form field, a barcode's digits, `encrypt`.
+   */
+  pdfa?: string;
 }
 
 export interface SectionAttr {
