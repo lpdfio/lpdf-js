@@ -29,6 +29,30 @@ function kitDoc(layoutNodes = []) {
   ]);
 }
 
+/**
+ * The header of an ICC printer profile in CMYK, with a description and nothing else: enough for the engine to take it
+ * as the press profile of a PDF/X document.
+ */
+function pressProfile(description = 'Test press') {
+  const desc = Buffer.alloc(12 + description.length + 1 + 12);
+  desc.write('desc', 0, 'latin1');
+  desc.writeUInt32BE(description.length + 1, 8);
+  desc.write(description, 12, 'latin1');
+  const header = Buffer.alloc(128);
+  header.write('prtr', 12, 'latin1');
+  header.write('CMYK', 16, 'latin1');
+  header.write('Lab ', 20, 'latin1');
+  header.write('acsp', 36, 'latin1');
+  const table = Buffer.alloc(16);
+  table.writeUInt32BE(1, 0);
+  table.write('desc', 4, 'latin1');
+  table.writeUInt32BE(144, 8);
+  table.writeUInt32BE(desc.length, 12);
+  const bytes = Buffer.concat([header, table, desc]);
+  bytes.writeUInt32BE(bytes.length, 0);
+  return bytes;
+}
+
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   'base64',
@@ -164,6 +188,55 @@ describe('LpdfEngine', () => {
     assert(text.includes('<pdfuaid:part>1</pdfuaid:part>'), 'the part in the XMP packet');
     assert(text.includes('/Lang (en-US)'), 'the language');
     assert(text.includes('/StructTreeRoot'), 'the structure');
+  });
+
+  /** A titled document with no text of its own that asks for PDF/X-4 with the profile `press`, bled by `bleed`. */
+  function pdfxDoc(bleed = '3mm') {
+    return '<lpdf version="1"><assets><profile name="press"/></assets>'
+      + `<document bleed="${bleed}"><meta title="Flyer"/><output pdfx="4" profile="press"/>`
+      + '<section><layout><column background="#e8f0fc" height="40pt"/></layout></section></document></lpdf>';
+  }
+
+  it('writes PDF/X when the output asks for it, with the profile from loadProfile', async () => {
+    const lpdf = new PdfEngine().setLicenseKey('test-key').loadProfile('press', pressProfile('Coated press'));
+    const text = latin1(await lpdf.render(pdfxDoc(), { createdOn: '2026-10-31T09:30:00Z' }));
+    assert(text.startsWith('%PDF-1.6'), 'PDF/X-4 is a profile of PDF 1.6');
+    assert(text.includes('/S /GTS_PDFX') && text.includes('/Info (Coated press)'), 'the press profile as the output intent');
+    assert(text.includes('/TrimBox') && text.includes('/BleedBox'), 'the page boxes');
+    assert(text.includes('/DefaultRGB'), 'RGB tied to sRGB');
+    assert(text.includes('<pdfxid:GTS_PDFXVersion>PDF/X-4</pdfxid:GTS_PDFXVersion>'), 'the version in the XMP packet');
+  });
+
+  it('takes pdfx, profile, bleed and the profiles of the assets from a kit document, reading a profile from its src', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lpdf-profiles-'));
+    const src = join(dir, 'press.icc');
+    writeFileSync(src, pressProfile());
+    const built = L.document({
+      bleed: '3mm',
+      assets: { profiles: [{ name: 'press', src }] },
+      meta: { title: 'Flyer' },
+      output: { pdfx: '4', profile: 'press' },
+    }, [L.section({ bleed: '5mm' }, [L.layout(null, [L.column({ background: '#e8f0fc', height: '40pt' }, [])])])]);
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const text = latin1(await engine.render(built, { createdOn: '2026-10-31' }));
+    assert(text.includes('/S /GTS_PDFX'), 'the output intent of the kit document');
+    assert(text.includes('/BleedBox [-14.173'), 'the section\'s bleed of 5mm overrides the document\'s');
+    assert.equal(
+      normalised(await engine.render(built, { createdOn: '2026-10-31' })),
+      normalised(await engine.render(L.toXml(built), { createdOn: '2026-10-31' })),
+    );
+  });
+
+  it('refuses PDF/X with a profile it has no bytes for, or whose src cannot be read', async () => {
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(pdfxDoc(), { createdOn: '2026-10-31' }),
+      (e) => e instanceof LpdfRenderError && /loadProfile\('press', bytes\)/.test(e.message),
+    );
+    const xml = pdfxDoc().replace('<profile name="press"/>', '<profile name="press" src="/no/such/press.icc"/>');
+    await assert.rejects(
+      new PdfEngine().setLicenseKey('test-key').render(xml, { createdOn: '2026-10-31' }),
+      (e) => e instanceof LpdfRenderError && /profile 'press'/.test(e.message) && /no\/such\/press\.icc/.test(e.message),
+    );
   });
 
   it('refuses PDF/UA without the language of the document', async () => {

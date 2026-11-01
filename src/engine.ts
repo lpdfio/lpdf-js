@@ -17,6 +17,7 @@ interface IWasmEngine {
   load_font(name: string, bytes: Uint8Array): void;
   load_image(name: string, bytes: Uint8Array): void;
   load_file(name: string, bytes: Uint8Array): void;
+  load_profile(name: string, bytes: Uint8Array): void;
   load_markdown_styles(src: string, xml: string): void;
   set_created_on(iso: string): void;
   set_now(unix: bigint): void;
@@ -97,6 +98,7 @@ export class PdfEngine {
   private readonly _fonts:  Map<string, Uint8Array> = new Map();
   private readonly _images: Map<string, Uint8Array> = new Map();
   private readonly _files:  Map<string, Uint8Array> = new Map();
+  private readonly _profiles: Map<string, Uint8Array> = new Map();
   private readonly _markdownStyles: Map<string, string> = new Map();
   private _disposed = false;
 
@@ -158,6 +160,17 @@ export class PdfEngine {
   }
 
   /**
+   * Register the bytes of an ICC color profile, for the `<profile>` of the document's `<assets>` whose `ref`, or with
+   * no ref whose name, is `name`: the press profile a PDF/X document names in its output. Call before `render`.
+   * Returns `this` for chaining.
+   */
+  loadProfile(name: string, bytes: Uint8Array): this {
+    this._throwIfDisposed();
+    this._profiles.set(name, bytes);
+    return this;
+  }
+
+  /**
    * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
    * names it, as `<markdown-styles src="…">` does. Call before `render`. Returns `this` for chaining.
    */
@@ -212,6 +225,25 @@ export class PdfEngine {
     }
   }
 
+  /**
+   * Hand the engine the color profiles the document declares: the ones loaded here, and the ones read from the `src`
+   * of a profile that wasn't. A `src` that can't be read is an error that names the profile and the path.
+   */
+  private _loadProfiles(engine: IWasmEngine, srcs: Map<string, string>): void {
+    const profiles = new Map<string, Uint8Array>(this._profiles);
+    for (const [key, src] of srcs) {
+      if (profiles.has(key)) continue;
+      try {
+        profiles.set(key, readFileSync(src));
+      } catch (e) {
+        throw new LpdfRenderError(`profile '${key}' of <assets>: cannot read its src '${src}': ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    for (const [key, bytes] of profiles) {
+      engine.load_profile(key, bytes);
+    }
+  }
+
   private _throwIfDisposed(): void {
     if (this._disposed) throw new Error('PdfEngine has been disposed.');
   }
@@ -255,6 +287,7 @@ export class PdfEngine {
         }
         this._loadMarkdownStyles(engine, markdownStylesSrcs(xml));
         this._loadFiles(engine, extractAssetSrcs(xml, 'file'));
+        this._loadProfiles(engine, extractAssetSrcs(xml, 'profile'));
         // Auto-load images declared via <image src="…"> that weren't pre-loaded.
         for (const [key, src] of extractAssetSrcs(xml, 'image')) {
           if (!this._images.has(key)) {
@@ -287,6 +320,7 @@ export class PdfEngine {
         }
         this._loadMarkdownStyles(engine, markdownStylesSrcsOfDocument(input));
         this._loadFiles(engine, fileSrcsOfDocument(input));
+        this._loadProfiles(engine, assetSrcsOfDocument(input, 'profiles'));
         pdf = engine.render_tree_pdf(json, ...encryptionArguments(callOptions, secureRandomBytes));
       }
     } catch (e) {
@@ -333,8 +367,8 @@ function xmlElements(xml: string, tag: string): Map<string, string>[] {
   return elements;
 }
 
-/** The `ref ?? name → src` pairs of the `<font>`, `<image>` or `<file>` elements in XML. */
-function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
+/** The `ref ?? name → src` pairs of the `<font>`, `<image>`, `<file>` or `<profile>` elements in XML. */
+function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file' | 'profile'): Map<string, string> {
   const result = new Map<string, string>();
   for (const attributes of xmlElements(xml, tag)) {
     const key = attributes.get('ref') ?? attributes.get('name');
@@ -378,8 +412,8 @@ function fileSrcsOfDocument(document: PdfDocument): Map<string, string> {
   return result;
 }
 
-/** The `ref ?? name → src` pairs of the fonts or images a document declares in `attrs.assets`. */
-function assetSrcsOfDocument(document: PdfDocument, kind: 'fonts' | 'images'): Map<string, string> {
+/** The `ref ?? name → src` pairs of the fonts, images or color profiles a document declares in `attrs.assets`. */
+function assetSrcsOfDocument(document: PdfDocument, kind: 'fonts' | 'images' | 'profiles'): Map<string, string> {
   const result = new Map<string, string>();
   const declared = (document.attrs['assets'] as DocumentAssets | undefined)?.[kind] ?? [];
   for (const { name, ref, src } of declared) {

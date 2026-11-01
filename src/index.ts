@@ -23,7 +23,7 @@ export type {
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
-    FontAttr, ImageAttr, FileAttr, LayoutAttr, GradientToken, GradientStop,
+    FontAttr, ImageAttr, FileAttr, ProfileAttr, LayoutAttr, GradientToken, GradientStop,
     MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
     MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
     MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,

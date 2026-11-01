@@ -23,7 +23,7 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr } from './attrs';
+import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr } from './attrs';
 import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -56,12 +56,18 @@ export interface DocumentTokens {
 }
 
 /**
- * The fonts and images the document declares, as the `assets` element of the XML does. A font or image
- * is picked by its `name`: text sets `font` to a font's name, an `img` sets `name` to an image's.
+ * The fonts, images and color profiles the document declares, as the `assets` element of the XML does. A font or
+ * image is picked by its `name`: text sets `font` to a font's name, an `img` sets `name` to an image's, and the
+ * output's `profile` names a profile.
  */
 export interface DocumentAssets {
   fonts?:  FontAttr[];
   images?: ImageAttr[];
+  /**
+   * ICC color profiles: the profile of the printing press a PDF/X document is made for, which the printer gives out.
+   * Each is read from its `src`, or loaded with `loadProfile` under its `ref` or name.
+   */
+  profiles?: ProfileAttr[];
 }
 
 export interface DocumentMeta {
@@ -99,11 +105,23 @@ export interface DocumentOutput {
    * text a font of `assets`. What PDF/UA cannot hold is an error that says what to change.
    */
   pdfua?: string;
+  /**
+   * Writes the PDF as PDF/X-4, for a commercial printer: `4`. It needs `profile`, and combines with `pdfua`. Every
+   * page gets a TrimBox and a BleedBox, RGB is tied to sRGB, and links print as text, as PDF/X allows nothing
+   * clickable. The render needs `createdOn`, the meta a `title`, and every text a font of `assets`. What PDF/X cannot
+   * hold is an error that says what to change: a profile that is not a printer profile, a built-in font, a form
+   * field, a CMYK color with a profile that is not a CMYK one, `encrypt`, `pdfa`, attachments.
+   */
+  pdfx?: string;
+  /** The profile of `assets` that a PDF/X file is made for: the ICC profile of the printing press. It needs `pdfx`. */
+  profile?: string;
 }
 
 export interface SectionAttr {
   size?:        string;
   orientation?: string;
+  /** How far this section's pages reach past their trim edge, such as `5mm`. Overrides the document's; `0mm` takes it away. */
+  bleed?:       string;
   background?:  string;
   title?:       string;
   debug?:       boolean;
@@ -115,6 +133,11 @@ export interface SectionAttr {
 export interface DocumentAttr {
   size?:        string;
   orientation?: string;
+  /**
+   * How far each page reaches past its trim edge, such as `3mm`, for a background or an image that runs off the page
+   * when it is cut. The page grows by it and its background fills it; the layout keeps to the trimmed page.
+   */
+  bleed?:       string;
   background?:  string;
   font?:        string;
   assets?:      DocumentAssets;
