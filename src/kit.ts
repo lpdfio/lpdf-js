@@ -70,6 +70,8 @@ export interface DocumentMeta {
   subject?:  string;
   keywords?: string;
   creator?:  string;
+  /** The language the document is written in, as a language tag such as `en-US`. A PDF/UA document needs it. */
+  lang?:     string;
 }
 
 /**
@@ -91,6 +93,12 @@ export interface DocumentOutput {
    * error that says what to change: a built-in font, a CMYK color, a form field, a barcode's digits, `encrypt`.
    */
   pdfa?: string;
+  /**
+   * Writes the PDF as PDF/UA-1, a tagged PDF a screen reader can read: `1`. It combines with `pdfa`. The render
+   * needs `createdOn`, the meta a `title` and a `lang`, every image and barcode of the layout an `alt`, and every
+   * text a font of `assets`. What PDF/UA cannot hold is an error that says what to change.
+   */
+  pdfua?: string;
 }
 
 export interface SectionAttr {

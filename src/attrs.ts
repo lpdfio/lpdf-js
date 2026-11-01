@@ -514,6 +514,12 @@ export interface CodeSpanAttr {
  */
 export interface ImgAttr {
   name: string;
+  /**
+   * What the image shows, which a screen reader reads in a PDF/UA document; alt="" marks it as
+   * decoration, which a reader skips. A PDF/UA document needs it on every image of the layout. A
+   * document without pdfua ignores it.
+   */
+  alt?: string;
   height?: string;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
@@ -595,6 +601,12 @@ export interface BarcodeAttr {
    * line; in a column it takes the full width.
    */
   width?: string;
+  /**
+   * What the barcode is for, which a screen reader reads in a PDF/UA document in place of its data,
+   * which means nothing read aloud: "QR code to pay this invoice". alt="" marks it as decoration. A
+   * PDF/UA document needs it on every barcode of the layout. A document without pdfua ignores it.
+   */
+  alt?: string;
   paginate?: string;
   debug?: boolean;
 }
@@ -639,6 +651,13 @@ export interface TextAttr {
    * line; in a column it takes the full width.
    */
   width?: string;
+  /**
+   * Makes the text a heading, h1 to h6, which a PDF/UA document tags as one: a screen reader lists
+   * the headings and moves between them. A text without role is a paragraph. A PDF/UA document's
+   * headings start at h1 and go down one level at a time. It changes nothing a page shows: set the
+   * size and the weight as on any text. A document without pdfua ignores it.
+   */
+  role?: string;
   /**
    * The fewest lines of the text that may stand alone at the top of the next page when it splits.
    * Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the
@@ -1331,6 +1350,13 @@ export interface LayerAttr {
    * The color of the text-at in the layer that sets none of its own. Defaults to the text token.
    */
   color?: string;
+  /**
+   * In a PDF/UA document, what the layer shows, which a screen reader reads as one figure at the
+   * layer's place in the document: a layer before the layout before it, one after the layout after
+   * it. Without alt a layer is decoration, as a header is, and a screen reader skips it with all
+   * its text: a watermark, a running title, a logo's letters. A document without pdfua ignores it.
+   */
+  alt?: string;
 }
 
 /**
