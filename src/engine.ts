@@ -316,12 +316,11 @@ function decodeXml(value: string): string {
 }
 
 /**
- * Extract `ref??name → src` pairs from `<font>`, `<image>` or `<file>` tags in XML, read as the engine reads them:
- * comments and CDATA sections are left out, a quoted value may hold a `>`, either quote may be used, and the values
- * are decoded.
+ * The attributes of each `<tag>` element in XML, read as the engine reads them: comments and CDATA sections are left
+ * out, a quoted value may hold a `>`, either quote may be used, and the values are decoded.
  */
-function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
-  const result = new Map<string, string>();
+function xmlElements(xml: string, tag: string): Map<string, string>[] {
+  const elements: Map<string, string>[] = [];
   // Attribute values may contain '>', so quoted runs are matched whole.
   const re = new RegExp(`<${tag}\\b((?:[^>"']|"[^"]*"|'[^']*')*)>`, 'g');
   for (const match of xml.replace(XML_NOT_MARKUP_RE, '').matchAll(re)) {
@@ -329,6 +328,15 @@ function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<stri
     for (const attribute of match[1].matchAll(XML_ATTRIBUTE_RE)) {
       attributes.set(attribute[1], decodeXml(attribute[2] ?? attribute[3]));
     }
+    elements.push(attributes);
+  }
+  return elements;
+}
+
+/** The `ref ?? name → src` pairs of the `<font>`, `<image>` or `<file>` elements in XML. */
+function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<string, string> {
+  const result = new Map<string, string>();
+  for (const attributes of xmlElements(xml, tag)) {
     const key = attributes.get('ref') ?? attributes.get('name');
     const src = attributes.get('src');
     if (key && src) result.set(key, src);
@@ -339,8 +347,8 @@ function extractAssetSrcs(xml: string, tag: 'font' | 'image' | 'file'): Map<stri
 /** The `src` of each `<markdown-styles>` in XML. */
 function markdownStylesSrcs(xml: string): string[] {
   const srcs: string[] = [];
-  for (const match of xml.matchAll(/<markdown-styles\s[^>]*>/g)) {
-    const src = /\bsrc="([^"]*)"/.exec(match[0])?.[1];
+  for (const attributes of xmlElements(xml, 'markdown-styles')) {
+    const src = attributes.get('src');
     if (src) srcs.push(src);
   }
   return srcs;
