@@ -10,7 +10,7 @@ export interface RenderOptions {
    * Optional ISO 8601 creation timestamp (e.g. `"2024-06-01T12:00:00"`).
    * When provided, written as `/CreationDate` in the PDF info dictionary.
    * Omitting this keeps builds reproducible (no embedded timestamp).
-   * Required for a document whose `output` asks for `pdfa` or `pdfua`, which writes it as both dates of the file.
+   * Required for a document whose `output` asks for `pdfa`, `pdfua` or `pdfx`, which writes it as both dates of the file.
    */
   createdOn?: string;
 
