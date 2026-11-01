@@ -66,7 +66,9 @@ export interface ColumnAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   align?: string;
@@ -146,7 +148,9 @@ export interface RowAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   align?: string;
@@ -224,7 +228,9 @@ export interface GridAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /**
@@ -304,7 +310,9 @@ export interface ListAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /** bullet marks each item with a shape, number with a number. Default bullet. */
@@ -418,7 +426,9 @@ export interface LiAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /**
@@ -495,7 +505,9 @@ export interface FrameAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /**
@@ -532,7 +544,9 @@ export interface LinkAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -559,7 +573,9 @@ export interface DividerAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -632,7 +648,9 @@ export interface ImgAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -676,7 +694,9 @@ export interface ShapeAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -727,7 +747,9 @@ export interface BarcodeAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -827,7 +849,9 @@ export interface TextAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -903,7 +927,9 @@ export interface CodeAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /**
@@ -1000,7 +1026,9 @@ export interface TdAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
   /**
@@ -1038,7 +1066,9 @@ export interface TheadAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1064,7 +1094,9 @@ export interface TrAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1120,7 +1152,9 @@ export interface TableAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1158,7 +1192,9 @@ export interface FieldAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1563,7 +1599,9 @@ export interface LayerAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1597,7 +1635,9 @@ export interface RectAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1639,7 +1679,9 @@ export interface CircleAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1682,7 +1724,9 @@ export interface EllipseAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1707,7 +1751,9 @@ export interface LineAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1731,7 +1777,9 @@ export interface PathAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1792,7 +1840,9 @@ export interface TextAtAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1819,7 +1869,9 @@ export interface ImgAtAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
@@ -1860,7 +1912,9 @@ export interface BarcodeAtAttr {
    * and Safari show everything, on screen and in print. Hidden content is still in the file, where
    * it can be selected and copied: it is not a way to keep anything secret. A link in print content
    * is drawn and does nothing, and a form field can't be in print content: use a frame with a
-   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   * border for a box filled in by hand. With pdfa or pdfua on the output, everything shows. With
+   * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
+   * on in a layers panel.
    */
   ocg?: string;
 }
