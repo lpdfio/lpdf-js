@@ -115,6 +115,13 @@ export interface DocumentOutput {
   pdfx?: string;
   /** The profile of `assets` that a PDF/X file is made for: the ICC profile of the printing press. It needs `pdfx`. */
   profile?: string;
+  /**
+   * Writes the PDF linearized, for fast web view: page 1 comes first in the file, with hints that say where every
+   * other page is, so a viewer that fetches the file by byte ranges, as a browser does, shows page 1 while the rest
+   * downloads. Each page then names only the fonts and images it draws. With `encrypt` the file is encrypted first
+   * and linearized last. Any change to the file afterwards, such as a stamp, ends the linearization.
+   */
+  linearize?: boolean;
 }
 
 export interface SectionAttr {

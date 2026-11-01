@@ -247,6 +247,15 @@ describe('LpdfEngine', () => {
     );
   });
 
+  it('linearizes a kit document after encrypting it, as its output asks', async () => {
+    const document = L.document({ output: { encrypt: 'aes-256', linearize: true } }, [
+      L.section(null, [L.layout(null, [L.text(null, ['Hello PDF'])])]),
+    ]);
+    const text = latin1(await new PdfEngine().setLicenseKey('test-key').render(document, { ownerPassword: 's3cr3t' }));
+    assert(text.includes('<< /Linearized 1 '), 'the linearization dictionary');
+    assert(text.includes('/CFM /AESV3'), 'encrypted with AES-256');
+  });
+
   it('takes the cipher from the output', async () => {
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const text = latin1(await lpdf.render(encryptedDoc('encrypt="rc4-128"'), { ownerPassword: 's3cr3t' }));
