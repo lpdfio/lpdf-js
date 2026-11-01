@@ -156,6 +156,24 @@ describe('LpdfEngine', () => {
     );
   });
 
+  it('takes pdfua and lang from a kit document, and tags the file', async () => {
+    const document = L.document({ meta: { title: 'Report', lang: 'en-US' }, output: { pdfua: '1' } }, [
+      L.section(null, [L.layout(null, [L.column({ background: '#e8f0fc', height: '40pt' }, [])])]),
+    ]);
+    const text = latin1(await new PdfEngine().setLicenseKey('test-key').render(document, { createdOn: '2026-10-31' }));
+    assert(text.includes('<pdfuaid:part>1</pdfuaid:part>'), 'the part in the XMP packet');
+    assert(text.includes('/Lang (en-US)'), 'the language');
+    assert(text.includes('/StructTreeRoot'), 'the structure');
+  });
+
+  it('refuses PDF/UA without the language of the document', async () => {
+    const xml = '<lpdf version="1"><document><meta title="Report"/><output pdfua="1"/><section><layout><column height="40pt"/></layout></section></document></lpdf>';
+    await assert.rejects(
+      () => new PdfEngine().setLicenseKey('test-key').render(xml, { createdOn: '2026-10-31' }),
+      /add lang to <meta>/,
+    );
+  });
+
   it('takes the cipher from the output', async () => {
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     const text = latin1(await lpdf.render(encryptedDoc('encrypt="rc4-128"'), { ownerPassword: 's3cr3t' }));
