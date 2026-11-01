@@ -58,6 +58,17 @@ export interface ColumnAttr {
    */
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
   align?: string;
   justify?: string;
   /**
@@ -127,6 +138,17 @@ export interface RowAttr {
    */
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
   align?: string;
   justify?: string;
   /**
@@ -194,6 +216,17 @@ export interface GridAttr {
    */
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -263,6 +296,17 @@ export interface ListAttr {
    */
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
   /** bullet marks each item with a shape, number with a number. Default bullet. */
   type?: string;
   /**
@@ -367,6 +411,17 @@ export interface LiAttr {
   paginate?: string;
   debug?: boolean;
   /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
+  /**
    * Makes the item's marker a checkbox in place of the bullet or the number: an outline in the line
    * color, with a tick in the color of the item's words when this is true, and empty when it is
    * false. The words start where those of a bullet do, and an item of a number list still takes its
@@ -433,6 +488,17 @@ export interface FrameAttr {
   paginate?: string;
   debug?: boolean;
   /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
+  /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
    * line; in a column it takes the full width.
@@ -458,6 +524,17 @@ export interface LinkAttr {
   width?: string;
   height?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -474,6 +551,17 @@ export interface DividerAttr {
    */
   width?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -536,6 +624,17 @@ export interface ImgAttr {
   radius?: string;
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -569,6 +668,17 @@ export interface ShapeAttr {
   /** How opaque the shape is, from 0 to 1. Default 1. */
   opacity?: number;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -609,6 +719,17 @@ export interface BarcodeAttr {
   alt?: string;
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -698,6 +819,17 @@ export interface TextAttr {
   captureFallback?: string;
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -763,6 +895,17 @@ export interface CodeAttr {
    */
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -850,6 +993,17 @@ export interface TdAttr {
   paginate?: string;
   debug?: boolean;
   /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
+  /**
    * How many of the table's columns the cell spans. It is as wide as those columns and the gaps
    * between them, and the cells after it in the row start at the column after its last. A row whose
    * cells span more columns than the table's cols names is an error; a row with fewer leaves its
@@ -876,6 +1030,17 @@ export interface TdAttr {
  */
 export interface TheadAttr {
   background?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -891,6 +1056,17 @@ export interface TrAttr {
    */
   keep?: string;
   background?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -936,6 +1112,17 @@ export interface TableAttr {
   height?: string;
   paginate?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -963,6 +1150,17 @@ export interface FieldAttr {
   background?: string;
   border?: string;
   debug?: boolean;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1357,6 +1555,17 @@ export interface LayerAttr {
    * its text: a watermark, a running title, a logo's letters. A document without pdfua ignores it.
    */
   alt?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1380,6 +1589,17 @@ export interface RectAttr {
    * with no fill shows the shadow only outside it.
    */
   shadow?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1411,6 +1631,17 @@ export interface CircleAttr {
    * with no fill shows the shadow only outside it.
    */
   shadow?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1443,6 +1674,17 @@ export interface EllipseAttr {
    * with no fill shows the shadow only outside it.
    */
   shadow?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1457,6 +1699,17 @@ export interface LineAttr {
   strokeWidth?: string;
   strokeDash?: string;
   lineCap?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1470,6 +1723,17 @@ export interface PathAttr {
   strokeWidth?: string;
   strokeDash?: string;
   lineCap?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1520,6 +1784,17 @@ export interface TextAtAttr {
    * and max-lines above 1 wraps the text within it.
    */
   width?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1536,6 +1811,17 @@ export interface ImgAtAttr {
   anchor?: string;
   width?: string;
   height?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
@@ -1566,6 +1852,17 @@ export interface BarcodeAtAttr {
   y?: string;
   anchor?: string;
   width?: string;
+  /**
+   * Puts the element, and everything in it, in an optional content group, which the viewer shows or
+   * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
+   * element keeps its room either way, so nothing moves. An element with a group inside an element
+   * with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview
+   * and Safari show everything, on screen and in print. Hidden content is still in the file, where
+   * it can be selected and copied: it is not a way to keep anything secret. A link in print content
+   * is drawn and does nothing, and a form field can't be in print content: use a frame with a
+   * border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.
+   */
+  ocg?: string;
 }
 
 /**
