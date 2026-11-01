@@ -2,8 +2,9 @@
  * example.ts — render every example in lpdf's examples/ folder using LpdfEngine.
  *
  * An example is a folder examples/<n>-<id>/ with its document.xml, its document.json if it has data, and the
- * fonts and images its <assets> name, by paths relative to the folder. Each is rendered the way the docs on
- * lpdf.io render it: a fresh engine, those fonts and images loaded, and the data passed to render.
+ * fonts, images and color profiles its <assets> name, by paths relative to the folder. Each is rendered the way the
+ * docs on lpdf.io render it: a fresh engine, those files loaded, the data passed to render, and one fixed date, which
+ * a PDF/X example such as the brochure carries.
  *
  * Run from lpdf's root, after building the adapter (make build-sdk-node):
  *   make example-node
@@ -14,6 +15,9 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { L } from '../dist/index.js';
+
+/** The date of every render, so the same example gives the same PDF; a PDF/A, PDF/UA or PDF/X example needs one. */
+const CREATED_ON = '2026-01-01T00:00:00Z';
 
 (async () => {
   const lpdf     = resolve(__dirname, '../../../');
@@ -42,9 +46,12 @@ import { L } from '../dist/index.js';
     for (const [, image, src] of body.matchAll(/<image\s+name="([^"]+)"\s+src="([^"]+)"/g)) {
       engine.loadImage(image, readFileSync(resolve(folder, src)));
     }
+    for (const [, profile, src] of body.matchAll(/<profile\s+name="([^"]+)"\s+src="([^"]+)"/g)) {
+      engine.loadProfile(profile, readFileSync(resolve(folder, src)));
+    }
 
-    // render pdf from xml, with the example's data if it has any
-    const bytes = await engine.render(xml, data ? { data } : {});
+    // render pdf from xml, with the example's data if it has any, dated
+    const bytes = await engine.render(xml, { createdOn: CREATED_ON, ...(data ? { data } : {}) });
 
     // write pdf to file
     const outputFile = `${name}-node.pdf`;

@@ -34,7 +34,7 @@ export type {
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
     ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
-    FontAttr, ImageAttr, FileAttr, LayoutAttr,
+    FontAttr, ImageAttr, FileAttr, ProfileAttr, LayoutAttr,
     MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
     MarkdownH6Attr, MarkdownPAttr, MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr,
     MarkdownStrongAttr, MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
@@ -82,6 +82,12 @@ export interface LpdfBrowser {
      */
     loadFile(name: string, bytes: Uint8Array): void;
     /**
+     * Register the bytes of an ICC color profile, for the `<profile>` of the document's `<assets>` whose `ref`, or with
+     * no ref whose name, is `name`: the press profile a PDF/X document names. A `src` is not read in the browser. Call
+     * before `render`.
+     */
+    loadProfile(name: string, bytes: Uint8Array): void;
+    /**
      * Register the text of a file of Markdown rules, the root of which is a `<markdown-styles>`, for the `src` that
      * names it in `<markdown-styles src="…">`. Call before `render`. Mutates the renderer in-place.
      */
@@ -121,6 +127,7 @@ export async function initLpdf(
     const fontMap  = new Map<string, Uint8Array>();
     const imageMap = new Map<string, Uint8Array>();
     const fileMap  = new Map<string, Uint8Array>();
+    const profileMap = new Map<string, Uint8Array>();
     const markdownStyles = new Map<string, string>();
 
     return {
@@ -134,6 +141,10 @@ export async function initLpdf(
 
         loadFile(name: string, bytes: Uint8Array): void {
             fileMap.set(name, bytes);
+        },
+
+        loadProfile(name: string, bytes: Uint8Array): void {
+            profileMap.set(name, bytes);
         },
 
         loadMarkdownStyles(src: string, text: string): void {
@@ -158,6 +169,9 @@ export async function initLpdf(
             }
             for (const [name, bytes] of fileMap) {
                 engine.load_file(name, bytes);
+            }
+            for (const [name, bytes] of profileMap) {
+                engine.load_profile(name, bytes);
             }
             for (const [src, text] of markdownStyles) {
                 engine.load_markdown_styles(src, text);

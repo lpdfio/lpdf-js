@@ -12,6 +12,8 @@ declare module '../wasm/lpdf-web.js' {
     load_image(name: string, bytes: Uint8Array): void;
     /** Register the bytes of a file the document carries, under the `ref` or name of its `<file>`. */
     load_file(name: string, bytes: Uint8Array): void;
+    /** Register the bytes of an ICC color profile, under the `ref` or name of its `<profile>`. */
+    load_profile(name: string, bytes: Uint8Array): void;
     /** Set an optional ISO 8601 creation timestamp for /CreationDate. */
     set_created_on(iso: string): void;
     /** Set the host's clock, in Unix seconds, so the key's expiry can be checked. */
