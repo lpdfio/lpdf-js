@@ -190,6 +190,16 @@ describe('LpdfEngine', () => {
     assert(text.includes('/StructTreeRoot'), 'the structure');
   });
 
+  it('puts kit elements in print and screen content', async () => {
+    const document = L.document(null, [L.section(null, [L.layout(null, [
+      L.text({ ocg: 'print' }, ['Printed']),
+      L.column({ ocg: 'screen' }, [L.text(null, ['On screen'])]),
+    ])])]);
+    const text = latin1(await new PdfEngine().setLicenseKey('test-key').render(document));
+    assert(text.includes('/OCProperties'), 'the catalog lists the groups');
+    assert(text.includes('(Print only)') && text.includes('(Screen only)'), 'one group of each');
+  });
+
   /** A titled document with no text of its own that asks for PDF/X-4 with the profile `press`, bled by `bleed`. */
   function pdfxDoc(bleed = '3mm') {
     return '<lpdf version="1"><assets><profile name="press"/></assets>'
