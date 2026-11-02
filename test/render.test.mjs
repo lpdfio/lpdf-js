@@ -1192,6 +1192,35 @@ describe('bookmarks', () => {
     assert.equal(normalised(await engine.render(built)), normalised(await engine.render(L.toXml(built))));
   });
 
+  it('a cross-reference links to its bookmark, a ref-only bookmark stays out of the outline, and both render as their XML', async () => {
+    const built = L.document(null, [
+      L.section(null, [
+        L.layout(null, [
+          L.text(null, ['See ', L.span({ bookmarkRef: 'prices' }, ['{bookmark-label} on page {bookmark-page}'])]),
+          L.bookmark({ label: 'Methods' }),
+          L.text(null, ['Methods']),
+          L.bookmark({ label: 'Table 3', id: 'prices', refOnly: true }),
+          L.text(null, ['Prices']),
+        ]),
+      ]),
+    ]);
+    const xml = L.toXml(built);
+    assert.match(xml, /<span bookmark-ref="prices">/, xml);
+    assert.match(xml, /<bookmark [^>]*ref-only="true"/, xml);
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const pdf = Buffer.from(await engine.render(built)).toString('latin1');
+    assert(pdf.includes('/D /prices'), 'the reference does not link to its bookmark');
+    assert(pdf.includes('/Title (Methods)') && !pdf.includes('/Title (Table 3)'), 'the ref-only bookmark is in the outline');
+    assert.equal(normalised(await engine.render(built)), normalised(await engine.render(xml)));
+
+    const nowhere = L.document(null, [L.section(null, [L.layout(null, [L.text(null, [L.span({ bookmarkRef: 'nowhere' }, ['{bookmark-page}'])])])])]);
+    await assert.rejects(
+      engine.render(nowhere),
+      (e) => e instanceof LpdfRenderError && /bookmark-ref 'nowhere' names no bookmark/.test(e.message),
+    );
+  });
+
   it('a table of contents section lists the bookmarks of an XML template', async () => {
     const xml = `<lpdf version="1"><document>
       <section type="toc"><layout>
