@@ -15,13 +15,20 @@
  *
  * Custom fonts must be pre-loaded via `loadFont()`; there is no automatic
  * filesystem fallback in the browser.
+ *
+ * Renders run on a Web Worker, one at a time, so the page stays responsive. The
+ * worker starts from a Blob URL: a page with a Content-Security-Policy allows
+ * `blob:` in `worker-src`.
  */
-import initWasm, { LpdfEngine as WasmEngine, check_license } from '../wasm/lpdf-web.js';
-import { encryptionArguments, type RenderOptions } from './_shared';
+import initWasm, { check_license, type InitInput } from '../wasm/lpdf-web.js';
+import { encryptionArguments, type EngineOptions, type RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
+import type { RenderJob, RenderReply } from './render-job';
+import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 
-export type { RenderOptions } from './_shared';
+export type { EngineOptions, RenderOptions } from './_shared';
+export { LpdfRenderError } from './render-error';
 export {
     FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
 } from './constants';
@@ -65,6 +72,60 @@ function secureRandomBytes(count: number): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(count));
 }
 
+/** Where `initLpdf` loads the engine from: a URL, a response, the bytes or the compiled module, or by default the
+ * `lpdf_bg.wasm` next to this file. */
+type WasmSource = InitInput | null | undefined;
+
+/**
+ * The engine compiled from `source`, once, for this thread and each worker: a worker started after a timeout
+ * instantiates it again without fetching or compiling it.
+ */
+async function compileEngine(source: WasmSource): Promise<WebAssembly.Module> {
+    if (source instanceof WebAssembly.Module) return source;
+    // The WASM glue's own default: the engine next to this file.
+    const from = source ?? new URL('lpdf_bg.wasm', import.meta.url);
+    if (typeof from === 'string' || from instanceof URL || from instanceof Request) {
+        return compileResponse(await fetch(from));
+    }
+    if (from instanceof Response) return compileResponse(from);
+    return WebAssembly.compile(from);
+}
+
+async function compileResponse(response: Response): Promise<WebAssembly.Module> {
+    if (!response.ok) {
+        throw new Error(`The engine could not be loaded from ${response.url}: ${response.status} ${response.statusText}`);
+    }
+    // compileStreaming needs the application/wasm type, which not every server sends.
+    if (response.headers.get('Content-Type')?.startsWith('application/wasm')) {
+        return WebAssembly.compileStreaming(response);
+    }
+    return WebAssembly.compile(await response.arrayBuffer());
+}
+
+/** The worker's code, `src/browser-worker.ts` bundled, which `build-browser.mjs` puts here as text. */
+declare const LPDF_RENDER_WORKER: string;
+
+let renderWorkerUrl: string | undefined;
+
+/** Starts a worker on the engine compiled in `module`, which reports to `events`. */
+function startBrowserWorker(module: WebAssembly.Module, events: RenderWorkerEvents): RenderWorker {
+    renderWorkerUrl ??= URL.createObjectURL(new Blob([LPDF_RENDER_WORKER], { type: 'text/javascript' }));
+    const worker = new Worker(renderWorkerUrl, { name: 'lpdf-render' });
+    worker.onmessage = (event: MessageEvent<RenderReply>) => events.replied(event.data);
+    worker.onerror = event => {
+        event.preventDefault();
+        events.failed(
+            `The render worker failed${event.message ? `: ${event.message}` : ''}. ` +
+            'A page with a Content-Security-Policy must allow blob: in worker-src for it.');
+    };
+    worker.onmessageerror = () => events.failed('A reply of the render worker could not be read.');
+    worker.postMessage({ module });
+    return {
+        post: job => worker.postMessage(job),
+        terminate: () => worker.terminate(),
+    };
+}
+
 export interface LpdfBrowser {
     /**
      * Register raw TTF/OTF bytes for a custom font name used in `<font src="…">`.
@@ -96,6 +157,9 @@ export interface LpdfBrowser {
      * Render an lpdf XML document or `PdfDocument` tree to PDF bytes.
      * Custom fonts must be registered via `loadFont()`; src-path loading is
      * not available in the browser.
+     *
+     * The render runs on a Web Worker, after the renders before it. It rejects with an `LpdfRenderError` when the
+     * engine refuses the document, or when it runs past the `timeout` of `initLpdf`'s options.
      */
     render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
     /**
@@ -117,12 +181,20 @@ export interface LpdfBrowser {
  * @param licenseKey  - License key. Omit or pass an empty string to render unlicensed,
  *                      which draws the attribution line
  *                      (watermark applied).
+ * @param options     - `timeout`: the seconds a render may run, 5 when left out,
+ *                      no limit at 0.
+ * @throws {RangeError} when `timeout` is negative or not a finite number.
  */
 export async function initLpdf(
-    wasmSource: Parameters<typeof initWasm>[0],
+    wasmSource: WasmSource,
     licenseKey = '',
+    options: EngineOptions = {},
 ): Promise<LpdfBrowser> {
-    await initWasm(wasmSource);
+    const timeout = renderTimeout(options.timeout);
+    const module = await compileEngine(wasmSource);
+    // This thread keeps an instance for the license check; the renders run on the worker's.
+    await initWasm({ module_or_path: module });
+    const queue = new RenderQueue(events => startBrowserWorker(module, events));
 
     const fontMap  = new Map<string, Uint8Array>();
     const imageMap = new Map<string, Uint8Array>();
@@ -156,44 +228,22 @@ export async function initLpdf(
         },
 
         async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
-            const engine = new WasmEngine(licenseKey);
-            // Without a clock the engine cannot check the key's expiry, and an expired key
-            // renders as though it were current.
-            engine.set_now(nowUnix());
-
-            for (const [name, bytes] of fontMap) {
-                engine.load_font(name, bytes);
-            }
-            for (const [name, bytes] of imageMap) {
-                engine.load_image(name, bytes);
-            }
-            for (const [name, bytes] of fileMap) {
-                engine.load_file(name, bytes);
-            }
-            for (const [name, bytes] of profileMap) {
-                engine.load_profile(name, bytes);
-            }
-            for (const [src, text] of markdownStyles) {
-                engine.load_markdown_styles(src, text);
-            }
-
-            if (callOptions.createdOn) {
-                engine.set_created_on(callOptions.createdOn);
-            }
-
-            const encryption = encryptionArguments(callOptions, secureRandomBytes);
-            let pdf: Uint8Array;
-            try {
-                if (typeof input === 'string') {
-                    const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-                    pdf = engine.render_pdf(input, dataJson, ...encryption);
-                } else {
-                    pdf = engine.render_tree_pdf(JSON.stringify(input), ...encryption);
-                }
-            } finally {
-                engine.free();
-            }
-            return pdf;
+            // The maps are copied: what is loaded after this call doesn't reach this render.
+            const job: RenderJob = {
+                licenseKey,
+                now: nowUnix(),
+                createdOn: callOptions.createdOn,
+                fonts: new Map(fontMap),
+                images: new Map(imageMap),
+                files: new Map(fileMap),
+                profiles: new Map(profileMap),
+                markdownStyles: new Map(markdownStyles),
+                document: typeof input === 'string'
+                    ? { xml: input, data: callOptions.data != null ? JSON.stringify(callOptions.data) : null }
+                    : { tree: JSON.stringify(input) },
+                encryption: encryptionArguments(callOptions, secureRandomBytes),
+            };
+            return queue.render(job, timeout);
         },
     };
 }

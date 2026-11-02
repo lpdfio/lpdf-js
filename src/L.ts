@@ -3,6 +3,7 @@ import { LpdfKit } from './kit';
 import { LpdfLayout } from './layout';
 import { LpdfCanvas } from './canvas';
 import { LpdfMarkdown } from './markdown';
+import type { EngineOptions } from './_shared';
 import { PdfEngine } from './engine';
 import { kitToXml } from './kit-to-xml';
 
@@ -32,8 +33,12 @@ export const NoAttr = null;
  * ```
  */
 export const L = Object.freeze({
-    /** Create a new {@link PdfEngine} instance. Call `.setLicenseKey()` to configure. */
-    engine: (): PdfEngine => new PdfEngine(),
+    /**
+     * Create a new {@link PdfEngine} instance. Call `.setLicenseKey()` to configure.
+     *
+     * @param options - `timeout`: the seconds a render may run, 5 when left out, no limit at 0.
+     */
+    engine: (options?: EngineOptions): PdfEngine => new PdfEngine(options),
 
     /** Convert a `PdfDocument` tree to an lpdf XML string. */
     toXml: (doc: PdfDocument): string => kitToXml(doc),

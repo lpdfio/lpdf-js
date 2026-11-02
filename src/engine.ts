@@ -1,39 +1,48 @@
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { encryptionArguments, type RenderOptions } from './_shared';
+import { join } from 'node:path';
+import { Worker } from 'node:worker_threads';
+import { encryptionArguments, type EngineOptions, type RenderOptions } from './_shared';
 import type { FileAttr } from './attrs';
 import type { DocumentAssets, PdfDocument } from './kit';
+import { LpdfRenderError } from './render-error';
+import type { RenderJob, RenderReply } from './render-job';
+import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 
-// The WASM CJS module is loaded at runtime; we declare only what we use.
-interface IWasmEngine {
-  render_pdf(
-    xml: string, json_data: string | null, user_password: string | null, owner_password: string | null,
-    skip_encryption: boolean, entropy: Uint8Array,
-  ): Uint8Array;
-  render_tree_pdf(
-    json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
-    entropy: Uint8Array,
-  ): Uint8Array;
-  load_font(name: string, bytes: Uint8Array): void;
-  load_image(name: string, bytes: Uint8Array): void;
-  load_file(name: string, bytes: Uint8Array): void;
-  load_profile(name: string, bytes: Uint8Array): void;
-  load_markdown_styles(src: string, xml: string): void;
-  set_created_on(iso: string): void;
-  set_now(unix: bigint): void;
-  free(): void;
+export { LpdfRenderError } from './render-error';
+
+/**
+ * The engine's license check on this thread, loaded on first use: a render runs on the worker, which loads the engine
+ * itself, so an app that only renders loads it once.
+ */
+function checkLicense(token: string, nowUnix: bigint): string {
+  // require() path is relative to the compiled output at dist/engine.js.
+  // In the published package, wasm-pack artifacts live in dist/wasm/.
+  // In the monorepo, `npm run build` copies them there from <root>/dist/node/.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const wasm = require('./wasm/lpdf.js') as { check_license: (token: string, now_unix: bigint) => string };
+  return wasm.check_license(token, nowUnix);
 }
-interface IWasmModule {
-  LpdfEngine: new (licenseKey: string) => IWasmEngine;
-  kit_to_xml: (json: string) => string;
-  check_license: (token: string, now_unix: bigint) => string;
+
+/**
+ * Starts the worker of `render-worker.js`. It keeps the process running only while it renders, so a script that has
+ * rendered ends by itself.
+ */
+function startNodeWorker(events: RenderWorkerEvents): RenderWorker {
+  const worker = new Worker(join(__dirname, 'render-worker.js'));
+  worker.on('message', (reply: RenderReply) => events.replied(reply));
+  worker.on('error', error => events.failed(error.message));
+  worker.on('messageerror', error => events.failed(error.message));
+  worker.on('exit', code => events.failed(`The render worker stopped with exit code ${code}.`));
+  return {
+    post: job => worker.postMessage(job),
+    terminate: () => void worker.terminate(),
+    hold: busy => (busy ? worker.ref() : worker.unref()),
+  };
 }
-// require() path is relative to the compiled output at dist/engine.js.
-// In the published package, wasm-pack artifacts live in dist/wasm/.
-// In the monorepo, `npm run build` copies them there from <root>/dist/node/.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const wasmModule = require('./wasm/lpdf.js') as IWasmModule;
-const WasmEngine = wasmModule.LpdfEngine;
+
+// One worker for the process, as renders ran one at a time on the calling thread before they moved to a worker.
+let renderQueue: RenderQueue | undefined;
 
 /** How a license key stands with this build of the engine. */
 export type LicenseStatus =
@@ -80,14 +89,6 @@ function nowUnix(): bigint {
   return BigInt(Math.floor(Date.now() / 1000));
 }
 
-/** Thrown when the lpdf engine returns a layout or parse error. */
-export class LpdfRenderError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'LpdfRenderError';
-  }
-}
-
 /** Node's secure generator, for the entropy of AES-256. */
 function secureRandomBytes(count: number): Uint8Array {
   return new Uint8Array(randomBytes(count));
@@ -100,9 +101,17 @@ export class PdfEngine {
   private readonly _files:  Map<string, Uint8Array> = new Map();
   private readonly _profiles: Map<string, Uint8Array> = new Map();
   private readonly _markdownStyles: Map<string, string> = new Map();
+  private readonly _timeout: number;
   private _disposed = false;
 
-  constructor() {}
+  /**
+   * @param options - Engine-level options: `timeout`, the seconds a render may run before it rejects with an
+   *   `LpdfRenderError` that names the limit, 5 when left out and no limit at 0.
+   * @throws {RangeError} when `timeout` is negative or not a finite number.
+   */
+  constructor(options: EngineOptions = {}) {
+    this._timeout = renderTimeout(options.timeout);
+  }
 
   /**
    * Set the license key. Returns `this` for chaining.
@@ -126,7 +135,7 @@ export class PdfEngine {
    */
   checkLicenseKey(key?: string): LicenseCheck {
     this._throwIfDisposed();
-    return JSON.parse(wasmModule.check_license(key ?? this._licenseKey, nowUnix())) as LicenseCheck;
+    return JSON.parse(checkLicense(key ?? this._licenseKey, nowUnix())) as LicenseCheck;
   }
 
   /**
@@ -191,26 +200,24 @@ export class PdfEngine {
   [Symbol.dispose](): void { this.dispose(); }
 
   /**
-   * Hand the engine the files of Markdown rules that a document names: the ones loaded here, and the ones read from
-   * their `src`. A file that can't be read is left for the engine to report, naming the `src`.
+   * The files of Markdown rules that a document names: the ones loaded here, and the ones read from their `src`. A
+   * file that can't be read is left for the engine to report, naming the `src`.
    */
-  private _loadMarkdownStyles(engine: IWasmEngine, srcs: string[]): void {
+  private _markdownStylesFor(srcs: string[]): Map<string, string> {
     const files = new Map<string, string>(this._markdownStyles);
     for (const src of srcs) {
       if (!files.has(src)) {
         try { files.set(src, readFileSync(src, 'utf8')); } catch { /* not found; the engine says so */ }
       }
     }
-    for (const [src, text] of files) {
-      engine.load_markdown_styles(src, text);
-    }
+    return files;
   }
 
   /**
-   * Hand the engine the files the document carries: the ones loaded here, and the ones read from the `src` of a file
-   * that wasn't. A `src` that can't be read is an error that names the file and the path.
+   * The files the document carries: the ones loaded here, and the ones read from the `src` of a file that wasn't. A
+   * `src` that can't be read is an error that names the file and the path.
    */
-  private _loadFiles(engine: IWasmEngine, srcs: Map<string, string>): void {
+  private _filesFor(srcs: Map<string, string>): Map<string, Uint8Array> {
     const files = new Map<string, Uint8Array>(this._files);
     for (const [key, src] of srcs) {
       if (files.has(key)) continue;
@@ -220,16 +227,14 @@ export class PdfEngine {
         throw new LpdfRenderError(`file '${key}' of <attachments>: cannot read its src '${src}': ${e instanceof Error ? e.message : String(e)}`);
       }
     }
-    for (const [key, bytes] of files) {
-      engine.load_file(key, bytes);
-    }
+    return files;
   }
 
   /**
-   * Hand the engine the color profiles the document declares: the ones loaded here, and the ones read from the `src`
-   * of a profile that wasn't. A `src` that can't be read is an error that names the profile and the path.
+   * The color profiles the document declares: the ones loaded here, and the ones read from the `src` of a profile
+   * that wasn't. A `src` that can't be read is an error that names the profile and the path.
    */
-  private _loadProfiles(engine: IWasmEngine, srcs: Map<string, string>): void {
+  private _profilesFor(srcs: Map<string, string>): Map<string, Uint8Array> {
     const profiles = new Map<string, Uint8Array>(this._profiles);
     for (const [key, src] of srcs) {
       if (profiles.has(key)) continue;
@@ -239,9 +244,7 @@ export class PdfEngine {
         throw new LpdfRenderError(`profile '${key}' of <assets>: cannot read its src '${src}': ${e instanceof Error ? e.message : String(e)}`);
       }
     }
-    for (const [key, bytes] of profiles) {
-      engine.load_profile(key, bytes);
-    }
+    return profiles;
   }
 
   private _throwIfDisposed(): void {
@@ -250,87 +253,80 @@ export class PdfEngine {
 
   /**
    * Render an lpdf XML string to PDF bytes (Node.js).
+   *
+   * The render runs on a worker thread, after the renders before it. It rejects with an `LpdfRenderError` when the
+   * engine refuses the document, or when it runs past the engine's `timeout`.
    */
   async render(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
   /**
-   * Render a `PdfDocument` tree (built with `Pdf.document`) to PDF bytes (Node.js).
+   * Render a `PdfDocument` tree (built with `Pdf.document`) to PDF bytes (Node.js), on a worker thread as an XML
+   * string is.
    */
   async render(input: PdfDocument, callOptions?: RenderOptions): Promise<Uint8Array>;
   async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
     this._throwIfDisposed();
+    const job = this._job(input, callOptions);
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return renderQueue.render(job, this._timeout);
+  }
 
-    const engine = new WasmEngine(this._licenseKey);
-    // Without a clock the engine cannot check the key's expiry, and an expired key renders as
-    // though it were current.
-    engine.set_now(nowUnix());
-
-    if (callOptions.createdOn) {
-      engine.set_created_on(callOptions.createdOn);
-    }
-
-    let pdf: Uint8Array;
-    try {
-      if (typeof input === 'string') {
-        // XML path — auto-load fonts and images declared via src="…".
-        const xml = input;
-        const allFonts = new Map<string, Uint8Array>(this._fonts);
-        for (const [key, src] of extractAssetSrcs(xml, 'font')) {
-          if (!allFonts.has(key)) {
-            try { allFonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
-          }
+  /**
+   * A render of `input` with every file it needs, read here from the `src` of each font, image, file, profile and
+   * file of rules the document names and that wasn't loaded: the worker reads nothing itself.
+   */
+  private _job(input: string | PdfDocument, callOptions: RenderOptions): RenderJob {
+    const fonts = new Map<string, Uint8Array>(this._fonts);
+    const images = new Map<string, Uint8Array>(this._images);
+    let document: RenderJob['document'];
+    let markdownStyles: Map<string, string>;
+    let files: Map<string, Uint8Array>;
+    let profiles: Map<string, Uint8Array>;
+    if (typeof input === 'string') {
+      // XML path — auto-load fonts and images declared via src="…".
+      for (const [key, src] of extractAssetSrcs(input, 'font')) {
+        if (!fonts.has(key)) {
+          try { fonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
         }
-        for (const [name, bytes] of allFonts) {
-          engine.load_font(name, bytes);
-        }
-        for (const [name, bytes] of this._images) {
-          engine.load_image(name, bytes);
-        }
-        this._loadMarkdownStyles(engine, markdownStylesSrcs(xml));
-        this._loadFiles(engine, extractAssetSrcs(xml, 'file'));
-        this._loadProfiles(engine, extractAssetSrcs(xml, 'profile'));
-        // Auto-load images declared via <image src="…"> that weren't pre-loaded.
-        for (const [key, src] of extractAssetSrcs(xml, 'image')) {
-          if (!this._images.has(key)) {
-            try { engine.load_image(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
-          }
-        }
-        const dataJson = callOptions.data != null ? JSON.stringify(callOptions.data) : null;
-        pdf = engine.render_pdf(xml, dataJson, ...encryptionArguments(callOptions, secureRandomBytes));
-      } else {
-        // JSON (Kit tree) path — pass JSON directly to render_tree_pdf. Fonts and images the
-        // document declares with a src are read from there, as on the XML path.
-        const json = JSON.stringify(input);
-        const allFonts = new Map<string, Uint8Array>(this._fonts);
-        for (const [key, src] of assetSrcsOfDocument(input, 'fonts')) {
-          if (!allFonts.has(key)) {
-            try { allFonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
-          }
-        }
-        for (const [name, bytes] of allFonts) {
-          engine.load_font(name, bytes);
-        }
-        const allImages = new Map<string, Uint8Array>(this._images);
-        for (const [key, src] of assetSrcsOfDocument(input, 'images')) {
-          if (!allImages.has(key)) {
-            try { allImages.set(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
-          }
-        }
-        for (const [name, bytes] of allImages) {
-          engine.load_image(name, bytes);
-        }
-        this._loadMarkdownStyles(engine, markdownStylesSrcsOfDocument(input));
-        this._loadFiles(engine, fileSrcsOfDocument(input));
-        this._loadProfiles(engine, assetSrcsOfDocument(input, 'profiles'));
-        pdf = engine.render_tree_pdf(json, ...encryptionArguments(callOptions, secureRandomBytes));
       }
-    } catch (e) {
-      engine.free();
-      if (e instanceof LpdfRenderError) throw e;
-      const msg = e instanceof Error ? e.message : String(e);
-      throw new LpdfRenderError(msg);
+      for (const [key, src] of extractAssetSrcs(input, 'image')) {
+        if (!images.has(key)) {
+          try { images.set(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
+        }
+      }
+      markdownStyles = this._markdownStylesFor(markdownStylesSrcs(input));
+      files = this._filesFor(extractAssetSrcs(input, 'file'));
+      profiles = this._profilesFor(extractAssetSrcs(input, 'profile'));
+      document = { xml: input, data: callOptions.data != null ? JSON.stringify(callOptions.data) : null };
+    } else {
+      // JSON (Kit tree) path. Fonts and images the document declares with a src are read from there, as on the XML
+      // path.
+      for (const [key, src] of assetSrcsOfDocument(input, 'fonts')) {
+        if (!fonts.has(key)) {
+          try { fonts.set(key, readFileSync(src)); } catch { /* not found; Rust falls back to Helvetica */ }
+        }
+      }
+      for (const [key, src] of assetSrcsOfDocument(input, 'images')) {
+        if (!images.has(key)) {
+          try { images.set(key, readFileSync(src)); } catch { /* skip unresolvable image */ }
+        }
+      }
+      markdownStyles = this._markdownStylesFor(markdownStylesSrcsOfDocument(input));
+      files = this._filesFor(fileSrcsOfDocument(input));
+      profiles = this._profilesFor(assetSrcsOfDocument(input, 'profiles'));
+      document = { tree: JSON.stringify(input) };
     }
-    engine.free();
-    return pdf;
+    return {
+      licenseKey: this._licenseKey,
+      now: nowUnix(),
+      createdOn: callOptions.createdOn,
+      fonts,
+      images,
+      files,
+      profiles,
+      markdownStyles,
+      document,
+      encryption: encryptionArguments(callOptions, secureRandomBytes),
+    };
   }
 }
 

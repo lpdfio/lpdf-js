@@ -19,12 +19,6 @@
 
 import type { PdfDocument } from './kit';
 
-// Load the standalone kit_to_xml export from the compiled WASM module.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { kit_to_xml: wasmKitToXml } = require('./wasm/lpdf.js') as {
-  kit_to_xml: (json: string) => string;
-};
-
 /**
  * Convert an `LpdfDocument` tree (built with `LpdfKit`) into an lpdf XML
  * string.
@@ -36,6 +30,10 @@ const { kit_to_xml: wasmKitToXml } = require('./wasm/lpdf.js') as {
  * @returns A well-formed XML string with an `<?xml ...?>` declaration.
  */
 export function kitToXml(doc: PdfDocument): string {
-  return wasmKitToXml(JSON.stringify(doc));
+  // The engine is loaded on this thread on first use: a render runs on a worker, which loads it itself, so an app that
+  // only renders loads it once.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const wasm = require('./wasm/lpdf.js') as { kit_to_xml: (json: string) => string };
+  return wasm.kit_to_xml(JSON.stringify(doc));
 }
 

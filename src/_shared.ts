@@ -1,9 +1,16 @@
 /**
  * Shared types used by both the Node.js and browser entry points.
  */
+import type { EncryptionArguments } from './render-job';
 
-/** Construction-time configuration for {@link PdfEngine}. Node has no infra options. */
-export interface EngineOptions {}
+/** Construction-time configuration for `PdfEngine`, `L.engine()` and `initLpdf`. */
+export interface EngineOptions {
+  /**
+   * The seconds a render may run before it rejects with an `LpdfRenderError` that names the limit: 5 when left out,
+   * no limit at 0. A render runs on a worker, which is stopped at the limit and replaced for the next render.
+   */
+  timeout?: number;
+}
 
 export interface RenderOptions {
   /**
@@ -53,7 +60,7 @@ const ENTROPY_BYTES = 32;
 export function encryptionArguments(
   options: RenderOptions,
   randomBytes: (count: number) => Uint8Array,
-): [string | null, string | null, boolean, Uint8Array] {
+): EncryptionArguments {
   const hasPassword = options.userPassword !== undefined || options.ownerPassword !== undefined;
   return [
     options.userPassword ?? null,
