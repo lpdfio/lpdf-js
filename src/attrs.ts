@@ -2016,12 +2016,14 @@ export interface FileAttr {
   ref?: string;
   /**
    * The type of the file, such as text/xml, application/pdf or text/csv. Defaults to
-   * application/octet-stream, which says only that it is a file.
+   * application/octet-stream, which says only that it is a file, and to text/xml for the invoice of
+   * a Factur-X e-invoice.
    */
   mime?: string;
   /**
    * How the file relates to the document: source, data, alternative, supplement or unspecified, the
-   * default. An e-invoice's XML is data.
+   * default. The invoice of a Factur-X e-invoice defaults to data for the MINIMUM and BASIC WL
+   * profiles, and to alternative for the others, as the Factur-X spec asks.
    */
   relationship?: string;
   /** A line about the file, which a reader shows beside its name. */
