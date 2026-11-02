@@ -1253,8 +1253,10 @@ export interface RegionAttr {
    */
   pin: string;
   /**
-   * Which pages show the region: each, first, last, odd, even, or a range such as 2-last. Defaults
-   * to each.
+   * Which pages show the region: each, first, last, odd, even, or a range such as 2-last. odd and
+   * even follow the number printed on the page, so in a section that starts on page 4 even shows on
+   * its first page. first, last and ranges count the section's own pages, whatever their numbers.
+   * Defaults to each.
    */
   page?: string;
   w?: string;
@@ -1578,6 +1580,12 @@ export interface MarkdownTdAttr {
  * of its text. Layers cannot be nested.
  */
 export interface LayerAttr {
+  /**
+   * Which pages of the section show the layer: each, first, last, odd, even, or a range such as
+   * 2-last. odd and even follow the number printed on the page, so in a section that starts on page
+   * 4 even shows on its first page. first, last and ranges count the section's own pages, whatever
+   * their numbers. Defaults to each.
+   */
   page?: string;
   /**
    * How opaque everything in the layer is, from 0 to 1. To fade one element, put it in a layer of
