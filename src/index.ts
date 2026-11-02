@@ -7,7 +7,8 @@ export type { StampAttr } from './stamp';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
 export {
-    FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
+    FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
+    PageScope,
 } from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────
