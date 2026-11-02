@@ -163,6 +163,13 @@ describe('LpdfEngine', () => {
     assert(text.includes('/ModDate (D:20261031093000Z)'), 'the date of the render');
   });
 
+  it('writes PDF/A level a, tagged without PDF/UA, when the output asks for 2a', async () => {
+    const text = latin1(await new PdfEngine().setLicenseKey('test-key').render(pdfaDoc('2a'), { createdOn: '2026-10-31' }));
+    assert(text.includes('<pdfaid:conformance>A</pdfaid:conformance>'), 'level a in the XMP packet');
+    assert(text.includes('/StructTreeRoot') && text.includes('/Marked true'), 'the tagged structure');
+    assert(!text.includes('pdfuaid'), 'PDF/A only, without pdfua');
+  });
+
   it('takes pdfa from the output of a kit document', async () => {
     const document = L.document({ output: { pdfa: '2b' } }, [
       L.section(null, [L.layout(null, [L.column({ background: '#e8f0fc', height: '40pt' }, [])])]),
