@@ -592,6 +592,17 @@ export interface SpanAttr {
    * table of contents, # alone jumps to that entry's bookmark.
    */
   href?: string;
+  /**
+   * Makes the span a cross-reference to the bookmark with this id: a link to it whose words say
+   * where it is. In the span's words, {bookmark-page} prints the page the bookmark is on, as the
+   * footer of that page prints it, and {bookmark-label} the bookmark's label, so "{bookmark-label},
+   * on page {bookmark-page}" shows "clause 4, on page 12". An id that no bookmark has, another {…}
+   * token in the words, and href beside it are errors. It works in a text, a footnote, a region, a
+   * text-at and a code. The document is laid out again until each reference shows the page its
+   * bookmark lands on, and a reference keeps room for the widest words it has shown, so a number
+   * that got narrower can leave a small gap after it.
+   */
+  bookmarkRef?: string;
   underline?: boolean;
   strike?: boolean;
 }
@@ -1201,9 +1212,9 @@ export interface FieldAttr {
 
 /**
  * An entry of the PDF's outline, the bookmark panel of a viewer, and a target for links with
- * href="#id". It draws nothing and marks the element that follows it, so it is never left at the
- * bottom of a page apart from that element. Directly inside a section, it marks the section's first
- * page.
+ * href="#id" and for cross-references with bookmark-ref. It draws nothing and marks the element
+ * that follows it, so it is never left at the bottom of a page apart from that element. Directly
+ * inside a section, it marks the section's first page.
  */
 export interface BookmarkAttr {
   /** The text of the entry, in the outline and in a table of contents. */
@@ -1214,11 +1225,19 @@ export interface BookmarkAttr {
    */
   level?: number;
   /**
-   * The name links use to jump here, as href="#id". Leave it out to make it from the label:
-   * lowercase, with other characters than letters and digits turned into hyphens, and -2, -3 added
-   * when an earlier bookmark has it. Two bookmarks may not have the same id.
+   * The name links use to jump here, as href="#id", and cross-references as bookmark-ref="id".
+   * Leave it out to make it from the label: lowercase, with other characters than letters and
+   * digits turned into hyphens, and -2, -3 added when an earlier bookmark has it. Two bookmarks may
+   * not have the same id.
    */
   id?: string;
+  /**
+   * true leaves the bookmark out of the viewer's outline and out of the table of contents, for a
+   * figure or a table: label="Table 3" ref-only="true". Links with href="#id" and cross-references
+   * with bookmark-ref still reach it, and {bookmark-label} still shows its label. Defaults to
+   * false.
+   */
+  refOnly?: boolean;
 }
 
 /**
