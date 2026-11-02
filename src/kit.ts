@@ -135,6 +135,18 @@ export interface SectionAttr {
   type?:        string;
   tocIndentStep?: string;
   footnoteCounter?: string;
+  /**
+   * The number of the section's first page, which starts a new run of pages: `1` restarts the count. Without it the
+   * pages count on from the section before. `{page}` prints a page's number, and `{pages}` how many pages its run has.
+   */
+  pageStart?: number;
+  /**
+   * How the section's page numbers are written: `decimal`, `lower-alpha`, `upper-alpha`, `lower-roman` or
+   * `upper-roman`. Without it the section keeps the format before.
+   */
+  pageFormat?: string;
+  /** Text before the section's page numbers, such as `A-`. Without it the section keeps the prefix before; `''` takes it away. */
+  pagePrefix?: string;
 }
 
 export interface DocumentAttr {

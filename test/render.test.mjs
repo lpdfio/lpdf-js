@@ -624,6 +624,28 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits the page numbering of a section, renders it as its XML does, and labels the viewer\'s pages', async () => {
+    const footer = L.region({ pin: 'bottom' }, [L.text(null, ['Page {page} of {pages}'])]);
+    const document = L.document(null, [
+      L.section({ pageFormat: 'lower-roman' }, [L.layout(null, [L.text(null, ['Front']), footer])]),
+      L.section({ pageStart: 1, pageFormat: 'decimal', pagePrefix: 'A-' }, [L.layout(null, [L.text(null, ['Body']), footer])]),
+    ]);
+    const xml = L.toXml(document);
+    assert.match(xml, /<section page-format="lower-roman">/, xml);
+    assert.match(xml, /<section page-format="decimal" page-prefix="A-" page-start="1">/, xml);
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    const pdf = await render(document);
+    assert.equal(pdf, await render(xml));
+    assert.match(pdf.replace(/\s+/g, ' '), /\/PageLabels << \/Nums \[0 << \/S \/r >> 1 << \/S \/D \/P \(A-\) >>\] >>/);
+
+    await assert.rejects(
+      engine.render(L.document(null, [L.section({ pageStart: 0 }, [L.layout(null, [])])])),
+      (e) => e instanceof LpdfRenderError && /page-start must be a whole number from 1 to 2147483647, not 0/.test(e.message),
+    );
+  });
+
   it('emits a footnote as an fn child of a text, and the counter on the document and a section', () => {
     const document = L.document({ footnoteCounter: FootnoteCounter.Document }, [
       L.section({ footnoteCounter: FootnoteCounter.Page }, [L.layout(null, [
