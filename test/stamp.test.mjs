@@ -59,7 +59,7 @@ describe('stamp', () => {
     assert.equal(update(input, output).match(/\/Subtype\s*\/Image/g)?.length, 2);
   });
 
-  it('gives each stamp the attribution line, linked to lpdf.io, without a license key', async () => {
+  it('gives each stamped page the attribution line, linked to lpdf.io, without a license key', async () => {
     const input = await pdf(1);
     const output = await new PdfEngine().stamp(input, [{ image: png(10, 10), page: '1', anchor: 'center', width: '50pt', height: '50pt' }]);
     assert.match(update(input, output), /\(https:\/\/lpdf\.io\)/);

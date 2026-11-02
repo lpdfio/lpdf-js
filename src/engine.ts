@@ -282,8 +282,8 @@ export class PdfEngine {
    *
    * The output is the input, byte for byte, with an incremental update after it, so an owner password and its
    * permissions stay, and so does a digital signature, for the revision it signed. A PDF/A file stays PDF/A. Without a
-   * license key each stamp gets the attribution line beside its box. A stamp covers what is under it and does not
-   * remove it: the text under an image can still be selected and found, so a stamp is not a redaction.
+   * license key each stamped page gets the attribution line in its top-right corner. A stamp covers what is under it
+   * and does not remove it: the text under an image can still be selected and found, so a stamp is not a redaction.
    *
    * The stamp runs on a worker thread, as a render does, with its `timeout` and `maxMemoryMb`. It rejects with an
    * `LpdfRenderError` when the input is not a PDF, needs a password to open, or doesn't have a page a stamp names, and

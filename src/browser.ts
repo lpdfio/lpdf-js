@@ -167,7 +167,7 @@ export interface LpdfBrowser {
     render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
     /**
      * Draw PNG images over the pages of an existing PDF, and return the PDF with them: the input, byte for byte, with
-     * an incremental update after it. Without a license key each stamp gets the attribution line beside its box.
+     * an incremental update after it. Without a license key each stamped page gets the attribution line.
      *
      * The stamp runs on the Web Worker, as a render does, and rejects with an `LpdfRenderError` when the engine
      * refuses the PDF or a stamp.
