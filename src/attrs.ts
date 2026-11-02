@@ -630,9 +630,10 @@ export interface CodeSpanAttr {
 export interface ImgAttr {
   name: string;
   /**
-   * What the image shows, which a screen reader reads in a PDF/UA document; alt="" marks it as
-   * decoration, which a reader skips. A PDF/UA document needs it on every image of the layout. A
-   * document without pdfua ignores it.
+   * What the image shows, which a screen reader reads in a tagged document, one with pdfua or a
+   * pdfa of level a; alt="" marks it as decoration, which a reader skips. A PDF/UA document needs
+   * it on every image of the layout; at PDF/A level a without pdfua, an image without it is
+   * decoration. A document that is not tagged ignores it.
    */
   alt?: string;
   height?: string;
@@ -743,9 +744,11 @@ export interface BarcodeAttr {
    */
   width?: string;
   /**
-   * What the barcode is for, which a screen reader reads in a PDF/UA document in place of its data,
-   * which means nothing read aloud: "QR code to pay this invoice". alt="" marks it as decoration. A
-   * PDF/UA document needs it on every barcode of the layout. A document without pdfua ignores it.
+   * What the barcode is for, which a screen reader reads in a tagged document, one with pdfua or a
+   * pdfa of level a, in place of its data, which means nothing read aloud: "QR code to pay this
+   * invoice". alt="" marks it as decoration. A PDF/UA document needs it on every barcode of the
+   * layout; at PDF/A level a without pdfua, a barcode without it is decoration. A document that is
+   * not tagged ignores it.
    */
   alt?: string;
   paginate?: string;
@@ -806,10 +809,11 @@ export interface TextAttr {
    */
   width?: string;
   /**
-   * Makes the text a heading, h1 to h6, which a PDF/UA document tags as one: a screen reader lists
-   * the headings and moves between them. A text without role is a paragraph. A PDF/UA document's
-   * headings start at h1 and go down one level at a time. It changes nothing a page shows: set the
-   * size and the weight as on any text. A document without pdfua ignores it.
+   * Makes the text a heading, h1 to h6, which a tagged document, one with pdfua or a pdfa of level
+   * a, tags as one: a screen reader lists the headings and moves between them. A text without role
+   * is a paragraph. A PDF/UA document's headings start at h1 and go down one level at a time. It
+   * changes nothing a page shows: set the size and the weight as on any text. A document that is
+   * not tagged ignores it.
    */
   role?: string;
   /**
@@ -1612,10 +1616,11 @@ export interface LayerAttr {
    */
   color?: string;
   /**
-   * In a PDF/UA document, what the layer shows, which a screen reader reads as one figure at the
-   * layer's place in the document: a layer before the layout before it, one after the layout after
-   * it. Without alt a layer is decoration, as a header is, and a screen reader skips it with all
-   * its text: a watermark, a running title, a logo's letters. A document without pdfua ignores it.
+   * In a tagged document, one with pdfua or a pdfa of level a, what the layer shows, which a screen
+   * reader reads as one figure at the layer's place in the document: a layer before the layout
+   * before it, one after the layout after it. Without alt a layer is decoration, as a header is,
+   * and a screen reader skips it with all its text: a watermark, a running title, a logo's letters.
+   * A document that is not tagged ignores it.
    */
   alt?: string;
   /**

@@ -76,7 +76,10 @@ export interface DocumentMeta {
   subject?:  string;
   keywords?: string;
   creator?:  string;
-  /** The language the document is written in, as a language tag such as `en-US`. A PDF/UA document needs it. */
+  /**
+   * The language the document is written in, as a language tag such as `en-US`. A PDF/UA document needs it, and a
+   * PDF/A document of level a takes it only as a language tag.
+   */
   lang?:     string;
 }
 
