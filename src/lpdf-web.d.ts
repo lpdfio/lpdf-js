@@ -33,6 +33,11 @@ declare module '../wasm/lpdf-web.js' {
       json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
       entropy: Uint8Array,
     ): Uint8Array;
+    /**
+     * Draw PNG stamps, loaded with `load_image`, over the pages of a PDF, and return it with them as an incremental
+     * update. `stamps` is the JSON of the stamps, each naming its image.
+     */
+    stamp(pdf: Uint8Array, stamps: string): Uint8Array;
     free(): void;
     [Symbol.dispose](): void;
   }

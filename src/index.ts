@@ -3,6 +3,7 @@ export { PdfEngine, LpdfRenderError } from './engine';
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 export type { RenderOptions, EngineOptions } from './_shared';
+export type { StampAttr } from './stamp';
 
 // ── Constants for the schema's enumerations ───────────────────────────────────
 export {

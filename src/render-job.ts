@@ -14,6 +14,7 @@ export interface WasmRenderEngine {
         json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
         entropy: Uint8Array,
     ): Uint8Array;
+    stamp(pdf: Uint8Array, stamps: string): Uint8Array;
     load_font(name: string, bytes: Uint8Array): void;
     load_image(name: string, bytes: Uint8Array): void;
     load_file(name: string, bytes: Uint8Array): void;
@@ -28,7 +29,10 @@ export interface WasmRenderEngine {
 /** The user password, the owner password, `skipEncryption` and the entropy, in the order the render calls take them. */
 export type EncryptionArguments = [string | null, string | null, boolean, Uint8Array];
 
-/** One render: the document and every file it needs, already read, since a worker reads nothing itself. */
+/**
+ * One render: the document and every file it needs, already read, since a worker reads nothing itself. A stamp runs as
+ * a render does, with the PDF and the JSON of its stamps as its document and their PNGs as its images.
+ */
 export interface RenderJob {
     licenseKey: string;
     /** The host's clock in Unix seconds, for the key's expiry. */
@@ -41,8 +45,8 @@ export interface RenderJob {
     files: Map<string, Uint8Array>;
     profiles: Map<string, Uint8Array>;
     markdownStyles: Map<string, string>;
-    /** An XML document with its data as JSON, or a document tree as JSON. */
-    document: { xml: string; data: string | null } | { tree: string };
+    /** An XML document with its data as JSON, a document tree as JSON, or a PDF to stamp. */
+    document: { xml: string; data: string | null } | { tree: string } | { pdf: Uint8Array; stamps: string };
     encryption: EncryptionArguments;
 }
 
@@ -72,9 +76,12 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         for (const [name, bytes] of job.files) engine.load_file(name, bytes);
         for (const [name, bytes] of job.profiles) engine.load_profile(name, bytes);
         for (const [src, text] of job.markdownStyles) engine.load_markdown_styles(src, text);
-        const pdf = 'xml' in job.document
-            ? engine.render_pdf(job.document.xml, job.document.data, ...job.encryption)
-            : engine.render_tree_pdf(job.document.tree, ...job.encryption);
+        const { document } = job;
+        const pdf = 'xml' in document
+            ? engine.render_pdf(document.xml, document.data, ...job.encryption)
+            : 'tree' in document
+                ? engine.render_tree_pdf(document.tree, ...job.encryption)
+                : engine.stamp(document.pdf, document.stamps);
         reply = { pdf };
     } catch (e) {
         // A trap, or the stack running out inside the engine, which some browsers report as a RangeError, leaves the

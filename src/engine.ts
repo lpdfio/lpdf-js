@@ -7,6 +7,7 @@ import type { FileAttr } from './attrs';
 import type { DocumentAssets, PdfDocument } from './kit';
 import { LpdfRenderError } from './render-error';
 import type { RenderJob, RenderReply } from './render-job';
+import { stampRequest, type StampAttr } from './stamp';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 
 export { LpdfRenderError } from './render-error';
@@ -271,6 +272,41 @@ export class PdfEngine {
   async render(input: string | PdfDocument, callOptions: RenderOptions = {}): Promise<Uint8Array> {
     this._throwIfDisposed();
     const job = this._job(input, callOptions);
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return renderQueue.render(job, this._timeout);
+  }
+
+  /**
+   * Draw PNG images over the pages of an existing PDF, and return the PDF with them (Node.js). Nothing is laid out:
+   * each image is drawn in its stamp's box, over the pages its `page` names.
+   *
+   * The output is the input, byte for byte, with an incremental update after it, so an owner password and its
+   * permissions stay, and so does a digital signature, for the revision it signed. A PDF/A file stays PDF/A. Without a
+   * license key each stamped page gets the attribution line in its top-right corner. A stamp covers what is under it
+   * and does not remove it: the text under an image can still be selected and found, so a stamp is not a redaction.
+   *
+   * The stamp runs on a worker thread, as a render does, with its `timeout` and `maxMemoryMb`. It rejects with an
+   * `LpdfRenderError` when the input is not a PDF, needs a password to open, or doesn't have a page a stamp names, and
+   * when an image is not a PNG or a stamp's options are wrong.
+   *
+   * @throws {TypeError} when a stamp's `image` is not the PNG's bytes.
+   */
+  async stamp(pdf: Uint8Array, stamps: StampAttr[]): Promise<Uint8Array> {
+    this._throwIfDisposed();
+    const { stamps: json, images } = stampRequest(stamps);
+    const job: RenderJob = {
+      licenseKey: this._licenseKey,
+      now: nowUnix(),
+      maxMemoryMb: this._maxMemoryMb,
+      createdOn: undefined,
+      fonts: new Map(),
+      images,
+      files: new Map(),
+      profiles: new Map(),
+      markdownStyles: new Map(),
+      document: { pdf, stamps: json },
+      encryption: [null, null, false, new Uint8Array()],
+    };
     renderQueue ??= new RenderQueue(startNodeWorker);
     return renderQueue.render(job, this._timeout);
   }

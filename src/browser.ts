@@ -26,8 +26,10 @@ import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 import type { RenderJob, RenderReply } from './render-job';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
+import { stampRequest, type StampAttr } from './stamp';
 
 export type { EngineOptions, RenderOptions } from './_shared';
+export type { StampAttr } from './stamp';
 export { LpdfRenderError } from './render-error';
 export {
     FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
@@ -164,6 +166,16 @@ export interface LpdfBrowser {
      */
     render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
     /**
+     * Draw PNG images over the pages of an existing PDF, and return the PDF with them: the input, byte for byte, with
+     * an incremental update after it. Without a license key each stamped page gets the attribution line.
+     *
+     * The stamp runs on the Web Worker, as a render does, and rejects with an `LpdfRenderError` when the engine
+     * refuses the PDF or a stamp.
+     *
+     * @throws {TypeError} when a stamp's `image` is not the PNG's bytes.
+     */
+    stamp(pdf: Uint8Array, stamps: StampAttr[]): Promise<Uint8Array>;
+    /**
      * Ask the engine what a license key is: valid, expired, for another product, and which
      * license and key it is. Defaults to the key this renderer was created with.
      *
@@ -247,6 +259,24 @@ export async function initLpdf(
                     ? { xml: input, data: callOptions.data != null ? JSON.stringify(callOptions.data) : null }
                     : { tree: JSON.stringify(input) },
                 encryption: encryptionArguments(callOptions, secureRandomBytes),
+            };
+            return queue.render(job, timeout);
+        },
+
+        async stamp(pdf: Uint8Array, stamps: StampAttr[]): Promise<Uint8Array> {
+            const { stamps: json, images } = stampRequest(stamps);
+            const job: RenderJob = {
+                licenseKey,
+                now: nowUnix(),
+                maxMemoryMb: memory,
+                createdOn: undefined,
+                fonts: new Map(),
+                images,
+                files: new Map(),
+                profiles: new Map(),
+                markdownStyles: new Map(),
+                document: { pdf, stamps: json },
+                encryption: [null, null, false, new Uint8Array()],
             };
             return queue.render(job, timeout);
         },
