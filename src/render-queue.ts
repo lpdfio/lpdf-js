@@ -131,7 +131,7 @@ export class RenderQueue {
         if ('pdf' in reply) {
             pending.resolve(reply.pdf);
         } else {
-            pending.reject(new LpdfRenderError(reply.error));
+            pending.reject(new LpdfRenderError(reply.error, reply.cause));
         }
         this._next();
     }

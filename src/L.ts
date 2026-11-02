@@ -36,7 +36,8 @@ export const L = Object.freeze({
     /**
      * Create a new {@link PdfEngine} instance. Call `.setLicenseKey()` to configure.
      *
-     * @param options - `timeout`: the seconds a render may run, 5 when left out, no limit at 0.
+     * @param options - `timeout`: the seconds a render may run, 5 when left out, no limit at 0. `maxMemoryMb`: the
+     *   megabytes a render may allocate, 1024 when left out, from 1 to 4096.
      */
     engine: (options?: EngineOptions): PdfEngine => new PdfEngine(options),
 

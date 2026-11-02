@@ -67,6 +67,11 @@ const require = createRequire(import.meta.url);
 const { L, LpdfRenderError } = require(join(PACKAGE, 'index.js'));
 const { RenderQueue } = require(join(PACKAGE, 'render-queue.js'));
 
+// The same in every SDK of Lpdf.
+const ENGINE_CRASHED =
+    'The engine crashed during the render. This is a bug in Lpdf, or the render ran out of memory before its cap '
+    + 'stopped it: please report it with the document at https://github.com/lpdfio/lpdf/issues.';
+
 function marked(mark) {
     return `<lpdf version="1"><!-- ${mark} --><document><section><layout><text>x</text></layout></section></document></lpdf>`;
 }
@@ -139,17 +144,21 @@ describe('the timeout', () => {
         compareOrUpdate('bench_m', rendered.value);
     });
 
-    it('rejects with the engine\'s own error when it traps, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
+    it('rejects with the crash message when the engine traps, its own error the cause, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
         const engine = L.engine().setLicenseKey('test-key');
 
-        await assert.rejects(engine.render(marked('trap')), { name: 'LpdfRenderError', message: 'memory access out of bounds' });
+        await assert.rejects(engine.render(marked('trap')), {
+            name: 'LpdfRenderError', message: ENGINE_CRASHED, cause: 'RuntimeError: memory access out of bounds',
+        });
         compareOrUpdate('bench_m', await renderFixture(engine, 'bench_m'));
     });
 
-    it('rejects with the engine\'s own error when it runs out of stack, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
+    it('rejects with the crash message when the engine runs out of stack, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
         const engine = L.engine({ timeout: 0 }).setLicenseKey('test-key');
 
-        await assert.rejects(engine.render(marked('overflow')), { name: 'LpdfRenderError', message: 'Maximum call stack size exceeded.' });
+        await assert.rejects(engine.render(marked('overflow')), {
+            name: 'LpdfRenderError', message: ENGINE_CRASHED, cause: 'RangeError: Maximum call stack size exceeded.',
+        });
         compareOrUpdate('bench_m', await renderFixture(engine, 'bench_m'));
     });
 

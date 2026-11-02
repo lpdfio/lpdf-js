@@ -2,6 +2,7 @@
  * A render as a worker runs it: everything the engine needs, sent in one message, and the reply that comes back.
  * Shared by the Node worker and the browser's.
  */
+import { ENGINE_CRASHED } from './render-error';
 
 /** The engine's render calls, as wasm-bindgen exposes them in both builds. */
 export interface WasmRenderEngine {
@@ -20,6 +21,7 @@ export interface WasmRenderEngine {
     load_markdown_styles(src: string, xml: string): void;
     set_created_on(iso: string): void;
     set_now(unix: bigint): void;
+    set_max_memory_mb(mb: number): void;
     free(): void;
 }
 
@@ -31,6 +33,8 @@ export interface RenderJob {
     licenseKey: string;
     /** The host's clock in Unix seconds, for the key's expiry. */
     now: bigint;
+    /** The megabytes the render may allocate. */
+    maxMemoryMb: number;
     createdOn: string | undefined;
     fonts: Map<string, Uint8Array>;
     images: Map<string, Uint8Array>;
@@ -44,9 +48,10 @@ export interface RenderJob {
 
 /**
  * What the worker sends back: the PDF, or the engine's error. `broken` says that the engine trapped, after which its
- * memory can't be trusted, so the worker is replaced before the next render.
+ * memory can't be trusted, so the worker is replaced before the next render. A crash of the engine has the error every
+ * SDK gives for one, and the engine's own as its `cause`.
  */
-export type RenderReply = { pdf: Uint8Array } | { error: string; broken: boolean };
+export type RenderReply = { pdf: Uint8Array } | { error: string; broken: boolean; cause?: string };
 
 /**
  * Runs a render on an engine of its own, which is freed after it, and returns the PDF or the error. It never throws: a
@@ -60,6 +65,7 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         // Without a clock the engine cannot check the key's expiry, and an expired key renders as though it were
         // current.
         engine.set_now(job.now);
+        engine.set_max_memory_mb(job.maxMemoryMb);
         if (job.createdOn) engine.set_created_on(job.createdOn);
         for (const [name, bytes] of job.fonts) engine.load_font(name, bytes);
         for (const [name, bytes] of job.images) engine.load_image(name, bytes);
@@ -72,9 +78,11 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         reply = { pdf };
     } catch (e) {
         // A trap, or the stack running out inside the engine, which some browsers report as a RangeError, leaves the
-        // engine part way through a call: its memory can't be trusted.
-        const broken = e instanceof WebAssembly.RuntimeError || e instanceof RangeError;
-        reply = { error: e instanceof Error ? e.message : String(e), broken };
+        // engine part way through a call: its memory can't be trusted. Either is a crash of the engine.
+        const crashed = e instanceof WebAssembly.RuntimeError || e instanceof RangeError;
+        reply = crashed
+            ? { error: ENGINE_CRASHED, broken: true, cause: `${e.name}: ${e.message}` }
+            : { error: e instanceof Error ? e.message : String(e), broken: false };
     }
     // An engine left part way through a call is still borrowed, and wasm-bindgen's free() throws "attempted to take
     // ownership of Rust value while it was borrowed". Such an engine goes with its worker; the reply keeps the
@@ -83,7 +91,7 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         try {
             engine?.free();
         } catch {
-            if ('error' in reply) reply = { error: reply.error, broken: true };
+            if ('error' in reply) reply = { ...reply, broken: true };
         }
     }
     return reply;
