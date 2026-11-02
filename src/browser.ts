@@ -30,7 +30,8 @@ import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents 
 export type { EngineOptions, RenderOptions } from './_shared';
 export { LpdfRenderError } from './render-error';
 export {
-    FieldType, Pin, Orientation, SectionType, FootnoteCounter, Cipher, Permission, FileRelationship, BuiltinFont, PageScope,
+    FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
+    PageScope,
 } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,

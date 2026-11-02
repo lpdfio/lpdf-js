@@ -11,7 +11,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
-  FieldType, Pin, Orientation, SectionType, FootnoteCounter, PageScope, BuiltinFont, Cipher, Permission, FileRelationship, NoAttr,
+  FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, PageScope, BuiltinFont, Cipher, Permission, FileRelationship,
+  NoAttr,
 } from '../dist/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -675,6 +676,27 @@ describe('kitToXml', () => {
     await assert.rejects(
       engine.render(L.document(null, [L.section({ pageStart: 0 }, [L.layout(null, [])])])),
       (e) => e instanceof LpdfRenderError && /page-start must be a whole number from 1 to 2147483647, not 0/.test(e.message),
+    );
+  });
+
+  it('emits a section in columns and an inset, renders them as their XML does, and rejects an inset past the columns', async () => {
+    const build = (col) => L.document(null, [
+      L.section({ columns: 3, columnGap: 'm', columnRule: '0.5pt #cccccc', columnFill: ColumnFill.Balance }, [L.layout(null, [
+        L.region({ pin: Pin.Inset, col, colspan: 2, top: '50pt', height: '100pt' }, [L.text(null, ['Inset'])]),
+        L.text(null, ['One']),
+        L.text({ paginate: 'break-before' }, ['Two']),
+      ])]),
+    ]);
+    const xml = L.toXml(build(2));
+    assert.match(xml, /<section column-fill="balance" column-gap="m" column-rule="0.5pt #cccccc" columns="3">/, xml);
+    assert.match(xml, /<region col="2" colspan="2" height="100pt" pin="inset" top="50pt">/, xml);
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    assert.equal(await render(build(2)), await render(xml));
+    await assert.rejects(
+      engine.render(build(3)),
+      (e) => e instanceof LpdfRenderError && /col 3 and colspan 2 reach column 4, past the section's 3 columns/.test(e.message),
     );
   });
 

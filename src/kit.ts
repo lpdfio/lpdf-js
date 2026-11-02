@@ -164,6 +164,14 @@ export interface SectionAttr {
   pageFormat?: string;
   /** Text before the section's page numbers, such as `A-`. Without it the section keeps the prefix before; `''` takes it away. */
   pagePrefix?: string;
+  /** Sets the section's flow in this many columns, 1 to 12, each filled like a small page, left to right. */
+  columns?: number;
+  /** The space between two columns, a space token or a length; `l` by default. */
+  columnGap?: string;
+  /** A line in the middle of each gap between two columns, as a border, such as `0.5pt #ccc`. */
+  columnRule?: string;
+  /** How the last page's columns fill: `ColumnFill.Auto`, in order, the default, or `ColumnFill.Balance`, levelled. */
+  columnFill?: string;
 }
 
 export interface DocumentAttr {

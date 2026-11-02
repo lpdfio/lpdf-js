@@ -18,6 +18,7 @@ export const Pin = {
   Bottom: 'bottom',
   Left: 'left',
   Right: 'right',
+  Inset: 'inset',
 } as const;
 
 export type Pin = (typeof Pin)[keyof typeof Pin];
@@ -45,6 +46,14 @@ export const FootnoteCounter = {
 } as const;
 
 export type FootnoteCounter = (typeof FootnoteCounter)[keyof typeof FootnoteCounter];
+
+/** The values of the `column-fill` attribute of a section: how the columns of its last page fill. */
+export const ColumnFill = {
+  Auto: 'auto',
+  Balance: 'balance',
+} as const;
+
+export type ColumnFill = (typeof ColumnFill)[keyof typeof ColumnFill];
 
 /** The values of the `encrypt` attribute of the output: the cipher the PDF is encrypted with. */
 export const Cipher = {
