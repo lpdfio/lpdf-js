@@ -14,6 +14,8 @@ declare module '../wasm/lpdf-web.js' {
     load_file(name: string, bytes: Uint8Array): void;
     /** Register the bytes of an ICC color profile, under the `ref` or name of its `<profile>`. */
     load_profile(name: string, bytes: Uint8Array): void;
+    /** Register the text of a file of Markdown rules, under the `src` that names it. */
+    load_markdown_styles(src: string, xml: string): void;
     /** Set an optional ISO 8601 creation timestamp for /CreationDate. */
     set_created_on(iso: string): void;
     /** Set the host's clock, in Unix seconds, so the key's expiry can be checked. */
@@ -37,7 +39,9 @@ declare module '../wasm/lpdf-web.js' {
   /** What this build makes of a license key, as the JSON report described in `LicenseCheck`. */
   export function check_license(token: string, now_unix: bigint): string;
   export function initSync(module: unknown): void;
+  /** Where the engine is loaded from: a URL, a response, the bytes or the compiled module. */
+  export type InitInput = string | URL | Request | Response | BufferSource | WebAssembly.Module;
   export default function init(
-    source?: string | URL | Response | BufferSource | null,
+    source?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | null,
   ): Promise<void>;
 }

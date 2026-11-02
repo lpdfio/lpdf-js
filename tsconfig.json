@@ -12,5 +12,5 @@
     "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["src/browser.ts"]
+  "exclude": ["src/browser.ts", "src/browser-worker.ts"]
 }
