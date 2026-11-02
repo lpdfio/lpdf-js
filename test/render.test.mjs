@@ -171,6 +171,31 @@ describe('LpdfEngine', () => {
     assert(text.includes('<pdfaid:conformance>B</pdfaid:conformance>'), 'the level of the kit document');
   });
 
+  /** The XML of a Factur-X invoice of the EN 16931 profile, as little of it as the engine reads: its BT-24. */
+  const CII_INVOICE = '<rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"'
+    + ' xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100">'
+    + '<rsm:ExchangedDocumentContext><ram:GuidelineSpecifiedDocumentContextParameter><ram:ID>urn:cen.eu:en16931:2017</ram:ID>'
+    + '</ram:GuidelineSpecifiedDocumentContextParameter></rsm:ExchangedDocumentContext></rsm:CrossIndustryInvoice>';
+
+  it('makes a Factur-X invoice of a kit document with pdfa 3b and factur-x.xml', async () => {
+    const invoice = (output, attachments) => L.document({ output, attachments }, [
+      L.section(null, [L.layout(null, [L.column({ background: '#e8f0fc', height: '40pt' }, [])])]),
+    ]);
+    const engine = new PdfEngine().setLicenseKey('test-key').loadFile('factur-x.xml', Buffer.from(CII_INVOICE));
+    const text = latin1(await engine.render(invoice({ pdfa: '3b' }, [{ name: 'factur-x.xml' }]), { createdOn: '2026-10-31' }));
+    assert(text.includes('<pdfaid:part>3</pdfaid:part>'), 'PDF/A-3 in the XMP packet');
+    assert(text.includes('<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>'), 'the profile, read from BT-24');
+    assert(text.includes('/AFRelationship /Alternative') && text.includes('/Subtype /text#2Fxml'), 'the defaults of the invoice file');
+
+    const typed = [{ name: 'factur-x.xml', mime: 'application/xml' }];
+    await engine.render(invoice({ pdfa: '3u' }, typed), { createdOn: '2026-10-31' });
+    await assert.rejects(
+      () => engine.render(invoice({ pdfa: '3u', facturxStrict: true }, typed), { createdOn: '2026-10-31' }),
+      /facturx-strict="true".*mime 'application\/xml'/,
+    );
+    assert(L.toXml(invoice({ pdfa: '3b', facturxStrict: true }, typed)).includes('facturx-strict="true"'), 'the XML names the flag as the schema does');
+  });
+
   it('refuses PDF/A without createdOn, and text in a built-in font', async () => {
     const lpdf = new PdfEngine().setLicenseKey('test-key');
     await assert.rejects(() => lpdf.render(pdfaDoc()), /created_on/);
