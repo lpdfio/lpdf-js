@@ -2,7 +2,8 @@
 //
 // A render that runs long comes from a copy of the built package whose engine module is a stand-in: the real engine,
 // except that a document holding `<!-- spin N -->` makes the render spin for N seconds, or for ever with
-// `<!-- spin forever -->`. The real engine renders the largest fixture in well under a second.
+// `<!-- spin forever -->`, and one holding `<!-- trap -->` or `<!-- overflow -->` traps, or runs out of stack as some
+// browsers report it, after which free() throws as wasm-bindgen's does on an engine left borrowed. The real engine renders the largest fixture in well under a second.
 //
 // Run with: node --test test/timeout.test.mjs
 //
@@ -26,11 +27,24 @@ const real = require('./lpdf-real.js');
 
 class LpdfEngine extends real.LpdfEngine {
     render_pdf(xml, ...rest) {
+        if (xml.includes('<!-- trap -->')) {
+            this.trapped = true;
+            throw new WebAssembly.RuntimeError('memory access out of bounds');
+        }
+        if (xml.includes('<!-- overflow -->')) {
+            this.trapped = true;
+            throw new RangeError('Maximum call stack size exceeded.');
+        }
         const spin = /<!-- spin (\\d+|forever) -->/.exec(xml);
         if (!spin) return super.render_pdf(xml, ...rest);
         const until = spin[1] === 'forever' ? Infinity : Date.now() + Number(spin[1]) * 1000;
         while (Date.now() < until) { /* spin */ }
         return new TextEncoder().encode('%PDF-');
+    }
+
+    free() {
+        if (this.trapped) throw new Error('attempted to take ownership of Rust value while it was borrowed');
+        super.free();
     }
 }
 
@@ -49,10 +63,16 @@ function standInPackage() {
 const PACKAGE = standInPackage();
 after(() => rmSync(PACKAGE, { recursive: true, force: true }));
 
-const { L, LpdfRenderError } = createRequire(import.meta.url)(join(PACKAGE, 'index.js'));
+const require = createRequire(import.meta.url);
+const { L, LpdfRenderError } = require(join(PACKAGE, 'index.js'));
+const { RenderQueue } = require(join(PACKAGE, 'render-queue.js'));
+
+function marked(mark) {
+    return `<lpdf version="1"><!-- ${mark} --><document><section><layout><text>x</text></layout></section></document></lpdf>`;
+}
 
 function spinning(seconds) {
-    return `<lpdf version="1"><!-- spin ${seconds} --><document><section><layout><text>x</text></layout></section></document></lpdf>`;
+    return marked(`spin ${seconds}`);
 }
 
 async function timedRender(engine, xml) {
@@ -78,12 +98,12 @@ describe('the timeout', () => {
         assert.ok(seconds >= 1 && seconds < 1.5, `stopped after ${seconds} s`);
     });
 
-    it('lets a render run with no limit at a timeout of 0', async () => {
-        const { seconds, pdf, error } = await timedRender(L.engine({ timeout: 0 }), spinning(2));
+    it('lets a render run past the default with no limit at a timeout of 0', async () => {
+        const { seconds, pdf, error } = await timedRender(L.engine({ timeout: 0 }), spinning(6));
 
         assert.equal(error, undefined);
         assert.equal(Buffer.from(pdf).toString('latin1'), '%PDF-');
-        assert.ok(seconds >= 2, `rendered in ${seconds} s`);
+        assert.ok(seconds >= 6, `rendered in ${seconds} s`);
     });
 
     it('stops a render after 5 seconds when the timeout is left out', async () => {
@@ -119,10 +139,44 @@ describe('the timeout', () => {
         compareOrUpdate('bench_m', rendered.value);
     });
 
+    it('rejects with the engine\'s own error when it traps, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
+        const engine = L.engine().setLicenseKey('test-key');
+
+        await assert.rejects(engine.render(marked('trap')), { name: 'LpdfRenderError', message: 'memory access out of bounds' });
+        compareOrUpdate('bench_m', await renderFixture(engine, 'bench_m'));
+    });
+
+    it('rejects with the engine\'s own error when it runs out of stack, and renders right after it', { skip: !HAS_FIXTURES }, async () => {
+        const engine = L.engine({ timeout: 0 }).setLicenseKey('test-key');
+
+        await assert.rejects(engine.render(marked('overflow')), { name: 'LpdfRenderError', message: 'Maximum call stack size exceeded.' });
+        compareOrUpdate('bench_m', await renderFixture(engine, 'bench_m'));
+    });
+
     it('renders a fixture right with a timeout of 0', { skip: !HAS_FIXTURES }, async () => {
         const engine = L.engine({ timeout: 0 }).setLicenseKey('test-key');
 
         compareOrUpdate('bench_l', await renderFixture(engine, 'bench_l'));
+    });
+});
+
+describe('the render queue', () => {
+    const JOB = {};
+    const PDF = new TextEncoder().encode('%PDF-');
+
+    it('fails only the render whose worker could not start, and goes on with the next', async () => {
+        let starts = 0;
+        const queue = new RenderQueue(events => {
+            starts += 1;
+            if (starts === 1) throw new Error('blocked by the page\'s policy');
+            return { post: () => setImmediate(() => events.replied({ pdf: PDF })), terminate: () => {} };
+        });
+
+        const [failed, rendered] = await Promise.allSettled([queue.render(JOB, 1), queue.render(JOB, 1)]);
+
+        assert.ok(failed.reason instanceof LpdfRenderError);
+        assert.equal(failed.reason.message, 'The render worker failed: blocked by the page\'s policy');
+        assert.equal(rendered.value, PDF);
     });
 });
 

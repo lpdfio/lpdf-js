@@ -87,12 +87,18 @@ export class RenderQueue {
             return;
         }
         this._running = pending;
-        const worker = this._worker ??= this._startWorker();
-        worker.hold?.(true);
-        if (pending.timeout > 0) {
-            pending.timer = setTimeout(() => this._timedOut(pending), Math.min(pending.timeout * 1000, MAX_DELAY_MS));
+        try {
+            const worker = this._worker ??= this._startWorker();
+            worker.hold?.(true);
+            if (pending.timeout > 0) {
+                pending.timer = setTimeout(() => this._timedOut(pending), Math.min(pending.timeout * 1000, MAX_DELAY_MS));
+            }
+            worker.post(pending.job);
+        } catch (e) {
+            // A worker that can't be started or sent the render fails this render, and the next one tries a new worker.
+            this._dropWorker();
+            this._settle({ error: `The render worker failed: ${e instanceof Error ? e.message : String(e)}`, broken: true });
         }
-        worker.post(pending.job);
     }
 
     private _startWorker(): RenderWorker {

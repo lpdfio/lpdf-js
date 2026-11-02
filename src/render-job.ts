@@ -48,9 +48,13 @@ export interface RenderJob {
  */
 export type RenderReply = { pdf: Uint8Array } | { error: string; broken: boolean };
 
-/** Runs a render on an engine of its own, which is freed after it, and returns the PDF or the error. */
+/**
+ * Runs a render on an engine of its own, which is freed after it, and returns the PDF or the error. It never throws: a
+ * failure is the reply.
+ */
 export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEngine, job: RenderJob): RenderReply {
     let engine: WasmRenderEngine | undefined;
+    let reply: RenderReply;
     try {
         engine = createEngine(job.licenseKey);
         // Without a clock the engine cannot check the key's expiry, and an expired key renders as though it were
@@ -65,12 +69,24 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         const pdf = 'xml' in job.document
             ? engine.render_pdf(job.document.xml, job.document.data, ...job.encryption)
             : engine.render_tree_pdf(job.document.tree, ...job.encryption);
-        return { pdf };
+        reply = { pdf };
     } catch (e) {
-        return { error: e instanceof Error ? e.message : String(e), broken: e instanceof WebAssembly.RuntimeError };
-    } finally {
-        engine?.free();
+        // A trap, or the stack running out inside the engine, which some browsers report as a RangeError, leaves the
+        // engine part way through a call: its memory can't be trusted.
+        const broken = e instanceof WebAssembly.RuntimeError || e instanceof RangeError;
+        reply = { error: e instanceof Error ? e.message : String(e), broken };
     }
+    // An engine left part way through a call is still borrowed, and wasm-bindgen's free() throws "attempted to take
+    // ownership of Rust value while it was borrowed". Such an engine goes with its worker; the reply keeps the
+    // engine's own error.
+    if ('pdf' in reply || !reply.broken) {
+        try {
+            engine?.free();
+        } catch {
+            if ('error' in reply) reply = { error: reply.error, broken: true };
+        }
+    }
+    return reply;
 }
 
 /**

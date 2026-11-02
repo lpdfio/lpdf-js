@@ -19,7 +19,6 @@
 
 import type { PdfDocument } from './kit';
 
-
 /**
  * Convert an `LpdfDocument` tree (built with `LpdfKit`) into an lpdf XML
  * string.

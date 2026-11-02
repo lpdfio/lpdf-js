@@ -22,9 +22,17 @@ self.onmessage = async (event: MessageEvent<{ module: WebAssembly.Module } | Ren
     try {
         if (!ready) throw new Error('the worker was sent no engine');
         await ready;
-        reply = runRenderJob(licenseKey => new LpdfEngine(licenseKey), message);
     } catch (e) {
         reply = { error: `The engine did not load: ${e instanceof Error ? e.message : String(e)}`, broken: true };
+        self.postMessage(reply);
+        return;
+    }
+    try {
+        reply = runRenderJob(licenseKey => new LpdfEngine(licenseKey), message);
+    } catch (e) {
+        // runRenderJob replies with every failure of the engine. Anything else still gets a reply: a throw here would
+        // only reach the worker's unhandledrejection, and the render would wait for its timeout, or for ever at 0.
+        reply = { error: e instanceof Error ? e.message : String(e), broken: true };
     }
     self.postMessage(reply, { transfer: transferList(reply) });
 };
