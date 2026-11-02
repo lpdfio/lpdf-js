@@ -47,6 +47,8 @@ An ES module or a TypeScript file imports the same names, and gets the same clas
 import { L, NoAttr } from '@lpdfio/lpdf'
 ```
 
+A render runs on a worker thread, one at a time, and doesn't hold up the event loop. It stops with an `LpdfRenderError` after 5 seconds; `L.engine({ timeout: 60 })` sets another limit in seconds, and `timeout: 0` sets none.
+
 ## Requirements
 
 - Node.js 20+

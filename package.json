@@ -19,7 +19,7 @@
     "build":         "tsc && node build-browser.mjs && node -e \"require('node:fs').cpSync('./wasm', './dist/wasm', {recursive:true})\"",
     "build:node":    "tsc",
     "build:browser": "node build-browser.mjs",
-    "test":          "node --test test/render.test.mjs test/package-entry.test.mjs"
+    "test":          "node --test test/render.test.mjs test/package-entry.test.mjs test/timeout.test.mjs"
   },
   "author": "lpdf.io",
   "homepage": "https://lpdf.io",
