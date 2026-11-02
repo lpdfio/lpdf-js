@@ -21,7 +21,7 @@
  * `blob:` in `worker-src`.
  */
 import initWasm, { check_license, type InitInput } from '../wasm/lpdf-web.js';
-import { encryptionArguments, type EngineOptions, type RenderOptions } from './_shared';
+import { encryptionArguments, maxMemoryMb, type EngineOptions, type RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
 import type { LicenseCheck } from './engine';
 import type { RenderJob, RenderReply } from './render-job';
@@ -159,7 +159,8 @@ export interface LpdfBrowser {
      * not available in the browser.
      *
      * The render runs on a Web Worker, after the renders before it. It rejects with an `LpdfRenderError` when the
-     * engine refuses the document, or when it runs past the `timeout` of `initLpdf`'s options.
+     * engine refuses the document, when it runs past the `timeout` of `initLpdf`'s options or needs more than their
+     * `maxMemoryMb`, or when the engine crashes, after which the next render runs on a fresh engine.
      */
     render(input: string | PdfDocument, options?: RenderOptions): Promise<Uint8Array>;
     /**
@@ -182,8 +183,10 @@ export interface LpdfBrowser {
  *                      which draws the attribution line
  *                      (watermark applied).
  * @param options     - `timeout`: the seconds a render may run, 5 when left out,
- *                      no limit at 0.
- * @throws {RangeError} when `timeout` is negative or not a finite number.
+ *                      no limit at 0. `maxMemoryMb`: the megabytes a render may
+ *                      allocate, 1024 when left out.
+ * @throws {RangeError} when `timeout` is negative or not a finite number, or
+ *                      `maxMemoryMb` is not a whole number from 1 to 4096.
  */
 export async function initLpdf(
     wasmSource: WasmSource,
@@ -191,6 +194,7 @@ export async function initLpdf(
     options: EngineOptions = {},
 ): Promise<LpdfBrowser> {
     const timeout = renderTimeout(options.timeout);
+    const memory = maxMemoryMb(options.maxMemoryMb);
     const module = await compileEngine(wasmSource);
     // This thread keeps an instance for the license check; the renders run on the worker's.
     await initWasm({ module_or_path: module });
@@ -232,6 +236,7 @@ export async function initLpdf(
             const job: RenderJob = {
                 licenseKey,
                 now: nowUnix(),
+                maxMemoryMb: memory,
                 createdOn: callOptions.createdOn,
                 fonts: new Map(fontMap),
                 images: new Map(imageMap),

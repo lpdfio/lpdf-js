@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { encryptionArguments, type EngineOptions, type RenderOptions } from './_shared';
+import { encryptionArguments, maxMemoryMb, type EngineOptions, type RenderOptions } from './_shared';
 import type { FileAttr } from './attrs';
 import type { DocumentAssets, PdfDocument } from './kit';
 import { LpdfRenderError } from './render-error';
@@ -102,15 +102,19 @@ export class PdfEngine {
   private readonly _profiles: Map<string, Uint8Array> = new Map();
   private readonly _markdownStyles: Map<string, string> = new Map();
   private readonly _timeout: number;
+  private readonly _maxMemoryMb: number;
   private _disposed = false;
 
   /**
    * @param options - Engine-level options: `timeout`, the seconds a render may run before it rejects with an
-   *   `LpdfRenderError` that names the limit, 5 when left out and no limit at 0.
-   * @throws {RangeError} when `timeout` is negative or not a finite number.
+   *   `LpdfRenderError` that names the limit, 5 when left out and no limit at 0; `maxMemoryMb`, the megabytes a render
+   *   may allocate before it rejects with an `LpdfRenderError` that names the cap, 1024 when left out.
+   * @throws {RangeError} when `timeout` is negative or not a finite number, or `maxMemoryMb` is not a whole number
+   *   from 1 to 4096.
    */
   constructor(options: EngineOptions = {}) {
     this._timeout = renderTimeout(options.timeout);
+    this._maxMemoryMb = maxMemoryMb(options.maxMemoryMb);
   }
 
   /**
@@ -255,7 +259,8 @@ export class PdfEngine {
    * Render an lpdf XML string to PDF bytes (Node.js).
    *
    * The render runs on a worker thread, after the renders before it. It rejects with an `LpdfRenderError` when the
-   * engine refuses the document, or when it runs past the engine's `timeout`.
+   * engine refuses the document, when it runs past the engine's `timeout` or needs more than its `maxMemoryMb`, or
+   * when the engine crashes, after which the next render runs on a fresh engine.
    */
   async render(input: string, callOptions?: RenderOptions): Promise<Uint8Array>;
   /**
@@ -318,6 +323,7 @@ export class PdfEngine {
     return {
       licenseKey: this._licenseKey,
       now: nowUnix(),
+      maxMemoryMb: this._maxMemoryMb,
       createdOn: callOptions.createdOn,
       fonts,
       images,

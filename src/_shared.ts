@@ -10,6 +10,32 @@ export interface EngineOptions {
    * no limit at 0. A render runs on a worker, which is stopped at the limit and replaced for the next render.
    */
   timeout?: number;
+
+  /**
+   * The megabytes of memory a render may allocate: 1024 when left out, a whole number from 1 to 4096. A render that
+   * needs more rejects with an `LpdfRenderError` that names the cap. What the engine holds before the render, such as
+   * the fonts it loaded, doesn't count.
+   */
+  maxMemoryMb?: number;
+}
+
+/** The megabytes a render may allocate when `maxMemoryMb` is left out. */
+export const DEFAULT_MAX_MEMORY_MB = 1024;
+
+/** The most `maxMemoryMb` may be: 32-bit WebAssembly addresses 4 GB at most. */
+const MAX_MEMORY_MB = 4096;
+
+/**
+ * The megabytes a render may allocate, from the `maxMemoryMb` of the engine's options: 1024 when left out.
+ *
+ * @throws {RangeError} when `maxMemoryMb` is not a whole number from 1 to 4096.
+ */
+export function maxMemoryMb(value: number | undefined): number {
+  if (value === undefined) return DEFAULT_MAX_MEMORY_MB;
+  if (!Number.isInteger(value) || value < 1 || value > MAX_MEMORY_MB) {
+    throw new RangeError(`maxMemoryMb must be a whole number of megabytes from 1 to ${MAX_MEMORY_MB}, not ${value}`);
+  }
+  return value;
 }
 
 export interface RenderOptions {
