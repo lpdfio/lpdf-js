@@ -2187,3 +2187,77 @@ export interface GradientToken {
    */
   stops?: GradientStop[];
 }
+
+/**
+ * One set of lines of a ruling, cut by a step or by a count in each direction: x for the lines that
+ * run down the page, y for the lines that run across it. A direction with neither has no lines, so
+ * step-y alone is ruled paper and step both is squared paper. A step and a count in the same
+ * direction is an error. Each set is drawn after the one before it, so a heavier set paints over a
+ * finer one.
+ */
+export interface RulingLines {
+  /**
+   * The distance between two lines in both directions, a length such as 5mm. step-x and step-y take
+   * its place in their direction. A cell narrower than 2.5pt is an error.
+   */
+  step?: string;
+  /**
+   * The distance between two lines that run down the page, from left to right, a length such as
+   * 10mm.
+   */
+  stepX?: string;
+  /**
+   * The distance between two lines that run across the page, from top to bottom, a length such as
+   * 8mm: ruled paper.
+   */
+  stepY?: string;
+  /**
+   * Cuts the space into this many equal parts in both directions, from 1 to 100, so the lines land
+   * on its edges whatever its size. count-x and count-y take its place in their direction. A part
+   * narrower than 2.5pt is an error.
+   */
+  count?: number;
+  /** Cuts the space into this many equal columns, from 1 to 100. */
+  countX?: number;
+  /** Cuts the space into this many equal rows, from 1 to 100. */
+  countY?: number;
+  /**
+   * The color of the lines: hex, cmyk(), rgb(), hsl() or a color token. Defaults to line-muted.
+   */
+  color?: string;
+  /**
+   * The thickness of the lines, a length or a name from the border row of the tokens. Defaults to
+   * 0.4pt.
+   */
+  thickness?: string;
+}
+
+/**
+ * Lines on every page of a section, for paper to write or draw on, or a grid to place things by:
+ * ruled paper, squared paper, or a page cut into equal parts. A section names it with
+ * ruling="name", and the lines are drawn under everything else on its pages, over the background.
+ * They are decoration, which a screen reader skips.
+ */
+export interface RulingToken {
+  /**
+   * The space the lines fill and a count divides. page, the default, is the whole page up to its
+   * trim edge. margin is the area inside the margin of the section's layout or markdown. A step
+   * starts at its top left corner, and the lines stop at its edges.
+   */
+  origin?: 'page' | 'margin';
+  /**
+   * Whether the lines on the edges of that space are drawn: the first one, and the last one where a
+   * step lands on the far edge. A count of 12 draws 13 lines with them and 11 without. Defaults to
+   * true.
+   */
+  edges?: boolean;
+  /**
+   * Puts the lines in an optional content group, as ocg does on an element: print, printed and not
+   * shown on screen, or screen, shown on screen and not printed, such as a grid to place things by.
+   */
+  ocg?: 'print' | 'screen';
+  /**
+   * The sets of lines, at least one, drawn in this order: a later set paints over an earlier one.
+   */
+  lines: RulingLines[];
+}
