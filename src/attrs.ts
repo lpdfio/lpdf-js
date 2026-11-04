@@ -79,6 +79,20 @@ export interface ColumnAttr {
    * line; in a column it takes the full width.
    */
   width?: string;
+  /**
+   * true lays out the texts that the text with data-source repeats one page at a time, straight
+   * from the data, for logs and lists of tens of thousands of lines and more. The pages are the
+   * ones the same column would have without bulk, but where a page would end inside a text of four
+   * lines or more: without bulk the text splits there, and with bulk it moves whole to the next
+   * page. The column holds texts only, and they follow rules: a text holds plain words with no
+   * span, link, bookmark, footnote or reference, sets no widows or orphans and has no data-source
+   * inside it, and a text without max-lines holds one line and ends in an ellipsis. The column sits
+   * directly in the layout, has no data-source of its own and one text with it, has no height, and
+   * neither it nor anything in it has paginate. Its document has no table of contents, no reference
+   * to a bookmark, no pdfua and no pdfa of level a, and its section's columns are not balanced.
+   * Breaking a rule is an error that names it. Default false.
+   */
+  bulk?: boolean;
 }
 
 /**
@@ -241,6 +255,20 @@ export interface GridAttr {
   width?: string;
   colWidth?: string;
   cols?: number;
+  /**
+   * true lays out the cells that the child with data-source repeats one page at a time, straight
+   * from the data, for sheets of tens of thousands of labels or cards and more. The pages are the
+   * ones the same grid would have without bulk. The cells follow rules, and so do the grid's other
+   * children: a cell is a text, or a column that holds texts, a text holds plain words with no
+   * span, link, bookmark, footnote or reference, and sets no widows or orphans, a text without
+   * max-lines holds one line and ends in an ellipsis, and nothing in a cell has data-source. A row
+   * of cells never splits across pages. The grid sits directly in the layout, has no data-source of
+   * its own and one child with it, has no height, and neither it nor anything in it has paginate.
+   * Its document has no table of contents, no reference to a bookmark, no pdfua and no pdfa of
+   * level a, and its section's columns are not balanced. Breaking a rule is an error that names it.
+   * Default false.
+   */
+  bulk?: boolean;
 }
 
 /**
@@ -356,6 +384,21 @@ export interface ListAttr {
    * line; in a column it takes the full width.
    */
   width?: string;
+  /**
+   * true lays out the items that the li with data-source repeats one page at a time, straight from
+   * the data, for logs and lists of tens of thousands of items and more. The pages are the ones the
+   * same list would have without bulk, but where a page would end inside an item, between its texts
+   * or inside a text of four lines or more: without bulk the item splits there, and with bulk it
+   * moves whole to the next page. A number list numbers the items as it does without bulk. The list
+   * has one level, and its items follow rules: an li holds texts only, a text holds plain words
+   * with no span, link, bookmark, footnote or reference, and sets no widows or orphans, a text
+   * without max-lines holds one line and ends in an ellipsis, and nothing in an item has
+   * data-source. The list sits directly in the layout, has no data-source of its own and one li
+   * with it, has no height, and neither it nor anything in it has paginate. Its document has no
+   * table of contents, no reference to a bookmark, no pdfua and no pdfa of level a, and its
+   * section's columns are not balanced. Breaking a rule is an error that names it. Default false.
+   */
+  bulk?: boolean;
 }
 
 /**
@@ -1159,6 +1202,20 @@ export interface TableAttr {
   height?: string;
   paginate?: string;
   debug?: boolean;
+  /**
+   * true lays out the rows that the tr with data-source repeats one page at a time, straight from
+   * the data, for reports of tens of thousands of rows and more. The pages are the ones the same
+   * table would have without bulk. The rows follow rules, and so do the thead and the other rows:
+   * each td holds one text or none, a text holds plain words with no span, link, bookmark, footnote
+   * or reference, and sets no widows or orphans, a text without max-lines holds one line and ends
+   * in an ellipsis, a td has no rowspan, a row no keep, and nothing in a row has data-source. A row
+   * never splits across pages. The table sits directly in the layout, has no data-source of its own
+   * and one tr with it, sets its cols in fr, pt or %, has no height, and neither it nor anything in
+   * it has paginate. Its document has no table of contents, no reference to a bookmark, no pdfua
+   * and no pdfa of level a, and its section's columns are not balanced. Breaking a rule is an error
+   * that names it. Default false.
+   */
+  bulk?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
    * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The

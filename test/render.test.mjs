@@ -700,6 +700,30 @@ describe('kitToXml', () => {
     );
   });
 
+  it('renders a bulk table from data as the table without bulk, emits bulk, and rejects a bulk table built with L, which has no data', async () => {
+    const table = (bulk) => `<table cols="1fr 2fr"${bulk}><thead><td><text bold="true">Date</text></td><td><text bold="true">Amount</text></td></thead>`
+      + '<tr data-source="entries"><td><text data-value="date">-</text></td><td><text data-value="amount">-</text></td></tr></table>';
+    const xml = (bulk) => `<lpdf version="1"><document size="a4"><section><layout margin="36pt">${table(bulk)}`
+      + '<region pin="bottom"><text align="right">Page {page} of {pages}</text></region></layout></section></document></lpdf>';
+    const entries = Array.from({ length: 2000 }, (_, i) => ({ date: `2026-01-${String(i % 28 + 1).padStart(2, '0')}`, amount: `$${i}.00` }));
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input, { data: { entries } })).toString('latin1');
+    const pdf = await render(xml(' bulk="true"'));
+    assert.equal(pdf, await render(xml('')));
+    const pages = Number(/\/Type \/Pages[^>]*\/Count (\d+)/.exec(pdf)[1]);
+    assert.ok(pages > 20, `the rows run over ${pages} pages`);
+
+    const built = L.document(null, [L.section(null, [L.layout(null, [
+      L.table({ cols: '1fr', bulk: true }, [L.tr(null, [L.td(null, [L.text(null, ['A'])])])]),
+    ])])]);
+    assert.match(L.toXml(built), /<table bulk="true" cols="1fr">/);
+    await assert.rejects(
+      engine.render(built),
+      (e) => e instanceof LpdfRenderError && /a bulk table repeats one tr with data-source: it has none/.test(e.message),
+    );
+  });
+
   it('emits a footnote as an fn child of a text, and the counter on the document and a section', () => {
     const document = L.document({ footnoteCounter: FootnoteCounter.Document }, [
       L.section({ footnoteCounter: FootnoteCounter.Page }, [L.layout(null, [
