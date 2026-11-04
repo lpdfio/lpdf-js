@@ -23,7 +23,7 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr } from './attrs';
+import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr, RulingToken } from './attrs';
 import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -37,6 +37,11 @@ export type TokenRow<T> = Partial<Record<TokenSlot, T>>;
 export interface DocumentTokens {
   colors?:  Record<string, string>;
   gradients?: Record<string, GradientToken>;
+  /**
+   * Lines a section draws on every page with `ruling: 'name'`, by name: `{ graph: { origin: 'margin', lines: [{ step:
+   * '5mm' }, { step: '25mm', color: '#b5c4d6' }] } }`. Each set of lines is cut by a step or a count, in x, in y or both.
+   */
+  rulings?: Record<string, RulingToken>;
   /**
    * Names for the slots of the scale, each to the slot it stands for: `{ caption: 'xs' }` lets `fontSize: 'caption'`
    * mean the text size `xs`, and `gap: 'caption'` the space `xs`. A name is lowercase letters, digits and `-`,
@@ -172,6 +177,8 @@ export interface SectionAttr {
   columnRule?: string;
   /** How the last page's columns fill: `ColumnFill.Auto`, in order, the default, or `ColumnFill.Balance`, levelled. */
   columnFill?: string;
+  /** The name of a ruling of the tokens, whose lines are drawn on every page of the section, under everything else. */
+  ruling?: string;
 }
 
 export interface DocumentAttr {
@@ -241,6 +248,16 @@ function section(attrs: SectionAttr | null, nodes: LpdfSectionChild[] = []): Lpd
   };
 }
 
+/**
+ * The rulings of the tokens as the document tree takes them: a set of lines names its attributes as an element does,
+ * so `stepX` is `step-x`.
+ */
+function rulingsTree(rulings: Record<string, RulingToken>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(rulings).map(([name, { lines, ...ruling }]) => [name, { ...ruling, lines: (lines ?? []).map((set) => buildAttrs(set)) }]),
+  );
+}
+
 function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): PdfDocument {
   const { assets, tokens, meta, output, attachments, ...restOpts } = attrs ?? {};
   const attrsObj: Record<string, unknown> = {
@@ -250,11 +267,12 @@ function document(attrs: DocumentAttr | null, nodes: LpdfSectionNode[] = []): Pd
   if (tokens !== undefined) {
     // A factor of the line-height row and a gradient's angle are numbers, which JSON can't hold as NaN or infinity.
     assertFiniteIn('tokens', tokens);
-    const { textSize, lineHeight, ...rest } = tokens;
+    const { textSize, lineHeight, rulings, ...rest } = tokens;
     attrsObj['tokens'] = {
       ...rest,
       ...(textSize !== undefined ? { 'text-size': textSize } : {}),
       ...(lineHeight !== undefined ? { 'line-height': lineHeight } : {}),
+      ...(rulings !== undefined ? { rulings: rulingsTree(rulings) } : {}),
     };
   }
   if (meta   !== undefined) attrsObj['meta']   = meta;

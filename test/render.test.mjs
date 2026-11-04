@@ -563,6 +563,47 @@ describe('kitToXml', () => {
     assert(text.includes('/Sh-fade'), 'the page does not list the shading');
   });
 
+  it('emits rulings inside <tokens>, their lines by the schema names, and a section that names one', () => {
+    const document = L.document(
+      {
+        tokens: {
+          rulings: {
+            graph: { origin: 'margin', edges: false, lines: [{ step: '5mm' }, { countX: 12, stepY: '25mm', color: '#b5c4d6' }] },
+          },
+        },
+      },
+      [L.section({ ruling: 'graph' }, [L.layout(null, [L.text(null, ['On paper'])])])],
+    );
+    const xml = L.toXml(document);
+    assert.match(xml, /<ruling name="graph" origin="margin" edges="false">/, xml);
+    assert.match(xml, /<lines step="5mm"\/>/, xml);
+    assert.match(xml, /<lines [^>]*count-x="12"/, xml);
+    assert.match(xml, /<lines [^>]*step-y="25mm"/, xml);
+    assert.match(xml, /<section ruling="graph">/, xml);
+  });
+
+  it('draws a ruling once, as a form every page of the section invokes', async () => {
+    const lines = Array.from({ length: 120 }, (_, n) => L.text(null, [`Line ${n + 1}`]));
+    const document = L.document(
+      { tokens: { rulings: { notes: { edges: false, lines: [{ stepY: '8mm', color: '#c9d6e8' }] } } } },
+      [L.section({ ruling: 'notes' }, [L.layout(null, lines)])],
+    );
+    const text = Buffer.from(await new PdfEngine().render(document)).toString('latin1');
+    assert.equal(text.match(/\/Subtype \/Form/g)?.length, 1, 'one drawing for the section');
+    assert(text.match(/\/Contents /g).length >= 2, 'the section has more than one page');
+  });
+
+  it('a ruling whose set of lines is cut by a step and a count in one direction is refused, naming them', async () => {
+    const document = L.document(
+      { tokens: { rulings: { bad: { lines: [{ stepX: '5mm', countX: 12 }] } } } },
+      [L.section({ ruling: 'bad' }, [L.layout(null, [])])],
+    );
+    await assert.rejects(
+      new PdfEngine().render(document),
+      (e) => e instanceof LpdfRenderError && /ruling 'bad': lines\[0\]: step-x and count-x both space/.test(e.message),
+    );
+  });
+
   it('emits aliases inside <tokens>, and an alias as the size of a text', () => {
     const document = L.document(
       { tokens: { aliases: { caption: 'xs', 'sub-title': 'l' } } },
@@ -1400,6 +1441,8 @@ describe('attributes follow the schema', () => {
         /^tokens\.lineHeight\.m must be a finite number, not NaN$/],
       [() => L.document({ tokens: { gradients: { fade: { type: 'linear', from: '#f00', to: '#00f', angle: -Infinity } } } }, []),
         /^tokens\.gradients\.fade\.angle must be a finite number, not -Infinity$/],
+      [() => L.document({ tokens: { rulings: { grid: { lines: [{ countX: NaN }] } } } }, []),
+        /^tokens\.rulings\.grid\.lines\[0\]\.countX must be a finite number, not NaN$/],
     ]) {
       assert.throws(build, (e) => e instanceof RangeError && says.test(e.message));
     }
