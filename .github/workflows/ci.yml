@@ -88,3 +88,16 @@ jobs:
           rm -rf _core
 
       - run: npm test
+
+      # ── Check the code the code generator writes ─────────────────────────────
+      # For every fixture of core, and a document for every attribute of the schema, the code the generator writes for
+      # JS is built with this SDK and has to render the PDF of the XML (scripts/check-codegen-sdk.mjs in core). The
+      # generator is in the engine files of the core tag, which wasm/ holds already.
+      - name: Check the code the code generator writes
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "$EFFECTIVE_CORE_TAG" \
+            https://github.com/lpdfio/lpdf.git _check
+          git -C _check sparse-checkout set scripts test
+          node _check/scripts/check-codegen-sdk.mjs --sdk node=. --engine wasm
+          rm -rf _check
