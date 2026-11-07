@@ -12,7 +12,7 @@ You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PD
 npm install @lpdfio/lpdf
 ```
 
-## Usage — Node.js
+## Usage
 
 ```js
 const { L, NoAttr } = require('@lpdfio/lpdf')
