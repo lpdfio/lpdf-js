@@ -658,7 +658,7 @@ describe('kitToXml', () => {
     assert.equal(await render(build('m', row)), await render(build('50pt')), 'the document\'s own row');
     await assert.rejects(
       engine.render(build('medum')),
-      (e) => e instanceof LpdfRenderError && /invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a pt value/.test(e.message),
+      (e) => e instanceof LpdfRenderError && /invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a length in pt, mm or in/.test(e.message),
     );
   });
 
