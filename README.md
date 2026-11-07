@@ -2,7 +2,7 @@
 
 # @lpdfio/lpdf
 
-**Node.js SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) — PDF as Code on every platform**
+**JavaScript SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) — PDF as Code on every platform**
 
 You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
 
