@@ -1,8 +1,8 @@
 import type {
   MarkdownAttr, MarkdownStylesAttr,
   MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr, MarkdownH6Attr, MarkdownPAttr,
-  MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownAAttr, MarkdownStrongAttr, MarkdownEmAttr,
-  MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
+  MarkdownCodeAttr, MarkdownQuoteAttr, MarkdownLiAttr, MarkdownHrAttr, MarkdownAAttr, MarkdownStrongAttr,
+  MarkdownEmAttr, MarkdownDelAttr, MarkdownTableAttr, MarkdownThAttr, MarkdownTdAttr,
 } from './attrs';
 import { buildAttrs, type AttrValue } from './_shared';
 
@@ -10,7 +10,7 @@ import { buildAttrs, type AttrValue } from './_shared';
 
 /** A rule of a markdown's styles: the element it is named after, with the attributes it sets. */
 export interface LpdfMarkdownRuleNode {
-  type:  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'code' | 'quote' | 'li' | 'a' | 'strong' | 'em' | 'del'
+  type:  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'code' | 'quote' | 'li' | 'hr' | 'a' | 'strong' | 'em' | 'del'
        | 'table' | 'th' | 'td';
   attrs: Record<string, AttrValue>;
 }
@@ -95,6 +95,7 @@ export const LMarkdown = Object.freeze({
   code:   rule('code') as (attrs?: MarkdownCodeAttr | null) => LpdfMarkdownRuleNode,
   quote:  rule('quote') as (attrs?: MarkdownQuoteAttr | null) => LpdfMarkdownRuleNode,
   li:     rule('li') as (attrs?: MarkdownLiAttr | null) => LpdfMarkdownRuleNode,
+  hr:     rule('hr') as (attrs?: MarkdownHrAttr | null) => LpdfMarkdownRuleNode,
   a:      rule('a') as (attrs?: MarkdownAAttr | null) => LpdfMarkdownRuleNode,
   strong: rule('strong') as (attrs?: MarkdownStrongAttr | null) => LpdfMarkdownRuleNode,
   em:     rule('em') as (attrs?: MarkdownEmAttr | null) => LpdfMarkdownRuleNode,

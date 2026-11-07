@@ -1675,6 +1675,7 @@ describe('markdown', () => {
     });
     assert.deepEqual(LMarkdown.content(NoAttr, ['# a']), { type: 'markdown-content', attrs: {}, nodes: ['# a'] });
     assert.deepEqual(LMarkdown.quote({ barColor: 'primary' }), { type: 'quote', attrs: { 'bar-color': 'primary' } });
+    assert.deepEqual(LMarkdown.hr({ color: 'muted', thickness: 'xs' }), { type: 'hr', attrs: { color: 'muted', thickness: 'xs' } });
     assert.deepEqual(LMarkdown.em(), { type: 'em', attrs: {} });
   });
 

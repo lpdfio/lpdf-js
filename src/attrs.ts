@@ -1577,6 +1577,15 @@ export interface MarkdownLiAttr {
 }
 
 /**
+ * A thematic break, written --- in Markdown: a divider. color is the color of the line and
+ * thickness its thickness, a length or a name from the border row of the tokens.
+ */
+export interface MarkdownHrAttr {
+  color?: string;
+  thickness?: string;
+}
+
+/**
  * A link, written [text](url) in Markdown.
  */
 export interface MarkdownAAttr {
