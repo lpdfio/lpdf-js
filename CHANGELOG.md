@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.34.1 — 2026-11-07
+### JavaScript SDK
+- The SDK is called the JavaScript SDK, as it is on lpdf.io and beside the other SDKs: the README's title and the package's description on npm said Node.js SDK. 
+
 ## v0.34.0 (core) — 2026-11-07
 ### Lengths
 - **Breaking:** a table's `cols` with a width that is none of `fr`, `pt`, `mm`, `in`, `%` or `auto` is an error that names them, such as `cols="40cm 1fr"`. It was dropped, and the table read as one column. A bare number is `fr`, as before
