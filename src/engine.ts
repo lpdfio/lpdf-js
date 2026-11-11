@@ -154,7 +154,7 @@ export class PdfEngine {
   }
 
   /**
-   * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
+   * Register raw image bytes (JPEG, PNG, WebP, GIF, TIFF or BMP) for an image name used in `<img name="…">`.
    * Call before `render`. Returns `this` for chaining.
    */
   loadImage(name: string, bytes: Uint8Array): this {
