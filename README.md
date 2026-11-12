@@ -2,9 +2,7 @@
 
 # @lpdfio/lpdf
 
-**JavaScript SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) — PDF as Code on every platform**
-
-You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
+`@lpdfio/lpdf` is the JavaScript SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme), the PDF engine that renders a document written in XML or built in code to the same PDF in every language.
 
 ## Installation
 
@@ -41,18 +39,16 @@ const doc = L.document({ size: 'letter' }, [
 engine.render(doc).then((pdf) => require('node:fs').writeFileSync('proposal.pdf', pdf))
 ```
 
-An ES module or a TypeScript file imports the same names, and gets the same classes:
+An ES module or a TypeScript file imports the same names:
 
 ```js
 import { L, NoAttr } from '@lpdfio/lpdf'
 ```
 
-A render runs on a worker thread, one at a time, and doesn't hold up the event loop. It stops with an `LpdfRenderError` after 5 seconds; `L.engine({ timeout: 60 })` sets another limit in seconds, and `timeout: 0` sets none. It also stops once it needs more than 1024 MB of memory; `L.engine({ maxMemoryMb: 2048 })` sets another cap, from 1 to 4096 MB.
-
 ## Requirements
 
-- Node.js 20+
-- No external runtime dependencies — the WASM engine is embedded in the package.
+- Node.js 20 or later
+- No external runtime dependencies: the WASM engine is bundled in the package
 
 ## Docs
 
@@ -62,6 +58,6 @@ A render runs on a worker thread, one at a time, and doesn't hold up the event l
 
 Report bugs and request features at [github.com/lpdfio/lpdf/issues](https://github.com/lpdfio/lpdf/issues), the one tracker for the engine, the SDKs and the VS Code extension. Pull requests are not accepted.
 
---
+---
 
-Dual-licensed: Community License (free) and Commercial License (paid). See [LICENSE](LICENSE) for full terms.
+Licensed under the Lpdf License. See [LICENSE](https://github.com/lpdfio/lpdf-js/blob/main/LICENSE) for full terms.
