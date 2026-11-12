@@ -136,7 +136,7 @@ export interface LpdfBrowser {
      */
     loadFont(name: string, bytes: Uint8Array): void;
     /**
-     * Register raw image bytes (PNG or JPEG) for an image name used in `<img name="…">`.
+     * Register raw image bytes (JPEG, PNG, WebP, GIF, TIFF or BMP) for an image name used in `<img name="…">`.
      * Call before `render`. Mutates the renderer in-place.
      */
     loadImage(name: string, bytes: Uint8Array): void;
