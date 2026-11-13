@@ -2248,6 +2248,31 @@ export interface ProfileAttr {
 }
 
 /**
+ * A spot color: an ink of its own, such as a brand color, a varnish or a die-cut line, printed from
+ * a plate of its own. Anything that takes a color takes its name, solid, or as a tint, a percentage
+ * of the ink after a space: brand 30%.
+ */
+export interface SpotToken {
+  /**
+   * The name of the ink as the printer knows it, which names its plate, such as PANTONE 1665 C.
+   * Each spot color has an ink of its own. Not All or None, which PDF keeps for every plate and no
+   * plate, and not Cyan, Magenta, Yellow or Black, the process inks that cmyk() prints with.
+   */
+  ink: string;
+  /**
+   * The color that stands in for the ink where it is not printed as a plate of its own, on a screen
+   * or a proof: hex, cmyk(), rgb() or hsl(), not a color token.
+   */
+  value: string;
+  /**
+   * Whether the ink prints on top of the inks under it, as a varnish or a die-cut line does,
+   * instead of leaving them out where it sits. A screen doesn't show it, a press and an overprint
+   * preview do. Defaults to false.
+   */
+  overprint?: boolean;
+}
+
+/**
  * One color of a gradient, at an offset along it.
  */
 export interface GradientStop {
@@ -2257,8 +2282,8 @@ export interface GradientStop {
    */
   offset: string;
   /**
-   * The color at the stop: hex, cmyk(), rgb(), hsl() or a color token. The stops of a gradient are
-   * all CMYK or all RGB.
+   * The color at the stop: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of
+   * it. The stops of a gradient are all CMYK, all RGB, or all tints of one spot color.
    */
   color: string;
 }
@@ -2274,13 +2299,14 @@ export interface GradientToken {
    */
   type: 'linear' | 'radial';
   /**
-   * The first color: hex, cmyk(), rgb(), hsl() or a color token, CMYK if to is and RGB if it is
-   * not. Used with to, when there are no stop children. For a radial gradient it is the center.
+   * The first color: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it:
+   * CMYK if to is and RGB if it is not, or the same spot color as to. Used with to, when there are
+   * no stop children. For a radial gradient it is the center.
    */
   from?: string;
   /**
-   * The last color: hex, cmyk(), rgb(), hsl() or a color token. Used with from, when there are no
-   * stop children. For a radial gradient it is the edge.
+   * The last color: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it. Used
+   * with from, when there are no stop children. For a radial gradient it is the edge.
    */
   to?: string;
   /**
@@ -2330,7 +2356,8 @@ export interface RulingLines {
   /** Cuts the space into this many equal rows, from 1 to 100. */
   countY?: number;
   /**
-   * The color of the lines: hex, cmyk(), rgb(), hsl() or a color token. Defaults to line-muted.
+   * The color of the lines: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of
+   * it. Defaults to line-muted.
    */
   color?: string;
   /**
