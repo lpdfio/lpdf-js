@@ -563,6 +563,35 @@ describe('kitToXml', () => {
     assert(text.includes('/Sh-fade'), 'the page does not list the shading');
   });
 
+  it('emits spot colors inside <tokens>, and a tint where a color goes', () => {
+    const document = L.document(
+      { tokens: { spots: { brand: { ink: 'PANTONE 1665 C', value: 'cmyk(0, 85, 100, 0)' }, die: { ink: 'Dieline', value: '#ff00ff', overprint: true } } } },
+      [L.section(null, [L.layout(null, [L.column({ background: 'brand 30%', border: 's die' }, [L.text({ color: 'brand' }, ['Spot'])])])])],
+    );
+    const xml = L.toXml(document);
+    assert.match(xml, /<spot name="brand" ink="PANTONE 1665 C" value="cmyk\(0, 85, 100, 0\)"\/>/, xml);
+    assert.match(xml, /<spot name="die" ink="Dieline" value="#ff00ff" overprint="true"\/>/, xml);
+    assert.match(xml, /background="brand 30%"/, xml);
+  });
+
+  it('draws a spot color in the Separation space of its ink, a tint as its value', async () => {
+    const document = L.document(
+      { tokens: { spots: { brand: { ink: 'PANTONE 1665 C', value: 'cmyk(0, 85, 100, 0)' } } } },
+      [L.section(null, [L.layout(null, [L.column({ background: 'brand 30%' }, [L.text({ color: 'brand' }, ['Spot'])])])])],
+    );
+    const text = Buffer.from(await new PdfEngine().render(document)).toString('latin1');
+    assert.match(text, /\/Separation \/PANTONE#201665#20C \/DeviceCMYK/, 'the ink is a Separation space');
+    assert.match(text, /\/CS-brand /, 'the page names it');
+  });
+
+  it('a tint of a color that is not a spot color is refused, saying to write the lighter color', async () => {
+    const document = L.document(null, [L.section(null, [L.layout(null, [L.text({ color: 'primary 30%' }, ['Tint'])])])]);
+    await assert.rejects(
+      new PdfEngine().render(document),
+      (e) => e instanceof LpdfRenderError && /only a spot color takes a tint/.test(e.message),
+    );
+  });
+
   it('emits rulings inside <tokens>, their lines by the schema names, and a section that names one', () => {
     const document = L.document(
       {

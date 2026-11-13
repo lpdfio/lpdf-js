@@ -23,7 +23,7 @@
 import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
-import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr, RulingToken } from './attrs';
+import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr, RulingToken, SpotToken } from './attrs';
 import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -36,6 +36,12 @@ export type TokenRow<T> = Partial<Record<TokenSlot, T>>;
 
 export interface DocumentTokens {
   colors?:  Record<string, string>;
+  /**
+   * Spot colors, each an ink of its own printed from a plate of its own, by the name a color gives: `{ brand: { ink:
+   * 'PANTONE 1665 C', value: 'cmyk(0, 85, 100, 0)' }, die: { ink: 'Dieline', value: '#ff00ff', overprint: true } }`.
+   * A color takes the name, or a tint of the ink after a space: `background: 'brand 30%'`.
+   */
+  spots?: Record<string, SpotToken>;
   gradients?: Record<string, GradientToken>;
   /**
    * Lines a section draws on every page with `ruling: 'name'`, by name: `{ graph: { origin: 'margin', lines: [{ step:
