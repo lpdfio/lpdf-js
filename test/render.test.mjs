@@ -5,6 +5,7 @@
 //   cd src/adapters/node && npm install && npm run build
 
 import { strict as assert } from 'node:assert';
+import { inflateSync } from 'node:zlib';
 import { describe, it } from 'node:test';
 import fs, { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -579,16 +580,22 @@ describe('kitToXml', () => {
       { tokens: { spots: { brand: { ink: 'PANTONE 1665 C', value: 'cmyk(0, 85, 100, 0)' } } } },
       [L.section(null, [L.layout(null, [L.column({ background: 'brand 30%' }, [L.text({ color: 'brand' }, ['Spot'])])])])],
     );
-    const text = Buffer.from(await new PdfEngine().render(document)).toString('latin1');
+    const pdf = Buffer.from(await new PdfEngine().render(document));
+    const text = pdf.toString('latin1');
     assert.match(text, /\/Separation \/PANTONE#201665#20C \/DeviceCMYK/, 'the ink is a Separation space');
     assert.match(text, /\/CS-brand /, 'the page names it');
+    // The content streams are compressed: the page's draws the tint as the value of the ink, and the text in full.
+    const streams = [...text.matchAll(/stream\n([\s\S]*?)\nendstream/g)]
+      .map((m) => { try { return inflateSync(Buffer.from(m[1], 'latin1')).toString('latin1'); } catch { return ''; } });
+    assert(streams.some((s) => s.includes('/CS-brand cs\n0.3 scn')), 'the tint is the value 0.3');
+    assert(streams.some((s) => s.includes('/CS-brand cs\n1 scn')), 'the solid color is the value 1');
   });
 
   it('a tint of a color that is not a spot color is refused, saying to write the lighter color', async () => {
     const document = L.document(null, [L.section(null, [L.layout(null, [L.text({ color: 'primary 30%' }, ['Tint'])])])]);
     await assert.rejects(
       new PdfEngine().render(document),
-      (e) => e instanceof LpdfRenderError && /only a spot color takes a tint/.test(e.message),
+      (e) => e instanceof LpdfRenderError && /only a spot color takes a tint/.test(e.message) && /write the lighter color/.test(e.message),
     );
   });
 
