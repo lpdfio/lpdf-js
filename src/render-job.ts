@@ -15,6 +15,7 @@ export interface WasmRenderEngine {
         entropy: Uint8Array,
     ): Uint8Array;
     stamp(pdf: Uint8Array, stamps: string): Uint8Array;
+    merge(pdfs: Uint8Array, sources: string, options: string): Uint8Array;
     load_font(name: string, bytes: Uint8Array): void;
     load_image(name: string, bytes: Uint8Array): void;
     load_file(name: string, bytes: Uint8Array): void;
@@ -31,7 +32,8 @@ export type EncryptionArguments = [string | null, string | null, boolean, Uint8A
 
 /**
  * One render: the document and every file it needs, already read, since a worker reads nothing itself. A stamp runs as
- * a render does, with the PDF and the JSON of its stamps as its document and their PNGs as its images.
+ * a render does, with the PDF and the JSON of its stamps as its document and their PNGs as its images, and a merge with
+ * its files and options.
  */
 export interface RenderJob {
     licenseKey: string;
@@ -45,8 +47,12 @@ export interface RenderJob {
     files: Map<string, Uint8Array>;
     profiles: Map<string, Uint8Array>;
     markdownStyles: Map<string, string>;
-    /** An XML document with its data as JSON, a document tree as JSON, or a PDF to stamp. */
-    document: { xml: string; data: string | null } | { tree: string } | { pdf: Uint8Array; stamps: string };
+    /** An XML document with its data as JSON, a document tree as JSON, a PDF to stamp, or PDFs to merge. */
+    document:
+        | { xml: string; data: string | null }
+        | { tree: string }
+        | { pdf: Uint8Array; stamps: string }
+        | { pdfs: Uint8Array; sources: string; options: string };
     encryption: EncryptionArguments;
 }
 
@@ -81,7 +87,9 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
             ? engine.render_pdf(document.xml, document.data, ...job.encryption)
             : 'tree' in document
                 ? engine.render_tree_pdf(document.tree, ...job.encryption)
-                : engine.stamp(document.pdf, document.stamps);
+                : 'stamps' in document
+                    ? engine.stamp(document.pdf, document.stamps)
+                    : engine.merge(document.pdfs, document.sources, document.options);
         reply = { pdf };
     } catch (e) {
         // A trap, or the stack running out inside the engine, which some browsers report as a RangeError, leaves the

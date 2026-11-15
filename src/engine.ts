@@ -8,6 +8,7 @@ import type { DocumentAssets, PdfDocument } from './kit';
 import { LpdfRenderError } from './render-error';
 import type { RenderJob, RenderReply } from './render-job';
 import { stampRequest, type StampAttr } from './stamp';
+import { mergeRequest, type MergeOptions, type MergeSource } from './merge';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 
 export { LpdfRenderError } from './render-error';
@@ -305,6 +306,44 @@ export class PdfEngine {
       profiles: new Map(),
       markdownStyles: new Map(),
       document: { pdf, stamps: json },
+      encryption: [null, null, false, new Uint8Array()],
+    };
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return renderQueue.render(job, this._timeout);
+  }
+
+  /**
+   * Merge existing PDFs into one PDF made for printing, and return it (Node.js). Nothing is laid out: each source page
+   * is drawn on a page of the size it has as a viewer shows it, in the order of the sources, with the annotations that
+   * print flattened from their stored appearances, so forms, links and bookmarks are gone and what prints is what the
+   * page looked like. Layers cross over, each on or off by default as it prints in its source. The output is made for
+   * printing, not for reading on screen, and its version is the highest among the sources'.
+   *
+   * Each source opens without a password. A file that needs one, a file whose owner password restricts printing or
+   * copying (unless `allowRestricted`), a signed file (unless `allowSigned`), a form field that has a value and no stored
+   * appearance, which would print blank, and a file that can't be read are each an error that names the file.
+   * `doubleSided` adds a blank side after a document with an odd number of pages. Without a license key each merged page
+   * gets the attribution line in its top-right corner, with no link.
+   *
+   * The merge runs on a worker thread, as a render does, with its `timeout` and `maxMemoryMb`, and rejects with an
+   * `LpdfRenderError` for any of those errors.
+   *
+   * @throws {TypeError} when a source is not an object with a `name` and the PDF's bytes in `pdf`.
+   */
+  async merge(sources: MergeSource[], options?: MergeOptions): Promise<Uint8Array> {
+    this._throwIfDisposed();
+    const { pdfs, sources: index, options: json } = mergeRequest(sources, options);
+    const job: RenderJob = {
+      licenseKey: this._licenseKey,
+      now: nowUnix(),
+      maxMemoryMb: this._maxMemoryMb,
+      createdOn: undefined,
+      fonts: new Map(),
+      images: new Map(),
+      files: new Map(),
+      profiles: new Map(),
+      markdownStyles: new Map(),
+      document: { pdfs, sources: index, options: json },
       encryption: [null, null, false, new Uint8Array()],
     };
     renderQueue ??= new RenderQueue(startNodeWorker);

@@ -27,9 +27,11 @@ import type { LicenseCheck } from './engine';
 import type { RenderJob, RenderReply } from './render-job';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 import { stampRequest, type StampAttr } from './stamp';
+import { mergeRequest, type MergeOptions, type MergeSource } from './merge';
 
 export type { EngineOptions, RenderOptions } from './_shared';
 export type { StampAttr } from './stamp';
+export type { MergeSource, MergeOptions } from './merge';
 export { LpdfRenderError } from './render-error';
 export {
     FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
@@ -177,6 +179,20 @@ export interface LpdfBrowser {
      */
     stamp(pdf: Uint8Array, stamps: StampAttr[]): Promise<Uint8Array>;
     /**
+     * Merge existing PDFs into one PDF made for printing: each source page drawn on a page of the size it has as a
+     * viewer shows it, with the annotations that print flattened from their stored appearances, and its layers carried
+     * over. A file that needs a password, a file whose owner restricts printing or copying (unless `allowRestricted`), a
+     * signed file (unless `allowSigned`), a form field that has a value and no stored appearance and a file that can't be
+     * read are each an error that names the file. `doubleSided` adds a blank side after a document with an odd number of
+     * pages. Without a license key each merged page gets the attribution line.
+     *
+     * The merge runs on the Web Worker, as a render does, and rejects with an `LpdfRenderError` when the engine
+     * refuses a file.
+     *
+     * @throws {TypeError} when a source is not an object with a `name` and the PDF's bytes in `pdf`.
+     */
+    merge(sources: MergeSource[], options?: MergeOptions): Promise<Uint8Array>;
+    /**
      * Ask the engine what a license key is: valid, expired, for another product, and which
      * license and key it is. Defaults to the key this renderer was created with.
      *
@@ -277,6 +293,24 @@ export async function initLpdf(
                 profiles: new Map(),
                 markdownStyles: new Map(),
                 document: { pdf, stamps: json },
+                encryption: [null, null, false, new Uint8Array()],
+            };
+            return queue.render(job, timeout);
+        },
+
+        async merge(sources: MergeSource[], options?: MergeOptions): Promise<Uint8Array> {
+            const { pdfs, sources: index, options: json } = mergeRequest(sources, options);
+            const job: RenderJob = {
+                licenseKey,
+                now: nowUnix(),
+                maxMemoryMb: memory,
+                createdOn: undefined,
+                fonts: new Map(),
+                images: new Map(),
+                files: new Map(),
+                profiles: new Map(),
+                markdownStyles: new Map(),
+                document: { pdfs, sources: index, options: json },
                 encryption: [null, null, false, new Uint8Array()],
             };
             return queue.render(job, timeout);
