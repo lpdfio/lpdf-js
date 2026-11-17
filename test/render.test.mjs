@@ -777,6 +777,23 @@ describe('kitToXml', () => {
     );
   });
 
+  it('emits grow on a section, renders it as its XML does on one page, and rejects grow with columns', async () => {
+    const lines = Array.from({ length: 40 }, (_, i) => L.text(null, [`Line ${i + 1}`]));
+    const build = (attrs) => L.document(null, [L.section({ size: '80mm 40mm', grow: 'height', ...attrs }, [L.layout(null, lines)])]);
+    const xml = L.toXml(build({}));
+    assert.match(xml, /<section grow="height" size="80mm 40mm">/, xml);
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    const pdf = await render(build({}));
+    assert.equal(pdf, await render(xml));
+    assert.equal(pdf.split('/Contents ').length - 1, 1, 'the page grows to hold the 40 lines');
+    await assert.rejects(
+      engine.render(build({ columns: 2 })),
+      (e) => e instanceof LpdfRenderError && /grow doesn't work with columns or an inset, in section 1/.test(e.message),
+    );
+  });
+
   it('renders a bulk table from data as the table without bulk, emits bulk, and rejects a bulk table built with L, which has no data', async () => {
     const table = (bulk) => `<table cols="1fr 2fr"${bulk}><thead><td><text bold="true">Date</text></td><td><text bold="true">Amount</text></td></thead>`
       + '<tr data-source="entries"><td><text data-value="date">-</text></td><td><text data-value="amount">-</text></td></tr></table>';
