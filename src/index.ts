@@ -9,7 +9,7 @@ export type { MergeSource, MergeOptions } from './merge';
 // ── Constants for the schema's enumerations ───────────────────────────────────
 export {
     FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
-    PageScope,
+    PageScope, Grow,
 } from './constants';
 
 // ── Document tree types ───────────────────────────────────────────────────────

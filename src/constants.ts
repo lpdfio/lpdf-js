@@ -55,6 +55,15 @@ export const ColumnFill = {
 
 export type ColumnFill = (typeof ColumnFill)[keyof typeof ColumnFill];
 
+/** The values of the `grow` attribute of a section: the sizes its page grows in to fit its content. */
+export const Grow = {
+  Width: 'width',
+  Height: 'height',
+  WidthHeight: 'width height',
+} as const;
+
+export type Grow = (typeof Grow)[keyof typeof Grow];
+
 /** The values of the `encrypt` attribute of the output: the cipher the PDF is encrypted with. */
 export const Cipher = {
   Aes256: 'aes-256',

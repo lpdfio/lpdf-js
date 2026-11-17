@@ -35,7 +35,7 @@ export type { MergeSource, MergeOptions } from './merge';
 export { LpdfRenderError } from './render-error';
 export {
     FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
-    PageScope,
+    PageScope, Grow,
 } from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
