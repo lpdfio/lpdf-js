@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
-  FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, PageScope, BuiltinFont, Cipher, Permission, FileRelationship,
+  FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, PageScope, BuiltinFont, Cipher, Permission, FileRelationship, Grow,
   NoAttr,
 } from '../dist/index.js';
 
@@ -774,6 +774,24 @@ describe('kitToXml', () => {
     await assert.rejects(
       engine.render(build(3)),
       (e) => e instanceof LpdfRenderError && /col 3 and colspan 2 reach column 4, past the section's 3 columns/.test(e.message),
+    );
+  });
+
+  it('emits grow on a section, renders it as its XML does on one page, and rejects grow with columns', async () => {
+    const lines = Array.from({ length: 40 }, (_, i) => L.text(null, [`Line ${i + 1}`]));
+    const build = (attrs) => L.document(null, [L.section({ size: '80mm 40mm', grow: Grow.Height, ...attrs }, [L.layout(null, lines)])]);
+    const xml = L.toXml(build({}));
+    assert.match(xml, /<section grow="height" size="80mm 40mm">/, xml);
+    assert.equal(Grow.WidthHeight, 'width height');
+
+    const engine = new PdfEngine().setLicenseKey('test-key');
+    const render = async (input) => Buffer.from(await engine.render(input)).toString('latin1');
+    const pdf = await render(build({}));
+    assert.equal(pdf, await render(xml));
+    assert.equal(pdf.split('/Contents ').length - 1, 1, 'the page grows to hold the 40 lines');
+    await assert.rejects(
+      engine.render(build({ columns: 2 })),
+      (e) => e instanceof LpdfRenderError && /grow doesn't work with columns or an inset, in section 1/.test(e.message),
     );
   });
 
