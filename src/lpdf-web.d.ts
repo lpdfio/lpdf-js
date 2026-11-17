@@ -38,6 +38,11 @@ declare module '../wasm/lpdf-web.js' {
      * update. `stamps` is the JSON of the stamps, each naming its image.
      */
     stamp(pdf: Uint8Array, stamps: string): Uint8Array;
+    /**
+     * Merge PDFs into one made for printing. `pdfs` holds the files' bytes one after the other, `sources` is the JSON
+     * list that cuts them up (`[{ "name": "a.pdf", "length": 1234 }, …]`), and `options` the JSON of the options.
+     */
+    merge(pdfs: Uint8Array, sources: string, options: string): Uint8Array;
     free(): void;
     [Symbol.dispose](): void;
   }
