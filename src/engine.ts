@@ -351,6 +351,26 @@ export class PdfEngine {
   }
 
   /**
+   * `LCrossIndustryInvoice.generatePdf`: a render of `input` that makes the file a Factur-X invoice of `invoice`, on the
+   * worker as a render is.
+   *
+   * @internal
+   */
+  async _renderInvoice(
+    input: string | PdfDocument,
+    invoice: { xml: Uint8Array; map?: string | null; data?: string },
+    callOptions: RenderOptions,
+  ): Promise<Uint8Array> {
+    this._throwIfDisposed();
+    const job = this._job(input, callOptions);
+    job.document = 'xml' in job.document
+      ? { ...job.document, invoice: { xml: invoice.xml, map: invoice.map ?? null, data: invoice.data ?? '{}' } }
+      : { tree: (job.document as { tree: string }).tree, invoice: { xml: invoice.xml } };
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return renderQueue.render(job, this._timeout);
+  }
+
+  /**
    * A render of `input` with every file it needs, read here from the `src` of each font, image, file, profile and
    * file of rules the document names and that wasn't loaded: the worker reads nothing itself.
    */

@@ -14,6 +14,10 @@ export interface WasmRenderEngine {
         json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
         entropy: Uint8Array,
     ): Uint8Array;
+    render_invoice_pdf(
+        xml: string, json_data: string | null, invoice_xml: Uint8Array, invoice_map: string | null, invoice_data: string,
+    ): Uint8Array;
+    render_invoice_tree_pdf(json: string, invoice_xml: Uint8Array): Uint8Array;
     stamp(pdf: Uint8Array, stamps: string): Uint8Array;
     merge(pdfs: Uint8Array, sources: string, options: string): Uint8Array;
     load_font(name: string, bytes: Uint8Array): void;
@@ -47,10 +51,14 @@ export interface RenderJob {
     files: Map<string, Uint8Array>;
     profiles: Map<string, Uint8Array>;
     markdownStyles: Map<string, string>;
-    /** An XML document with its data as JSON, a document tree as JSON, a PDF to stamp, or PDFs to merge. */
+    /**
+     * An XML document with its data as JSON, a document tree as JSON, a PDF to stamp, or PDFs to merge. An invoice of
+     * `LCrossIndustryInvoice.generatePdf` comes with the document: its XML, and for a template the map and the values
+     * read from the XML, as JSON.
+     */
     document:
-        | { xml: string; data: string | null }
-        | { tree: string }
+        | { xml: string; data: string | null; invoice?: { xml: Uint8Array; map: string | null; data: string } }
+        | { tree: string; invoice?: { xml: Uint8Array } }
         | { pdf: Uint8Array; stamps: string }
         | { pdfs: Uint8Array; sources: string; options: string };
     encryption: EncryptionArguments;
@@ -84,9 +92,13 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         for (const [src, text] of job.markdownStyles) engine.load_markdown_styles(src, text);
         const { document } = job;
         const pdf = 'xml' in document
-            ? engine.render_pdf(document.xml, document.data, ...job.encryption)
+            ? document.invoice
+                ? engine.render_invoice_pdf(document.xml, document.data, document.invoice.xml, document.invoice.map, document.invoice.data)
+                : engine.render_pdf(document.xml, document.data, ...job.encryption)
             : 'tree' in document
-                ? engine.render_tree_pdf(document.tree, ...job.encryption)
+                ? document.invoice
+                    ? engine.render_invoice_tree_pdf(document.tree, document.invoice.xml)
+                    : engine.render_tree_pdf(document.tree, ...job.encryption)
                 : 'stamps' in document
                     ? engine.stamp(document.pdf, document.stamps)
                     : engine.merge(document.pdfs, document.sources, document.options);

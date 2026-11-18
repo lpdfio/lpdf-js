@@ -45,6 +45,10 @@ export type {
     LpdfMarkdownNode, LpdfMarkdownStylesNode, LpdfMarkdownContentNode, LpdfMarkdownRuleNode,
 } from './markdown';
 
+// ── Factur-X / ZUGFeRD from the invoice XML ───────────────────────────────────
+export { LCrossIndustryInvoice } from './cross-industry-invoice';
+export type { InvoiceFormat, ExtractInvoiceDataOptions, GeneratePdfOptions } from './cross-industry-invoice';
+
 // ── Layer types ───────────────────────────────────────────────────────────────
 export { CanvasTransform } from './canvas';
 export type {
