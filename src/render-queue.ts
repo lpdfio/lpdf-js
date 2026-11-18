@@ -139,6 +139,8 @@ export class RenderQueue {
     private _timedOut(pending: PendingRender): void {
         if (pending !== this._running) return;
         this._dropWorker();
-        this._settle({ error: `The render timed out after ${seconds(pending.timeout)}.`, broken: true });
+        // What ran past it: a render, or the read of an invoice before the render of `generatePdf`.
+        const what = 'invoiceXml' in pending.job.document ? 'The reading of the invoice' : 'The render';
+        this._settle({ error: `${what} timed out after ${seconds(pending.timeout)}.`, broken: true });
     }
 }

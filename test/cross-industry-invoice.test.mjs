@@ -196,10 +196,14 @@ describe('LCrossIndustryInvoice', () => {
     );
   });
 
-  it('reads the invoice of generatePdf on the engine\'s worker, within its maxMemoryMb', async () => {
+  it('reads the invoice of generatePdf within the engine\'s maxMemoryMb', async () => {
     const large = invoiceOfLines(10_000);
     assert.equal(LCrossIndustryInvoice.extractInvoiceData(large).lines.length, 10_000);
-    await assert.rejects(L.engine({ maxMemoryMb: 16 })._readInvoice(large, null), /cap of 16 MB/);
+    // The read's own error: under the default cap the read would pass, and the render would stop with its own.
+    await assert.rejects(
+      LCrossIndustryInvoice.generatePdf(L.engine({ maxMemoryMb: 16 }), template(), { invoiceXml: large, createdOn: CREATED_ON }),
+      (e) => e instanceof LpdfRenderError && e.message.startsWith('the reading of the invoice needs more memory than its cap of 16 MB'),
+    );
   });
 
   it('gives the default map as XML text', () => {

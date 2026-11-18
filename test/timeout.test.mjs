@@ -3,7 +3,8 @@
 // A render that runs long comes from a copy of the built package whose engine module is a stand-in: the real engine,
 // except that a document holding `<!-- spin N -->` makes the render spin for N seconds, or for ever with
 // `<!-- spin forever -->`, and one holding `<!-- trap -->` or `<!-- overflow -->` traps, or runs out of stack as some
-// browsers report it, after which free() throws as wasm-bindgen's does on an engine left borrowed. The real engine renders the largest fixture in well under a second.
+// browsers report it, after which free() throws as wasm-bindgen's does on an engine left borrowed. The read of an
+// invoice holding `<!-- spin forever -->` spins too. The real engine renders the largest fixture in well under a second.
 //
 // Run with: node --test test/timeout.test.mjs
 //
@@ -42,6 +43,11 @@ class LpdfEngine extends real.LpdfEngine {
         return new TextEncoder().encode('%PDF-');
     }
 
+    extract_invoice_data(xml, map) {
+        if (!Buffer.from(xml).toString('utf8').includes('<!-- spin forever -->')) return super.extract_invoice_data(xml, map);
+        for (;;) { /* spin */ }
+    }
+
     free() {
         if (this.trapped) throw new Error('attempted to take ownership of Rust value while it was borrowed');
         super.free();
@@ -64,7 +70,7 @@ const PACKAGE = standInPackage();
 after(() => rmSync(PACKAGE, { recursive: true, force: true }));
 
 const require = createRequire(import.meta.url);
-const { L, LpdfRenderError } = require(join(PACKAGE, 'index.js'));
+const { L, LCrossIndustryInvoice, LpdfRenderError } = require(join(PACKAGE, 'index.js'));
 const { RenderQueue } = require(join(PACKAGE, 'render-queue.js'));
 
 // The same in every SDK of Lpdf.
@@ -101,6 +107,14 @@ describe('the timeout', () => {
         assert.ok(error instanceof LpdfRenderError);
         assert.equal(error.message, 'The render timed out after 1 second.');
         assert.ok(seconds >= 1 && seconds < 1.5, `stopped after ${seconds} s`);
+    });
+
+    it('stops the read of generatePdf past the engine\'s timeout with an error that names the reading', async () => {
+        const invoiceXml = '<?xml version="1.0"?><!-- spin forever --><rsm:CrossIndustryInvoice/>';
+        await assert.rejects(
+            LCrossIndustryInvoice.generatePdf(L.engine({ timeout: 1 }), spinning('never reached'), { invoiceXml, createdOn: '2026-11-18' }),
+            (e) => e instanceof LpdfRenderError && e.message === 'The reading of the invoice timed out after 1 second.',
+        );
     });
 
     it('lets a render run past the default with no limit at a timeout of 0', async () => {
