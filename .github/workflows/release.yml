@@ -113,9 +113,9 @@ jobs:
         run: npm ci && npm run build
 
       # ── Fetch test fixtures, snapshots and assets from core ──────────────────
-      # The fixture XML files and golden SHA-256 snapshots live in the core
-      # monorepo (lpdfio/lpdf).  Sparse-clone only those two directories so
-      # that snapshot tests can actually run in this adapter's CI.
+      # The fixture XML files, golden SHA-256 snapshots and test assets live
+      # in the core monorepo (lpdfio/lpdf).  Sparse-clone only those three
+      # directories so that snapshot tests can actually run in this adapter's CI.
       # Cloned at CORE_TAG, the engine this release ships, so the snapshots
       # match it even after core's main has moved on (e.g. between an RC and
       # the final release).

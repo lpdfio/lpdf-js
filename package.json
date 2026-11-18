@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/lpdfio/lpdf/issues"
   },
-  "keywords": ["pdf", "wasm", "xml", "document", "lpdf"],
+  "keywords": ["pdf", "wasm", "xml", "document", "lpdf", "factur-x", "zugferd", "e-invoice"],
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=20.0.0"
