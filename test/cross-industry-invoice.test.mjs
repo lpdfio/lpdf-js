@@ -17,7 +17,7 @@ import { after, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { L, LCrossIndustryInvoice, LpdfRenderError, NoAttr } from '../dist/index.js';
-import { FIXTURES, ROOT, compareOrUpdate } from './snapshot_helper.mjs';
+import { FIXTURES, HAS_FIXTURES, ROOT, compareOrUpdate } from './snapshot_helper.mjs';
 
 const FACTURX = path.join(ROOT, 'test/assets/files/facturx');
 const CREATED_ON = '2026-11-18T10:00:00Z';
@@ -147,7 +147,7 @@ function documentInCode(invoiceData) {
 }
 
 describe('LCrossIndustryInvoice', () => {
-  it('fills the template with the invoice and gives the PDF core gives', async () => {
+  it('fills the template with the invoice and gives the PDF core gives', { skip: !HAS_FIXTURES }, async () => {
     const pdf = await LCrossIndustryInvoice.generatePdf(engine(), template(), {
       invoiceXml: invoice('en16931.xml'), data: { note }, createdOn: CREATED_ON,
     });
@@ -157,7 +157,7 @@ describe('LCrossIndustryInvoice', () => {
     assert.match(text, /<fx:DocumentFileName>factur-x.xml<\/fx:DocumentFileName>/);
   });
 
-  it('gives the same page from the template and from the document built in code', async () => {
+  it('gives the same page from the template and from the document built in code', { skip: !HAS_FIXTURES }, async () => {
     const invoiceXml = invoice('en16931.xml');
     const fromTemplate = await LCrossIndustryInvoice.generatePdf(engine(), template(), {
       invoiceXml, format, data: { note }, createdOn: CREATED_ON,
@@ -167,7 +167,7 @@ describe('LCrossIndustryInvoice', () => {
     assert.deepEqual(Buffer.from(fromCode), Buffer.from(fromTemplate));
   });
 
-  it('extracts the values core reads, and formats them by type and entry name', () => {
+  it('extracts the values core reads, and formats them by type and entry name', { skip: !HAS_FIXTURES }, () => {
     const expected = JSON.parse(readFileSync(path.join(FACTURX, 'case-vat-rates.json'), 'utf8'));
     assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(invoice('case-vat-rates.xml')), expected);
     const formatted = LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format });
@@ -178,13 +178,13 @@ describe('LCrossIndustryInvoice', () => {
     assert.equal(formatted.paymentTerms[0].due, '30 November 2026');
   });
 
-  it('reads through a map given as text or bytes, under its own names', () => {
+  it('reads through a map given as text or bytes, under its own names', { skip: !HAS_FIXTURES }, () => {
     const xml = readFileSync(path.join(FACTURX, 'en16931.xml'), 'utf8');
     assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: RECHNUNG_MAP }), { nummer: '2026-0412' });
     assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: Buffer.from(RECHNUNG_MAP) }), { nummer: '2026-0412' });
   });
 
-  it('fills a template through the map given, under its prefix', async () => {
+  it('fills a template through the map given, under its prefix', { skip: !HAS_FIXTURES }, async () => {
     const options = { invoiceXml: invoice('en16931.xml'), invoiceMap: RECHNUNG_MAP, createdOn: CREATED_ON };
     const pdf = await LCrossIndustryInvoice.generatePdf(engine(), rechnungTemplate('rechnung:nummer'), options);
     // The same page with the number written in: the read and the render both took the map.
@@ -196,7 +196,7 @@ describe('LCrossIndustryInvoice', () => {
     );
   });
 
-  it('reads the invoice of generatePdf within the engine\'s maxMemoryMb', async () => {
+  it('reads the invoice of generatePdf within the engine\'s maxMemoryMb', { skip: !HAS_FIXTURES }, async () => {
     const large = invoiceOfLines(10_000);
     assert.equal(LCrossIndustryInvoice.extractInvoiceData(large).lines.length, 10_000);
     // The read's own error: under the default cap the read would pass, and the render would stop with its own.
@@ -212,7 +212,7 @@ describe('LCrossIndustryInvoice', () => {
     assert.match(map, /<cross-industry-invoice-map prefix="invoice">/);
   });
 
-  it('refuses what the engine refuses, with its error', async () => {
+  it('refuses what the engine refuses, with its error', { skip: !HAS_FIXTURES }, async () => {
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('minimum.xml')),
       (e) => e instanceof LpdfRenderError && e.message.startsWith("the invoice's profile is MINIMUM"));
     const typo = template().replace('invoice:seller.name', 'invoice:sellr.name');
@@ -222,14 +222,14 @@ describe('LCrossIndustryInvoice', () => {
     );
   });
 
-  it('refuses options that are missing or of the wrong kind', async () => {
+  it('refuses options that are missing or of the wrong kind', { skip: !HAS_FIXTURES }, async () => {
     await assert.rejects(LCrossIndustryInvoice.generatePdf(engine(), template(), { createdOn: CREATED_ON }), TypeError);
     await assert.rejects(LCrossIndustryInvoice.generatePdf(engine(), template(), { invoiceXml: invoice('en16931.xml') }), TypeError);
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(42), TypeError);
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: { date: 'long' } }), TypeError);
   });
 
-  it('refuses a format function that returns anything but text, with its entry', () => {
+  it('refuses a format function that returns anything but text, with its entry', { skip: !HAS_FIXTURES }, () => {
     const lookup = { code: (value, entryName) => codeNames[entryName]?.[value] };
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: lookup }), {
       name: 'TypeError',
@@ -279,7 +279,7 @@ describe('LCrossIndustryInvoice on a stand-in engine', () => {
   after(() => rmSync(folder, { recursive: true, force: true }));
   const standIn = createRequire(import.meta.url)(path.join(folder, 'index.js'));
 
-  it('gives the crash error when the engine on the calling thread traps, and reads with a fresh one after', () => {
+  it('gives the crash error when the engine on the calling thread traps, and reads with a fresh one after', { skip: !HAS_FIXTURES }, () => {
     // The same in every SDK of Lpdf.
     const crashed = 'The engine crashed during the render. This is a bug in Lpdf, or the render ran out of memory before '
       + 'its cap stopped it: please report it with the document at https://github.com/lpdfio/lpdf/issues.';
@@ -290,7 +290,7 @@ describe('LCrossIndustryInvoice on a stand-in engine', () => {
     assert.equal(globalThis.lpdfStandInLoads, loads + 1);
   });
 
-  it('reads the invoice of generatePdf on the worker, not on the calling thread', async () => {
+  it('reads the invoice of generatePdf on the worker, not on the calling thread', { skip: !HAS_FIXTURES }, async () => {
     const invoiceXml = marked('not here');
     assert.throws(() => standIn.LCrossIndustryInvoice.extractInvoiceData(invoiceXml), /read on the calling thread/);
     const engineOfCopy = standIn.L.engine().loadFont('body', readFileSync(path.join(ROOT, 'test/assets/fonts/SourceSans3-Regular.otf')));
