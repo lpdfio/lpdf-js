@@ -16,6 +16,16 @@ const FACTURX = path.join(ROOT, 'test/assets/files/facturx');
 const CREATED_ON = '2026-11-18T10:00:00Z';
 
 const invoice = (name) => readFileSync(path.join(FACTURX, name));
+
+/** `en16931.xml` with `count` copies of its first line in place of its lines: about 1.2 KB a line. */
+function invoiceOfLines(count) {
+  const xml = readFileSync(path.join(FACTURX, 'en16931.xml'), 'utf8');
+  const [open, close] = ['<ram:IncludedSupplyChainTradeLineItem>', '</ram:IncludedSupplyChainTradeLineItem>'];
+  const start = xml.indexOf(open);
+  const line = xml.slice(start, xml.indexOf(close) + close.length);
+  return Buffer.from(xml.slice(0, start) + line.repeat(count) + xml.slice(xml.lastIndexOf(close) + close.length));
+}
+
 const template = () => readFileSync(path.join(FIXTURES, 'showcase-cross-industry-invoice.xml'), 'utf8');
 
 /** An unlicensed engine with the template's font loaded under its name. */
@@ -158,6 +168,12 @@ describe('LCrossIndustryInvoice', () => {
     const xml = readFileSync(path.join(FACTURX, 'en16931.xml'), 'utf8');
     assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: map }), { nummer: '2026-0412' });
     assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: Buffer.from(map) }), { nummer: '2026-0412' });
+  });
+
+  it('reads the invoice of generatePdf on the engine\'s worker, within its maxMemoryMb', async () => {
+    const large = invoiceOfLines(10_000);
+    assert.equal(LCrossIndustryInvoice.extractInvoiceData(large).lines.length, 10_000);
+    await assert.rejects(L.engine({ maxMemoryMb: 16 })._readInvoice(large, null), /cap of 16 MB/);
   });
 
   it('gives the default map as XML text', () => {

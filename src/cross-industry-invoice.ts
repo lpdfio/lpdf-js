@@ -5,7 +5,7 @@
  */
 import type { PdfEngine } from './engine';
 import type { PdfDocument } from './kit';
-import { LpdfRenderError } from './render-error';
+import { onThreadEngine } from './thread-engine';
 
 /**
  * How the values of a type are written on the page: each function takes the value in its normal form and the full
@@ -45,18 +45,6 @@ interface Extracted {
   typed: { at: (string | number)[]; type: keyof InvoiceFormat; name: string }[];
 }
 
-interface InvoiceModule {
-  extract_invoice_data(invoice_xml: Uint8Array, invoice_map: string | null): string;
-  default_invoice_map(): string;
-}
-
-/** The engine's module on this thread, loaded on first use, as the license check loads it. */
-function engineModule(): InvoiceModule {
-  // require() path is relative to the compiled output at dist/cross-industry-invoice.js, as engine.ts's is.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('./wasm/lpdf.js') as InvoiceModule;
-}
-
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -73,22 +61,17 @@ function mapOf(map: unknown): string | null {
   return typeof map === 'string' ? map : decoder.decode(bytesOf('invoiceMap', map));
 }
 
-/**
- * The values of an invoice, read by the engine, with `format` applied to each typed one.
- *
- * @throws {LpdfRenderError} when the engine refuses the map or the invoice.
- */
-function read(invoiceXml: Uint8Array, invoiceMap: string | null, format: InvoiceFormat | undefined): Record<string, unknown> {
+/** Refuses a `format` whose functions are not functions, before the invoice is read. */
+function checkFormat(format: InvoiceFormat | undefined): void {
   for (const type of ['date', 'amount', 'code'] as const) {
     const fn = format?.[type];
     if (fn !== undefined && typeof fn !== 'function') throw new TypeError(`format.${type} must be a function`);
   }
-  let extracted: Extracted;
-  try {
-    extracted = JSON.parse(engineModule().extract_invoice_data(invoiceXml, invoiceMap)) as Extracted;
-  } catch (e) {
-    throw new LpdfRenderError(e instanceof Error ? e.message : String(e));
-  }
+}
+
+/** The values of an invoice from the engine's reading of it, `json`, with `format` applied to each typed one. */
+function formatted(json: string, format: InvoiceFormat | undefined): Record<string, unknown> {
+  const extracted = JSON.parse(json) as Extracted;
   for (const { at, type, name } of extracted.typed) {
     const fn = format?.[type];
     if (!fn) continue;
@@ -105,7 +88,8 @@ function read(invoiceXml: Uint8Array, invoiceMap: string | null, format: Invoice
  * map names them. A value the invoice lacks is absent, and a list with no items is empty. For code that needs the
  * values itself: a document built in code, choosing a template, naming the file.
  *
- * It runs on this thread, with no engine: it reads no fonts and no key.
+ * It runs on this thread, with no engine: it reads no fonts and no key. A call on this thread can't be stopped, so it
+ * has no timeout: the limit of 2,000,000 XML nodes and the default memory cap bound it instead.
  *
  * @param invoiceXml - The invoice's XML, an EN 16931 Cross Industry Invoice, as text or bytes.
  * @throws {LpdfRenderError} when the map is not one or doesn't fit the schema, the invoice is not a Cross Industry
@@ -113,7 +97,10 @@ function read(invoiceXml: Uint8Array, invoiceMap: string | null, format: Invoice
  * @throws {TypeError} when the XML or the map is not text or bytes, or a format is not a function.
  */
 function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInvoiceDataOptions = {}): Record<string, unknown> {
-  return read(bytesOf('invoiceXml', invoiceXml), mapOf(options.invoiceMap), options.format);
+  checkFormat(options.format);
+  const xml = bytesOf('invoiceXml', invoiceXml);
+  const map = mapOf(options.invoiceMap);
+  return formatted(onThreadEngine(engine => engine.extract_invoice_data(xml, map)), options.format);
 }
 
 /**
@@ -122,11 +109,12 @@ function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInv
  * is PDF/A-3, 3b unless the document sets 3a or 3u, and carries the XML as `factur-x.xml`, or `xrechnung.xml` for
  * XRECHNUNG. The document says only how the invoice looks: it declares no invoice file.
  *
- * The engine carries the fonts, the license key and the limits, and renders on its worker.
+ * The engine carries the fonts, the license key and the limits: the invoice is read, and the PDF rendered, on its
+ * worker, each within its `timeout` and `maxMemoryMb`.
  *
  * @throws {LpdfRenderError} for what `extractInvoiceData` refuses, a template path under the prefix that the map
  *   lacks, a PDF/A level other than 3a, 3b or 3u, `encrypt`, `pdfx`, and a document that declares the invoice file.
- * @throws {TypeError} when `invoiceXml` or `createdOn` is missing.
+ * @throws {TypeError} when `invoiceXml` or `createdOn` is missing, or a format is not a function.
  */
 async function generatePdf(
   engine: PdfEngine, templateOrDocument: string | PdfDocument, options: GeneratePdfOptions,
@@ -137,8 +125,9 @@ async function generatePdf(
   if (typeof templateOrDocument !== 'string') {
     return engine._renderInvoice(templateOrDocument, { xml: invoiceXml }, { createdOn: options.createdOn });
   }
+  checkFormat(options.format);
   const map = mapOf(options.invoiceMap);
-  const values = read(invoiceXml, map, options.format);
+  const values = formatted(await engine._readInvoice(invoiceXml, map), options.format);
   return engine._renderInvoice(
     templateOrDocument,
     { xml: invoiceXml, map, data: JSON.stringify(values) },
@@ -148,7 +137,7 @@ async function generatePdf(
 
 /** Lpdf's default invoice map, as XML text: every value EN 16931 numbers, the start of a map of your own. */
 function defaultInvoiceMap(): string {
-  return engineModule().default_invoice_map();
+  return onThreadEngine(engine => engine.default_invoice_map());
 }
 
 /**

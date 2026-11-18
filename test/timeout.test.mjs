@@ -178,7 +178,7 @@ describe('the render queue', () => {
         const queue = new RenderQueue(events => {
             starts += 1;
             if (starts === 1) throw new Error('blocked by the page\'s policy');
-            return { post: () => setImmediate(() => events.replied({ pdf: PDF })), terminate: () => {} };
+            return { post: () => setImmediate(() => events.replied({ bytes: PDF })), terminate: () => {} };
         });
 
         const [failed, rendered] = await Promise.allSettled([queue.render(JOB, 1), queue.render(JOB, 1)]);
