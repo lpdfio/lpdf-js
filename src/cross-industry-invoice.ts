@@ -10,7 +10,7 @@ import { onThreadEngine } from './thread-engine';
 /**
  * How the values of a type are written on the page: each function takes the value in its normal form and the full
  * name of its entry in the map, without the prefix or an item number (`seller.country`, `lines.unit`), and returns
- * the text to bind. A type without a function is bound as the invoice has it.
+ * the text to bind: anything but a string is a `TypeError`. A type without a function is bound as the invoice has it.
  */
 export interface InvoiceFormat {
   /** A date, as `2026-10-31`, or `2026-10` and `2026-W44` for a month and a week. */
@@ -72,7 +72,7 @@ function checkFormat(format: InvoiceFormat | undefined): void {
 /**
  * The values of an invoice from the engine's reading of it, `json`, with `format` applied to each typed one.
  *
- * @throws {TypeError} when a format function returns no text.
+ * @throws {TypeError} when a format function returns anything but text.
  */
 function formatted(json: string, format: InvoiceFormat | undefined): Record<string, unknown> {
   const extracted = JSON.parse(json) as Extracted;
@@ -83,10 +83,11 @@ function formatted(json: string, format: InvoiceFormat | undefined): Record<stri
     for (const step of at.slice(0, -1)) holder = holder[step] as Record<string | number, unknown>;
     const last = at[at.length - 1];
     const text: unknown = fn(holder[last] as string, name);
-    if (text === undefined || text === null) {
-      throw new TypeError(`format.${type} returned ${text} for '${name}': return the text to bind, or the value as it came`);
+    if (typeof text !== 'string') {
+      const kind = text === null ? 'null' : typeof text;
+      throw new TypeError(`format.${type} returned ${kind} for '${name}': return the text to bind, or the value as it came`);
     }
-    holder[last] = String(text);
+    holder[last] = text;
   }
   return extracted.data;
 }
@@ -102,8 +103,8 @@ function formatted(json: string, format: InvoiceFormat | undefined): Record<stri
  * @param invoiceXml - The invoice's XML, an EN 16931 Cross Industry Invoice, as text or bytes.
  * @throws {LpdfRenderError} when the map is not one or doesn't fit the schema, the invoice is not a Cross Industry
  *   Invoice or is MINIMUM or BASIC WL, or lacks a value the map marks required.
- * @throws {TypeError} when the XML or the map is not text or bytes, a format is not a function, or one returns no
- *   text.
+ * @throws {TypeError} when the XML or the map is not text or bytes, a format is not a function, or one returns
+ *   anything but text.
  */
 function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInvoiceDataOptions = {}): Record<string, unknown> {
   checkFormat(options.format);
@@ -123,7 +124,8 @@ function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInv
  *
  * @throws {LpdfRenderError} for what `extractInvoiceData` refuses, a template path under the prefix that the map
  *   lacks, a PDF/A level other than 3a, 3b or 3u, `encrypt`, `pdfx`, and a document that declares the invoice file.
- * @throws {TypeError} when `invoiceXml` or `createdOn` is missing, a format is not a function, or one returns no text.
+ * @throws {TypeError} when `invoiceXml` or `createdOn` is missing, the XML or the map is not text or bytes, a format
+ *   is not a function, or one returns anything but text.
  */
 async function generatePdf(
   engine: PdfEngine, templateOrDocument: string | PdfDocument, options: GeneratePdfOptions,

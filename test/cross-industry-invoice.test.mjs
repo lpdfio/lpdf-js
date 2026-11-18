@@ -216,11 +216,16 @@ describe('LCrossIndustryInvoice', () => {
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: { date: 'long' } }), TypeError);
   });
 
-  it('refuses a format function that returns no text, with its entry', () => {
-    const format = { code: (value, entryName) => codeNames[entryName]?.[value] };
-    assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format }), {
+  it('refuses a format function that returns anything but text, with its entry', () => {
+    const lookup = { code: (value, entryName) => codeNames[entryName]?.[value] };
+    assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: lookup }), {
       name: 'TypeError',
       message: "format.code returned undefined for 'seller.country': return the text to bind, or the value as it came",
+    });
+    const rounded = { amount: (value) => Math.round(Number(value)) };
+    assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: rounded }), {
+      name: 'TypeError',
+      message: /^format\.amount returned number for '/,
     });
   });
 });
