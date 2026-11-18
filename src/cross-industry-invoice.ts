@@ -146,7 +146,10 @@ async function generatePdf(
   );
 }
 
-/** Lpdf's default invoice map, as XML text: every value EN 16931 numbers, the start of a map of your own. */
+/**
+ * Lpdf's default invoice map, as XML text: the values EN 16931 numbers but a party's identifiers, what a line may hold
+ * several of, and an attached file's content. The start of a map of your own.
+ */
 function defaultInvoiceMap(): string {
   return onThreadEngine(engine => engine.default_invoice_map());
 }
