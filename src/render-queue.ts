@@ -31,7 +31,7 @@ export type StartRenderWorker = (events: RenderWorkerEvents) => RenderWorker;
 interface PendingRender {
     job: RenderJob;
     timeout: number;
-    resolve(pdf: Uint8Array): void;
+    resolve(bytes: Uint8Array): void;
     reject(error: LpdfRenderError): void;
     timer?: ReturnType<typeof setTimeout>;
 }
@@ -128,8 +128,8 @@ export class RenderQueue {
         if (!pending) return;
         this._running = undefined;
         clearTimeout(pending.timer);
-        if ('pdf' in reply) {
-            pending.resolve(reply.pdf);
+        if ('bytes' in reply) {
+            pending.resolve(reply.bytes);
         } else {
             pending.reject(new LpdfRenderError(reply.error, reply.cause));
         }
@@ -139,6 +139,8 @@ export class RenderQueue {
     private _timedOut(pending: PendingRender): void {
         if (pending !== this._running) return;
         this._dropWorker();
-        this._settle({ error: `The render timed out after ${seconds(pending.timeout)}.`, broken: true });
+        // What ran past it: a render, or the read of an invoice before the render of `generatePdf`.
+        const what = 'invoiceXml' in pending.job.document ? 'The reading of the invoice' : 'The render';
+        this._settle({ error: `${what} timed out after ${seconds(pending.timeout)}.`, broken: true });
     }
 }

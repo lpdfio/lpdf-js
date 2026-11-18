@@ -85,16 +85,17 @@ jobs:
           node _schema/scripts/check-sdk-parity.mjs --sdk node=.
           rm -rf _schema
 
-      # ── Fetch test fixtures and snapshots from core ──────────────────────────
+      # ── Fetch test fixtures, snapshots and assets from core ──────────────────
       # At the RC tag, so the golden snapshots match the engine under test.
-      - name: Fetch test fixtures and snapshots from core
+      - name: Fetch test fixtures, snapshots and assets from core
         run: |
           git clone --depth 1 --branch "$CORE_TAG" --filter=blob:none --sparse \
             https://github.com/lpdfio/lpdf.git _core
-          git -C _core sparse-checkout set test/fixtures test/snapshots
-          mkdir -p test/fixtures test/snapshots
+          git -C _core sparse-checkout set test/fixtures test/snapshots test/assets
+          mkdir -p test/fixtures test/snapshots test/assets
           cp -r _core/test/fixtures/. test/fixtures/
           cp -r _core/test/snapshots/. test/snapshots/
+          cp -r _core/test/assets/. test/assets/
           rm -rf _core
 
       # ── Test ─────────────────────────────────────────────────────────────────

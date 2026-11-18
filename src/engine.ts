@@ -10,20 +10,13 @@ import type { RenderJob, RenderReply } from './render-job';
 import { stampRequest, type StampAttr } from './stamp';
 import { mergeRequest, type MergeOptions, type MergeSource } from './merge';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
+import { onThreadEngine } from './thread-engine';
 
 export { LpdfRenderError } from './render-error';
 
-/**
- * The engine's license check on this thread, loaded on first use: a render runs on the worker, which loads the engine
- * itself, so an app that only renders loads it once.
- */
+/** The engine's license check, on this thread (`onThreadEngine`). */
 function checkLicense(token: string, nowUnix: bigint): string {
-  // require() path is relative to the compiled output at dist/engine.js.
-  // In the published package, wasm-pack artifacts live in dist/wasm/.
-  // In the monorepo, `npm run build` copies them there from <root>/dist/node/.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const wasm = require('./wasm/lpdf.js') as { check_license: (token: string, now_unix: bigint) => string };
-  return wasm.check_license(token, nowUnix);
+  return onThreadEngine(engine => engine.check_license(token, nowUnix));
 }
 
 /**
@@ -346,6 +339,52 @@ export class PdfEngine {
       document: { pdfs, sources: index, options: json },
       encryption: [null, null, false, new Uint8Array()],
     };
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return renderQueue.render(job, this._timeout);
+  }
+
+  /**
+   * The read of `LCrossIndustryInvoice.generatePdf`: the values of `invoiceXml`, read through `invoiceMap`, or the
+   * default map without one, on the worker as a render is, with this engine's `timeout` and `maxMemoryMb`. Resolves
+   * with the JSON the engine gives, `{ data, typed }`.
+   *
+   * @internal
+   */
+  async _readInvoice(invoiceXml: Uint8Array, invoiceMap: string | null): Promise<string> {
+    this._throwIfDisposed();
+    const job: RenderJob = {
+      licenseKey: this._licenseKey,
+      now: nowUnix(),
+      maxMemoryMb: this._maxMemoryMb,
+      createdOn: undefined,
+      fonts: new Map(),
+      images: new Map(),
+      files: new Map(),
+      profiles: new Map(),
+      markdownStyles: new Map(),
+      document: { invoiceXml, invoiceMap },
+      encryption: [null, null, false, new Uint8Array()],
+    };
+    renderQueue ??= new RenderQueue(startNodeWorker);
+    return new TextDecoder().decode(await renderQueue.render(job, this._timeout));
+  }
+
+  /**
+   * `LCrossIndustryInvoice.generatePdf`: a render of `input` that makes the file a Factur-X invoice of `invoice`, on the
+   * worker as a render is.
+   *
+   * @internal
+   */
+  async _renderInvoice(
+    input: string | PdfDocument,
+    invoice: { xml: Uint8Array; map?: string | null; data?: string },
+    callOptions: RenderOptions,
+  ): Promise<Uint8Array> {
+    this._throwIfDisposed();
+    const job = this._job(input, callOptions);
+    job.document = 'xml' in job.document
+      ? { ...job.document, invoice: { xml: invoice.xml, map: invoice.map ?? null, data: invoice.data ?? '{}' } }
+      : { tree: (job.document as { tree: string }).tree, invoice: { xml: invoice.xml } };
     renderQueue ??= new RenderQueue(startNodeWorker);
     return renderQueue.render(job, this._timeout);
   }

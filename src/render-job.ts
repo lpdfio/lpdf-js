@@ -14,6 +14,11 @@ export interface WasmRenderEngine {
         json: string, user_password: string | null, owner_password: string | null, skip_encryption: boolean,
         entropy: Uint8Array,
     ): Uint8Array;
+    render_invoice_pdf(
+        xml: string, json_data: string | null, invoice_xml: Uint8Array, invoice_map: string | null, invoice_data: string,
+    ): Uint8Array;
+    render_invoice_tree_pdf(json: string, invoice_xml: Uint8Array): Uint8Array;
+    extract_invoice_data(invoice_xml: Uint8Array, invoice_map: string | null): string;
     stamp(pdf: Uint8Array, stamps: string): Uint8Array;
     merge(pdfs: Uint8Array, sources: string, options: string): Uint8Array;
     load_font(name: string, bytes: Uint8Array): void;
@@ -47,21 +52,27 @@ export interface RenderJob {
     files: Map<string, Uint8Array>;
     profiles: Map<string, Uint8Array>;
     markdownStyles: Map<string, string>;
-    /** An XML document with its data as JSON, a document tree as JSON, a PDF to stamp, or PDFs to merge. */
+    /**
+     * An XML document with its data as JSON, a document tree as JSON, a PDF to stamp, or PDFs to merge. An invoice of
+     * `LCrossIndustryInvoice.generatePdf` comes with the document: its XML, and for a template the map and the values
+     * read from the XML, as JSON. Before that render, the invoice comes alone, with its map, to be read.
+     */
     document:
-        | { xml: string; data: string | null }
-        | { tree: string }
+        | { xml: string; data: string | null; invoice?: { xml: Uint8Array; map: string | null; data: string } }
+        | { tree: string; invoice?: { xml: Uint8Array } }
         | { pdf: Uint8Array; stamps: string }
-        | { pdfs: Uint8Array; sources: string; options: string };
+        | { pdfs: Uint8Array; sources: string; options: string }
+        | { invoiceXml: Uint8Array; invoiceMap: string | null };
     encryption: EncryptionArguments;
 }
 
 /**
- * What the worker sends back: the PDF, or the engine's error. `broken` says that the engine trapped, after which its
- * memory can't be trusted, so the worker is replaced before the next render. A crash of the engine has the error every
- * SDK gives for one, and the engine's own as its `cause`.
+ * What the worker sends back: the PDF, or for an invoice to read the JSON of its values in UTF-8, or the engine's
+ * error. `broken` says that the engine trapped, after which its memory can't be trusted, so the worker is replaced
+ * before the next render. A crash of the engine has the error every SDK gives for one, and the engine's own as its
+ * `cause`.
  */
-export type RenderReply = { pdf: Uint8Array } | { error: string; broken: boolean; cause?: string };
+export type RenderReply = { bytes: Uint8Array } | { error: string; broken: boolean; cause?: string };
 
 /**
  * Runs a render on an engine of its own, which is freed after it, and returns the PDF or the error. It never throws: a
@@ -82,15 +93,7 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
         for (const [name, bytes] of job.files) engine.load_file(name, bytes);
         for (const [name, bytes] of job.profiles) engine.load_profile(name, bytes);
         for (const [src, text] of job.markdownStyles) engine.load_markdown_styles(src, text);
-        const { document } = job;
-        const pdf = 'xml' in document
-            ? engine.render_pdf(document.xml, document.data, ...job.encryption)
-            : 'tree' in document
-                ? engine.render_tree_pdf(document.tree, ...job.encryption)
-                : 'stamps' in document
-                    ? engine.stamp(document.pdf, document.stamps)
-                    : engine.merge(document.pdfs, document.sources, document.options);
-        reply = { pdf };
+        reply = { bytes: made(engine, job) };
     } catch (e) {
         // A trap, or the stack running out inside the engine, which some browsers report as a RangeError, leaves the
         // engine part way through a call: its memory can't be trusted. Either is a crash of the engine.
@@ -102,7 +105,7 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
     // An engine left part way through a call is still borrowed, and wasm-bindgen's free() throws "attempted to take
     // ownership of Rust value while it was borrowed". Such an engine goes with its worker; the reply keeps the
     // engine's own error.
-    if ('pdf' in reply || !reply.broken) {
+    if ('bytes' in reply || !reply.broken) {
         try {
             engine?.free();
         } catch {
@@ -112,12 +115,33 @@ export function runRenderJob(createEngine: (licenseKey: string) => WasmRenderEng
     return reply;
 }
 
+/** What the engine makes of the job's document: a PDF, or the JSON of an invoice's values, in UTF-8. */
+function made(engine: WasmRenderEngine, job: RenderJob): Uint8Array {
+    const { document } = job;
+    if ('invoiceXml' in document) {
+        return new TextEncoder().encode(engine.extract_invoice_data(document.invoiceXml, document.invoiceMap));
+    }
+    if ('xml' in document) {
+        return document.invoice
+            ? engine.render_invoice_pdf(document.xml, document.data, document.invoice.xml, document.invoice.map, document.invoice.data)
+            : engine.render_pdf(document.xml, document.data, ...job.encryption);
+    }
+    if ('tree' in document) {
+        return document.invoice
+            ? engine.render_invoice_tree_pdf(document.tree, document.invoice.xml)
+            : engine.render_tree_pdf(document.tree, ...job.encryption);
+    }
+    return 'stamps' in document
+        ? engine.stamp(document.pdf, document.stamps)
+        : engine.merge(document.pdfs, document.sources, document.options);
+}
+
 /**
- * The buffers a reply moves to the other thread instead of copying: the PDF's, when the PDF has a buffer of its own.
+ * The buffers a reply moves to the other thread instead of copying: its bytes', when they have a buffer of their own.
  * A view into a larger buffer, such as the engine's memory, is copied.
  */
 export function transferList(reply: RenderReply): ArrayBuffer[] {
-    if (!('pdf' in reply)) return [];
-    const { buffer, byteLength } = reply.pdf;
+    if (!('bytes' in reply)) return [];
+    const { buffer, byteLength } = reply.bytes;
     return buffer instanceof ArrayBuffer && buffer.byteLength === byteLength ? [buffer] : [];
 }
