@@ -69,7 +69,11 @@ function checkFormat(format: InvoiceFormat | undefined): void {
   }
 }
 
-/** The values of an invoice from the engine's reading of it, `json`, with `format` applied to each typed one. */
+/**
+ * The values of an invoice from the engine's reading of it, `json`, with `format` applied to each typed one.
+ *
+ * @throws {TypeError} when a format function returns no text.
+ */
 function formatted(json: string, format: InvoiceFormat | undefined): Record<string, unknown> {
   const extracted = JSON.parse(json) as Extracted;
   for (const { at, type, name } of extracted.typed) {
@@ -78,7 +82,11 @@ function formatted(json: string, format: InvoiceFormat | undefined): Record<stri
     let holder = extracted.data as Record<string | number, unknown>;
     for (const step of at.slice(0, -1)) holder = holder[step] as Record<string | number, unknown>;
     const last = at[at.length - 1];
-    holder[last] = String(fn(holder[last] as string, name));
+    const text: unknown = fn(holder[last] as string, name);
+    if (text === undefined || text === null) {
+      throw new TypeError(`format.${type} returned ${text} for '${name}': return the text to bind, or the value as it came`);
+    }
+    holder[last] = String(text);
   }
   return extracted.data;
 }
@@ -94,7 +102,8 @@ function formatted(json: string, format: InvoiceFormat | undefined): Record<stri
  * @param invoiceXml - The invoice's XML, an EN 16931 Cross Industry Invoice, as text or bytes.
  * @throws {LpdfRenderError} when the map is not one or doesn't fit the schema, the invoice is not a Cross Industry
  *   Invoice or is MINIMUM or BASIC WL, or lacks a value the map marks required.
- * @throws {TypeError} when the XML or the map is not text or bytes, or a format is not a function.
+ * @throws {TypeError} when the XML or the map is not text or bytes, a format is not a function, or one returns no
+ *   text.
  */
 function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInvoiceDataOptions = {}): Record<string, unknown> {
   checkFormat(options.format);
@@ -114,7 +123,7 @@ function extractInvoiceData(invoiceXml: string | Uint8Array, options: ExtractInv
  *
  * @throws {LpdfRenderError} for what `extractInvoiceData` refuses, a template path under the prefix that the map
  *   lacks, a PDF/A level other than 3a, 3b or 3u, `encrypt`, `pdfx`, and a document that declares the invoice file.
- * @throws {TypeError} when `invoiceXml` or `createdOn` is missing, or a format is not a function.
+ * @throws {TypeError} when `invoiceXml` or `createdOn` is missing, a format is not a function, or one returns no text.
  */
 async function generatePdf(
   engine: PdfEngine, templateOrDocument: string | PdfDocument, options: GeneratePdfOptions,

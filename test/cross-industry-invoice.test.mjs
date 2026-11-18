@@ -198,4 +198,12 @@ describe('LCrossIndustryInvoice', () => {
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(42), TypeError);
     assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format: { date: 'long' } }), TypeError);
   });
+
+  it('refuses a format function that returns no text, with its entry', () => {
+    const format = { code: (value, entryName) => codeNames[entryName]?.[value] };
+    assert.throws(() => LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml'), { format }), {
+      name: 'TypeError',
+      message: "format.code returned undefined for 'seller.country': return the text to bind, or the value as it came",
+    });
+  });
 });
