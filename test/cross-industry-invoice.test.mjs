@@ -26,6 +26,12 @@ function invoiceOfLines(count) {
   return Buffer.from(xml.slice(0, start) + line.repeat(count) + xml.slice(xml.lastIndexOf(close) + close.length));
 }
 
+/** A map of a team's own, in German, with one value. */
+const RECHNUNG_MAP = '<cross-industry-invoice-map prefix="rechnung"><value name="nummer" path="rsm:ExchangedDocument/ram:ID"/></cross-industry-invoice-map>';
+
+/** A template that binds the invoice under `rechnung:`, with the font the engine loads. */
+const rechnungTemplate = (path) => `<lpdf version="1"><assets><font name="body" src="../assets/fonts/SourceSans3-Regular.otf"/></assets>
+  <document size="a4" font="body"><section><layout margin="48pt"><text data-value="${path}">0000</text></layout></section></document></lpdf>`;
 const template = () => readFileSync(path.join(FIXTURES, 'showcase-cross-industry-invoice.xml'), 'utf8');
 
 /** An unlicensed engine with the template's font loaded under its name. */
@@ -33,8 +39,7 @@ function engine() {
   return L.engine().loadFont('body', readFileSync(path.join(ROOT, 'test/assets/fonts/SourceSans3-Regular.otf')));
 }
 
-// How values are written on the page, as the examples write them: the language's own formatters, and the words for
-// the codes.
+// How values are written on the page: the language's own formatters, and the words for the codes.
 const codeNames = {
   'typeCode':   { 380: 'Invoice', 381: 'Credit note' },
   'lines.unit': { H87: 'pcs', KGM: 'kg' },
@@ -46,7 +51,10 @@ const format = {
 };
 const note = 'Payable within 30 days, by bank transfer.';
 
-/** The page of the template, built in code with the values of `extractInvoiceData`, as the second example builds it. */
+/**
+ * The page of core's `showcase-cross-industry-invoice` template, built in code with the values of `extractInvoiceData`:
+ * it must give the same bytes as the template.
+ */
 function documentInCode(invoiceData) {
   const muted      = { fontSize: '9pt', color: '#5b6475' };
   const mutedRight = { fontSize: '9pt', color: '#5b6475', align: 'right' };
@@ -164,10 +172,19 @@ describe('LCrossIndustryInvoice', () => {
   });
 
   it('reads through a map given as text or bytes, under its own names', () => {
-    const map = '<cross-industry-invoice-map prefix="rechnung"><value name="nummer" path="rsm:ExchangedDocument/ram:ID"/></cross-industry-invoice-map>';
     const xml = readFileSync(path.join(FACTURX, 'en16931.xml'), 'utf8');
-    assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: map }), { nummer: '2026-0412' });
-    assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: Buffer.from(map) }), { nummer: '2026-0412' });
+    assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: RECHNUNG_MAP }), { nummer: '2026-0412' });
+    assert.deepEqual(LCrossIndustryInvoice.extractInvoiceData(xml, { invoiceMap: Buffer.from(RECHNUNG_MAP) }), { nummer: '2026-0412' });
+  });
+
+  it('fills a template through the map given, under its prefix', async () => {
+    const options = { invoiceXml: invoice('en16931.xml'), invoiceMap: RECHNUNG_MAP, createdOn: CREATED_ON };
+    const pdf = await LCrossIndustryInvoice.generatePdf(engine(), rechnungTemplate('rechnung:nummer'), options);
+    assert.equal(Buffer.from(pdf.subarray(0, 5)).toString('latin1'), '%PDF-');
+    await assert.rejects(
+      LCrossIndustryInvoice.generatePdf(engine(), rechnungTemplate('rechnung:nummr'), options),
+      (e) => e instanceof LpdfRenderError && e.message.startsWith('data-value="rechnung:nummr": \'nummr\' is not in the map'),
+    );
   });
 
   it('reads the invoice of generatePdf on the engine\'s worker, within its maxMemoryMb', async () => {
