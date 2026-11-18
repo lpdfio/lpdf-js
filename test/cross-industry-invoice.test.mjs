@@ -3,11 +3,18 @@
 //
 // The template, the invoices, the font and the snapshot hash are core's: its test/fixtures, test/assets and
 // test/snapshots, which CI copies in from the core tag.
+//
+// The last tests run a copy of the built package whose engine module is a stand-in: the real engine, except that on
+// the calling thread the read of an invoice holding `<!-- trap -->` traps, and one holding `<!-- not here -->` is
+// refused. The engine on the worker is the real one.
 
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { L, LCrossIndustryInvoice, LpdfRenderError, NoAttr } from '../dist/index.js';
 import { FIXTURES, ROOT, compareOrUpdate } from './snapshot_helper.mjs';
@@ -180,7 +187,9 @@ describe('LCrossIndustryInvoice', () => {
   it('fills a template through the map given, under its prefix', async () => {
     const options = { invoiceXml: invoice('en16931.xml'), invoiceMap: RECHNUNG_MAP, createdOn: CREATED_ON };
     const pdf = await LCrossIndustryInvoice.generatePdf(engine(), rechnungTemplate('rechnung:nummer'), options);
-    assert.equal(Buffer.from(pdf.subarray(0, 5)).toString('latin1'), '%PDF-');
+    // The same page with the number written in: the read and the render both took the map.
+    const written = rechnungTemplate('rechnung:nummer').replace('data-value="rechnung:nummer">0000', '>2026-0412');
+    assert.deepEqual(Buffer.from(pdf), Buffer.from(await LCrossIndustryInvoice.generatePdf(engine(), written, options)));
     await assert.rejects(
       LCrossIndustryInvoice.generatePdf(engine(), rechnungTemplate('rechnung:nummr'), options),
       (e) => e instanceof LpdfRenderError && e.message.startsWith('data-value="rechnung:nummr": \'nummr\' is not in the map'),
@@ -227,5 +236,61 @@ describe('LCrossIndustryInvoice', () => {
       name: 'TypeError',
       message: /^format\.amount returned number for '/,
     });
+  });
+});
+
+// ── On a stand-in engine ─────────────────────────────────────────────────────
+
+const STAND_IN = `
+const real = require('./lpdf-real.js');
+globalThis.lpdfStandInLoads = (globalThis.lpdfStandInLoads ?? 0) + 1;
+
+function extract_invoice_data(xml, map) {
+    const text = Buffer.from(xml).toString('utf8');
+    if (text.includes('<!-- trap -->')) throw new WebAssembly.RuntimeError('unreachable');
+    if (text.includes('<!-- not here -->')) throw new Error('the invoice was read on the calling thread');
+    return real.extract_invoice_data(xml, map);
+}
+
+module.exports = { ...real, extract_invoice_data };
+`;
+
+/** A copy of the built package whose engine module is the stand-in. */
+function standInPackage() {
+  const folder = mkdtempSync(path.join(tmpdir(), 'lpdf-invoice-'));
+  cpSync(fileURLToPath(new URL('../dist', import.meta.url)), folder, { recursive: true });
+  renameSync(path.join(folder, 'wasm/lpdf.js'), path.join(folder, 'wasm/lpdf-real.js'));
+  writeFileSync(path.join(folder, 'wasm/lpdf.js'), STAND_IN);
+  return folder;
+}
+
+/** `en16931.xml` with `mark` in a comment before its root. */
+function marked(mark) {
+  const xml = readFileSync(path.join(FACTURX, 'en16931.xml'), 'utf8');
+  return Buffer.from(xml.replace('<rsm:CrossIndustryInvoice', `<!-- ${mark} --><rsm:CrossIndustryInvoice`));
+}
+
+describe('LCrossIndustryInvoice on a stand-in engine', () => {
+  const folder = standInPackage();
+  after(() => rmSync(folder, { recursive: true, force: true }));
+  const standIn = createRequire(import.meta.url)(path.join(folder, 'index.js'));
+
+  it('gives the crash error when the engine on the calling thread traps, and reads with a fresh one after', () => {
+    // The same in every SDK of Lpdf.
+    const crashed = 'The engine crashed during the render. This is a bug in Lpdf, or the render ran out of memory before '
+      + 'its cap stopped it: please report it with the document at https://github.com/lpdfio/lpdf/issues.';
+    assert.throws(() => standIn.LCrossIndustryInvoice.extractInvoiceData(marked('trap')),
+      (e) => e instanceof standIn.LpdfRenderError && e.message === crashed && e.cause === 'RuntimeError: unreachable');
+    const loads = globalThis.lpdfStandInLoads;
+    assert.equal(standIn.LCrossIndustryInvoice.extractInvoiceData(invoice('en16931.xml')).number, '2026-0412');
+    assert.equal(globalThis.lpdfStandInLoads, loads + 1);
+  });
+
+  it('reads the invoice of generatePdf on the worker, not on the calling thread', async () => {
+    const invoiceXml = marked('not here');
+    assert.throws(() => standIn.LCrossIndustryInvoice.extractInvoiceData(invoiceXml), /read on the calling thread/);
+    const engineOfCopy = standIn.L.engine().loadFont('body', readFileSync(path.join(ROOT, 'test/assets/fonts/SourceSans3-Regular.otf')));
+    const pdf = await standIn.LCrossIndustryInvoice.generatePdf(engineOfCopy, template(), { invoiceXml, data: { note }, createdOn: CREATED_ON });
+    assert.equal(Buffer.from(pdf.subarray(0, 5)).toString('latin1'), '%PDF-');
   });
 });
