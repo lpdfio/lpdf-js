@@ -24,6 +24,7 @@ import type { LpdfBookmarkNode, LpdfNode } from './layout';
 import type { LpdfCanvasLayerNode } from './canvas';
 import type { LpdfMarkdownNode } from './markdown';
 import type { FileAttr, FontAttr, GradientToken, ImageAttr, LayoutAttr, ProfileAttr, RulingToken, SpotToken } from './attrs';
+import type { Cipher, ColumnFill, FootnoteCounter, Grow, ListFormat, Orientation, PageSize, PageSizeCustom, PdfALevel, PdfUaPart, PdfXVersion, SectionType } from './constants';
 import { assertFiniteIn, buildAttrs, type AttrValue } from './_shared';
 
 // ── Tokens / Meta / DocumentOptions ──────────────────────────────────────────
@@ -100,7 +101,7 @@ export interface DocumentMeta {
  */
 export interface DocumentOutput {
   /** The cipher the PDF is encrypted with, `aes-256` or `rc4-128` (`Cipher`). Without it the PDF is not encrypted. */
-  encrypt?: string;
+  encrypt?: Cipher;
   /**
    * What a reader may do without the owner password, separated by spaces (`Permission`): `all`, or any of
    * `print`, `modify`, `copy`, `annotate`, `fill-forms`, `accessibility`, `assemble`. A permission comes only from
@@ -118,13 +119,13 @@ export interface DocumentOutput {
    * or ZUGFeRD e-invoice: the engine reads the profile from BT-24 of that XML and names the invoice in the file's
    * metadata. The XML is attached as given, and its content is not checked.
    */
-  pdfa?: string;
+  pdfa?: PdfALevel;
   /**
    * Writes the PDF as PDF/UA-1, a tagged PDF a screen reader can read: `1`. It combines with `pdfa`. The render
    * needs `createdOn`, the meta a `title` and a `lang`, every image and barcode of the layout an `alt`, and every
    * text a font of `assets`. What PDF/UA cannot hold is an error that says what to change.
    */
-  pdfua?: string;
+  pdfua?: PdfUaPart;
   /**
    * Writes the PDF as PDF/X-4, for a commercial printer: `4`. It needs `profile`, and combines with `pdfua`. Every
    * page gets a TrimBox and a BleedBox, RGB is tied to sRGB, and links print as text, as PDF/X allows nothing
@@ -132,7 +133,7 @@ export interface DocumentOutput {
    * hold is an error that says what to change: a profile that is not a printer profile, a built-in font, a form
    * field, a CMYK color with a profile that is not a CMYK one, `encrypt`, `pdfa`, attachments.
    */
-  pdfx?: string;
+  pdfx?: PdfXVersion;
   /** The profile of `assets` that a PDF/X file is made for: the ICC profile of the printing press. It needs `pdfx`. */
   profile?: string;
   /**
@@ -153,16 +154,16 @@ export interface DocumentOutput {
 }
 
 export interface SectionAttr {
-  size?:        string;
-  orientation?: string;
+  size?:        PageSize | PageSizeCustom;
+  orientation?: Orientation;
   /** How far this section's pages reach past their trim edge, such as `5mm`. Overrides the document's; `0mm` takes it away. */
   bleed?:       string;
   background?:  string;
   title?:       string;
   debug?:       boolean;
-  type?:        string;
+  type?:        SectionType;
   tocIndentStep?: string;
-  footnoteCounter?: string;
+  footnoteCounter?: FootnoteCounter;
   /**
    * The number of the section's first page, which starts a new run of pages: `1` restarts the count. Without it the
    * pages count on from the section before. `{page}` prints a page's number, and `{pages}` how many pages its run has.
@@ -172,7 +173,7 @@ export interface SectionAttr {
    * How the section's page numbers are written: `decimal`, `lower-alpha`, `upper-alpha`, `lower-roman` or
    * `upper-roman`. Without it the section keeps the format before.
    */
-  pageFormat?: string;
+  pageFormat?: ListFormat;
   /** Text before the section's page numbers, such as `A-`. Without it the section keeps the prefix before; `''` takes it away. */
   pagePrefix?: string;
   /** Sets the section's flow in this many columns, 1 to 12, each filled like a small page, left to right. */
@@ -182,7 +183,7 @@ export interface SectionAttr {
   /** A line in the middle of each gap between two columns, as a border, such as `0.5pt #ccc`. */
   columnRule?: string;
   /** How the last page's columns fill: `ColumnFill.Auto`, in order, the default, or `ColumnFill.Balance`, levelled. */
-  columnFill?: string;
+  columnFill?: ColumnFill;
   /** The name of a ruling of the tokens, whose lines are drawn on every page of the section, under everything else. */
   ruling?: string;
   /**
@@ -190,12 +191,12 @@ export interface SectionAttr {
    * start a new page or squeeze the content. `size` is then the starting size, the smallest the page can be. A section
    * with columns or an inset refuses it.
    */
-  grow?: string;
+  grow?: Grow;
 }
 
 export interface DocumentAttr {
-  size?:        string;
-  orientation?: string;
+  size?:        PageSize | PageSizeCustom;
+  orientation?: Orientation;
   /**
    * How far each page reaches past its trim edge, such as `3mm`, for a background or an image that runs off the page
    * when it is cut. The page grows by it and its background fills it; the layout keeps to the trimmed page.
@@ -213,7 +214,7 @@ export interface DocumentAttr {
    */
   attachments?: FileAttr[];
   debug?:       boolean;
-  footnoteCounter?: string;
+  footnoteCounter?: FootnoteCounter;
 }
 
 // ── Section block types ───────────────────────────────────────────────────────

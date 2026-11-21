@@ -1,6 +1,8 @@
 // Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
 // Do not edit: change the schema and run `make gen-sdk-api`.
 
+import type { Align, Anchor, BarcodeType, BoxAlign, BoxJustify, BuiltinFont, CaptureMode, CellVAlign, DividerDirection, FieldType, FileRelationship, FillRule, GradientType, LineCap, ListBullet, ListFormat, ListType, Ocg, Paginate, Pdf417EcLevel, Pin, QrEcLevel, RowKeep, RulingOrigin, ShapeType, TextAlign, TextRole } from './constants';
+
 /**
  * Places children top to bottom, each at the full width, with gap between them. Can split across
  * pages between children.
@@ -56,7 +58,7 @@ export interface ColumnAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -70,9 +72,9 @@ export interface ColumnAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
-  align?: string;
-  justify?: string;
+  ocg?: Ocg;
+  align?: BoxAlign;
+  justify?: BoxJustify;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -152,7 +154,7 @@ export interface RowAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -166,9 +168,9 @@ export interface RowAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
-  align?: string;
-  justify?: string;
+  ocg?: Ocg;
+  align?: BoxAlign;
+  justify?: BoxJustify;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -232,7 +234,7 @@ export interface GridAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -246,7 +248,7 @@ export interface GridAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -328,7 +330,7 @@ export interface ListAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -342,16 +344,16 @@ export interface ListAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /** bullet marks each item with a shape, number with a number. Default bullet. */
-  type?: string;
+  type?: ListType;
   /**
    * How a number list writes its numbers: decimal (1, 2, 3), lower-alpha (a, b, c, then aa, ab),
    * upper-alpha (A, B, C), lower-roman (i, ii, iii) or upper-roman (I, II, III). A number that a
    * letter or a numeral can't write, below 1 or past 3999 for a numeral, is written in decimal.
    * Default decimal.
    */
-  format?: string;
+  format?: ListFormat;
   /**
    * The number of a number list's first item, to continue a list that something cut in two. Default
    * 1.
@@ -370,7 +372,7 @@ export interface ListAttr {
    * The shape that marks the items of a bullet list. Without it a list uses a disc, a list inside a
    * bullet list a circle, and one inside that a square, then the three again.
    */
-  bullet?: string;
+  bullet?: ListBullet;
   /**
    * The width of the marker's column: the words of an item start this far from the list's left
    * edge, and a list inside an item starts there too. The marker is set at the right of its column,
@@ -459,7 +461,7 @@ export interface LiAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -473,7 +475,7 @@ export interface LiAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /**
    * Makes the item's marker a checkbox in place of the bullet or the number: an outline in the line
    * color, with a tick in the color of the item's words when this is true, and empty when it is
@@ -538,7 +540,7 @@ export interface FrameAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -552,7 +554,7 @@ export interface FrameAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -591,14 +593,14 @@ export interface LinkAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
  * Attributes of the `divider` element.
  */
 export interface DividerAttr {
-  direction?: string;
+  direction?: DividerDirection;
   color?: string;
   thickness?: string;
   /**
@@ -620,7 +622,7 @@ export interface DividerAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -693,7 +695,7 @@ export interface ImgAttr {
   background?: string;
   border?: string;
   radius?: string;
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -707,7 +709,7 @@ export interface ImgAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -719,7 +721,7 @@ export interface ImgAttr {
  * page, use a rect, circle or ellipse in a layer.
  */
 export interface ShapeAttr {
-  type: string;
+  type: ShapeType;
   /**
    * Width of a rect or an ellipse, a length or a name from the width row of the tokens. A circle
    * takes r instead.
@@ -753,7 +755,7 @@ export interface ShapeAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -773,7 +775,7 @@ export interface BarcodeAttr {
    * with it, which is checked: 12 or 13 digits for ean13, 7 or 8 for ean8, 11 or 12 for upca. Data
    * a type cannot hold draws a gray box with a red border in its place.
    */
-  type: string;
+  type: BarcodeType;
   data: string;
   /**
    * Height of the whole barcode, a length or a name from the height row of the tokens, with the
@@ -795,7 +797,7 @@ export interface BarcodeAttr {
    * doubling the codewords it adds, and without it the level the standard recommends for the length
    * of the data. The other types ignore it, and so does a qr a number and a pdf417 a letter.
    */
-  ec?: string;
+  ec?: QrEcLevel | Pdf417EcLevel;
   /**
    * Shows the data in digits or letters under the bars of a linear barcode: code128, code39, ean13,
    * ean8, upca and gs1-128, the last with its fields in parentheses. The text takes the bottom 12pt
@@ -845,7 +847,7 @@ export interface BarcodeAttr {
    * not tagged ignores it.
    */
   alt?: string;
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -859,7 +861,7 @@ export interface BarcodeAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -876,7 +878,7 @@ export interface TextAttr {
    */
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   /**
    * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
    * name from the line-height row of the tokens. Default 1.2, which is the token m.
@@ -909,7 +911,7 @@ export interface TextAttr {
    * changes nothing a page shows: set the size and the weight as on any text. A document that is
    * not tagged ignores it.
    */
-  role?: string;
+  role?: TextRole;
   /**
    * The fewest lines of the text that may stand alone at the top of the next page when it splits.
    * Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the
@@ -942,13 +944,13 @@ export interface TextAttr {
    * Which of the texts captured under the name on this page the text shows: the first or the last.
    * Default last. Only for a text with capture-ref.
    */
-  captureMode?: string;
+  captureMode?: CaptureMode;
   /**
    * What the text shows until something has been captured in the section. Default: nothing. Only
    * for a text with capture-ref.
    */
   captureFallback?: string;
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -962,7 +964,7 @@ export interface TextAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1026,7 +1028,7 @@ export interface CodeAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -1040,7 +1042,7 @@ export interface CodeAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /**
    * Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after
    * the other children, shared equally if several on the line use fill, and never moves to the next
@@ -1125,7 +1127,7 @@ export interface TdAttr {
    * first part. break-before, break-after and keep-next take effect on the children of layout; on a
    * box inside another box they are not applied. no applies at any depth.
    */
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -1139,7 +1141,7 @@ export interface TdAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
   /**
    * How many of the table's columns the cell spans. It is as wide as those columns and the gaps
    * between them, and the cells after it in the row start at the column after its last. A row whose
@@ -1158,8 +1160,8 @@ export interface TdAttr {
    * taller than a page is clipped at the page's end. Default 1.
    */
   rowspan?: number;
-  align?: string;
-  valign?: string;
+  align?: Align;
+  valign?: CellVAlign;
 }
 
 /**
@@ -1179,7 +1181,7 @@ export interface TheadAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1193,7 +1195,7 @@ export interface TrAttr {
    * Rows are never split, and a header is never left alone at the bottom of a page, with or without
    * this.
    */
-  keep?: string;
+  keep?: RowKeep;
   background?: string;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -1207,7 +1209,7 @@ export interface TrAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1252,7 +1254,7 @@ export interface TableAttr {
    */
   width?: string;
   height?: string;
-  paginate?: string;
+  paginate?: Paginate;
   debug?: boolean;
   /**
    * true lays out the rows that the tr with data-source repeats one page at a time, straight from
@@ -1280,14 +1282,14 @@ export interface TableAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
  * Attributes of the `field` element.
  */
 export interface FieldAttr {
-  type: string;
+  type: FieldType;
   name: string;
   value?: string;
   label?: string;
@@ -1320,7 +1322,7 @@ export interface FieldAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1368,7 +1370,7 @@ export interface RegionAttr {
    * not implemented yet. inset places the region inside the columns, where top, height, col and
    * colspan say.
    */
-  pin: string;
+  pin: Pin;
   /**
    * Which pages show the region: each, first, last, odd, even, or a range such as 2-last. odd and
    * even follow the number printed on the page, so in a section that starts on page 4 even shows on
@@ -1469,7 +1471,7 @@ export interface MarkdownH1Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1485,7 +1487,7 @@ export interface MarkdownH2Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1501,7 +1503,7 @@ export interface MarkdownH3Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1517,7 +1519,7 @@ export interface MarkdownH4Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1533,7 +1535,7 @@ export interface MarkdownH5Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1549,7 +1551,7 @@ export interface MarkdownH6Attr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1565,7 +1567,7 @@ export interface MarkdownPAttr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1601,7 +1603,7 @@ export interface MarkdownQuoteAttr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   lineHeight?: string | number;
   padding?: string;
   background?: string;
@@ -1624,7 +1626,7 @@ export interface MarkdownLiAttr {
   background?: string;
   border?: string;
   indent?: string;
-  bullet?: string;
+  bullet?: ListBullet;
 }
 
 /**
@@ -1700,7 +1702,7 @@ export interface MarkdownThAttr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   padding?: string;
   background?: string;
   border?: string;
@@ -1714,7 +1716,7 @@ export interface MarkdownTdAttr {
   fontSize?: string;
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   padding?: string;
   background?: string;
   border?: string;
@@ -1780,7 +1782,7 @@ export interface LayerAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1791,7 +1793,7 @@ export interface RectAttr {
   height: string;
   x?: string;
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   radius?: string;
   fill?: string;
   stroke?: string;
@@ -1816,7 +1818,7 @@ export interface RectAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1836,7 +1838,7 @@ export interface CircleAttr {
    * further in.
    */
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   fill?: string;
   stroke?: string;
   strokeWidth?: string;
@@ -1860,7 +1862,7 @@ export interface CircleAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1881,7 +1883,7 @@ export interface EllipseAttr {
    * further in.
    */
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   fill?: string;
   stroke?: string;
   strokeWidth?: string;
@@ -1905,7 +1907,7 @@ export interface EllipseAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1919,7 +1921,7 @@ export interface LineAttr {
   stroke?: string;
   strokeWidth?: string;
   strokeDash?: string;
-  lineCap?: string;
+  lineCap?: LineCap;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
    * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
@@ -1932,7 +1934,7 @@ export interface LineAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1942,10 +1944,10 @@ export interface PathAttr {
   d: string;
   fill?: string;
   stroke?: string;
-  fillRule?: string;
+  fillRule?: FillRule;
   strokeWidth?: string;
   strokeDash?: string;
-  lineCap?: string;
+  lineCap?: LineCap;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
    * hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The
@@ -1958,7 +1960,7 @@ export interface PathAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -1973,7 +1975,7 @@ export interface PathAttr {
 export interface TextAtAttr {
   x?: string;
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   fontSize?: string;
   font?: string;
   /**
@@ -1983,7 +1985,7 @@ export interface TextAtAttr {
    */
   bold?: boolean;
   color?: string;
-  align?: string;
+  align?: TextAlign;
   /**
    * The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a
    * name from the line-height row of the tokens. Default 1.2, which is the token m.
@@ -2022,7 +2024,7 @@ export interface TextAtAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -2036,7 +2038,7 @@ export interface ImgAtAttr {
   name: string;
   x?: string;
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   width?: string;
   height?: string;
   /**
@@ -2051,7 +2053,7 @@ export interface ImgAtAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -2071,7 +2073,7 @@ export interface BarcodeAtAttr {
    * with it, which is checked: 12 or 13 digits for ean13, 7 or 8 for ean8, 11 or 12 for upca. Data
    * a type cannot hold draws a gray box with a red border in its place.
    */
-  type: string;
+  type: BarcodeType;
   data: string;
   /**
    * Height of the whole barcode, with the digits of hrt inside it: they take the bottom 12pt and
@@ -2089,7 +2091,7 @@ export interface BarcodeAtAttr {
    * doubling the codewords it adds, and without it the level the standard recommends for the length
    * of the data. The other types ignore it, and so does a qr a number and a pdf417 a letter.
    */
-  ec?: string;
+  ec?: QrEcLevel | Pdf417EcLevel;
   /**
    * Shows the data in digits or letters under the bars of a linear barcode: code128, code39, ean13,
    * ean8, upca and gs1-128, the last with its fields in parentheses. The text takes the bottom 12pt
@@ -2127,7 +2129,7 @@ export interface BarcodeAtAttr {
   background?: string;
   x?: string;
   y?: string;
-  anchor?: string;
+  anchor?: Anchor;
   width?: string;
   /**
    * Puts the element, and everything in it, in an optional content group, which the viewer shows or
@@ -2141,7 +2143,7 @@ export interface BarcodeAtAttr {
    * pdfx, the file is the print version: screen content stays in it, off, and a reader can turn it
    * on in a layers panel.
    */
-  ocg?: string;
+  ocg?: Ocg;
 }
 
 /**
@@ -2169,7 +2171,7 @@ export interface FontAttr {
    */
   name: string;
   /** A built-in PDF font, which needs no file. */
-  core?: string;
+  core?: BuiltinFont;
   /** The key the font was loaded under on the engine, when that is not its name. */
   ref?: string;
   /**
@@ -2222,7 +2224,7 @@ export interface FileAttr {
    * default. The invoice of a Factur-X e-invoice defaults to data for the MINIMUM and BASIC WL
    * profiles, and to alternative for the others, as the Factur-X spec asks.
    */
-  relationship?: string;
+  relationship?: FileRelationship;
   /** A line about the file, which a reader shows beside its name. */
   description?: string;
 }
@@ -2297,7 +2299,7 @@ export interface GradientToken {
    * linear runs along a line across the box. radial runs from the center out to the farthest
    * corner.
    */
-  type: 'linear' | 'radial';
+  type: GradientType;
   /**
    * The first color: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it:
    * CMYK if to is and RGB if it is not, or the same spot color as to. Used with to, when there are
@@ -2379,7 +2381,7 @@ export interface RulingToken {
    * trim edge. margin is the area inside the margin of the section's layout or markdown. A step
    * starts at its top left corner, and the lines stop at its edges.
    */
-  origin?: 'page' | 'margin';
+  origin?: RulingOrigin;
   /**
    * Whether the lines on the edges of that space are drawn: the first one, and the last one where a
    * step lands on the far edge. A count of 12 draws 13 lines with them and 11 without. Defaults to
@@ -2390,7 +2392,7 @@ export interface RulingToken {
    * Puts the lines in an optional content group, as ocg does on an element: print, printed and not
    * shown on screen, or screen, shown on screen and not printed, such as a grid to place things by.
    */
-  ocg?: 'print' | 'screen';
+  ocg?: Ocg;
   /**
    * The sets of lines, at least one, drawn in this order: a later set paints over an earlier one.
    */

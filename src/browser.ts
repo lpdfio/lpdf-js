@@ -33,10 +33,7 @@ export type { EngineOptions, RenderOptions } from './_shared';
 export type { StampAttr } from './stamp';
 export type { MergeSource, MergeOptions } from './merge';
 export { LpdfRenderError } from './render-error';
-export {
-    FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, Cipher, Permission, FileRelationship, BuiltinFont,
-    PageScope, Grow,
-} from './constants';
+export * from './constants';
 export type {
     PdfDocument, LpdfSectionNode, LpdfSectionChild, LpdfLayoutBlock,
     DocumentTokens, DocumentAssets, DocumentMeta, DocumentOutput, SectionAttr, DocumentAttr,
