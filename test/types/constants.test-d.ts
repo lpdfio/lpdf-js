@@ -9,6 +9,9 @@ import {
 // The constant and the schema's own word both pass, and so does a width and a height.
 L.document({ orientation: Orientation.Landscape, size: PageSize.A4 }, []);
 L.document({ orientation: 'landscape', size: 'a4' }, []);
+L.document({ size: PageSize.A2 }, []);
+L.document({ size: PageSize.Tabloid }, []);
+L.document({ size: 'b5' }, []);
 L.document({ size: '100pt 200pt' }, []);
 L.document({ size: '210mm 297mm' }, []);
 L.document({ size: '80.5mm 200in' }, []);
@@ -27,8 +30,8 @@ const stamp: StampAttr = { image: new Uint8Array(), page: 'each', width: '1in', 
 // A typo compiles in a plain string and not here.
 // @ts-expect-error landscpe is not an orientation
 L.document({ orientation: 'landscpe' }, []);
-// @ts-expect-error a6 is not a named size
-L.document({ size: 'a6' }, []);
+// @ts-expect-error a7 is not a named size
+L.document({ size: 'a7' }, []);
 // @ts-expect-error a custom size needs a unit
 L.document({ size: '100 200' }, []);
 // @ts-expect-error a custom size needs both its width and its height
