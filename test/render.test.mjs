@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import {
   PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
   FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, PageScope, BuiltinFont, Cipher, Permission, FileRelationship, Grow,
+  PdfALevel, PdfUaPart, PdfXVersion, Pdf417EcLevel, BarcodeType,
   NoAttr,
 } from '../dist/index.js';
 
@@ -1609,6 +1610,30 @@ describe('attributes follow the schema', () => {
     assert.equal(Permission.FillForms, 'fill-forms');
     assert.equal(Permission.All, 'all');
     assert.equal(FileRelationship.Data, 'data');
+  });
+
+  it('every closed enumeration of the schema has a constant that the package exports', async () => {
+    const constants = await import('../dist/index.js');
+    for (const [name, value] of Object.entries({
+      PageSize: 'a4', TextAlign: 'center', Paginate: 'keep-next', Anchor: 'top-left', LineCap: 'round', BarcodeType: 'qr',
+      QrEcLevel: 'H', Pdf417EcLevel: '0', ListType: 'bullet', ListBullet: 'dash', ListFormat: 'lower-alpha', BoxAlign: 'stretch',
+      BoxJustify: 'between', Align: 'start', CellVAlign: 'middle', DividerDirection: 'vertical', ShapeType: 'ellipse', TextRole: 'h1',
+      CaptureMode: 'last', RowKeep: 'with-next', FillRule: 'evenodd', GradientType: 'radial', RulingOrigin: 'margin', Ocg: 'screen',
+      PdfALevel: '2a', PdfUaPart: '1', PdfXVersion: '4', StampScale: 'fit',
+    })) {
+      assert.ok(Object.values(constants[name] ?? {}).includes(value), `${name} has no member for ${value}`);
+    }
+  });
+
+  it('a value that starts with a digit takes the last word of its constant\'s name', () => {
+    assert.equal(PdfALevel.Level2a, '2a');
+    assert.equal(PdfALevel.Level3u, '3u');
+    assert.equal(PdfUaPart.Part1, '1');
+    assert.equal(PdfXVersion.Version4, '4');
+    assert.equal(Pdf417EcLevel.Level0, '0');
+    assert.equal(Pdf417EcLevel.Level8, '8');
+    assert.equal(BarcodeType.Gs1128, 'gs1-128');
+    assert.equal(BarcodeType.Gs1Datamatrix, 'gs1-datamatrix');
   });
 
   it('a file the document carries is embedded, from loadFile or from its src', async () => {
