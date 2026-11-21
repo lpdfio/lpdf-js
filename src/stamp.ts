@@ -2,6 +2,7 @@
  * Stamps: PNG images drawn over the pages of an existing PDF, by `stamp` on the engine. Shared by the Node.js and
  * browser entry points.
  */
+import type { Align, Anchor, StampScale } from './constants';
 
 /**
  * One stamp: a PNG, the pages it goes on, and the box it is drawn in on each. The box is placed as a layer element
@@ -21,22 +22,22 @@ export interface StampAttr {
   /**
    * The point of the page the box is placed from, and the point of the box that goes there: `top-left`,
    * `top-center`, `top-right`, `center-left`, `center`, `center-right`, `bottom-left`, `bottom-center` or
-   * `bottom-right`.
+   * `bottom-right` (`Anchor`).
    */
-  anchor?: string;
+  anchor?: Anchor;
   /** The size of the box, in `pt`, `mm` or `in`. */
   width: string;
   height: string;
-  /** Where the image sits across the box, in the room it leaves: `start`, `center` (the default) or `end`. */
-  align?: string;
-  /** Where the image sits down the box, in the room it leaves: `start`, `center` (the default) or `end`. */
-  justify?: string;
+  /** Where the image sits across the box, in the room it leaves: `start`, `center` (the default) or `end` (`Align`). */
+  align?: Align;
+  /** Where the image sits down the box, in the room it leaves: `start`, `center` (the default) or `end` (`Align`). */
+  justify?: Align;
   /**
    * How the image is sized in the box, keeping its proportions: `fit` (the default) shrinks an image larger than the
    * box and keeps a smaller one at its natural size, from the resolution the PNG records, or a pixel to a point;
-   * `fill` takes the largest size that fits.
+   * `fill` takes the largest size that fits (`StampScale`).
    */
-  scale?: string;
+  scale?: StampScale;
   /** How many times its natural size `fit` may grow an image, never past the box: 1, the default, or more. */
   maxGrow?: number;
 }
