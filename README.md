@@ -1,7 +1,5 @@
 <img src="https://raw.githubusercontent.com/lpdfio/lpdf-js/main/lpdf-mark.svg" height="48" alt="Lpdf - PDF as Code" />
 
-# @lpdfio/lpdf
-
 [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) JavaScript SDK: render PDF documents from XML or from code.
 
 With data binding, PDF/A, PDF/UA, PDF/X and Factur-X / ZUGFeRD.
