@@ -2,7 +2,7 @@
 
 # @lpdfio/lpdf
 
-`@lpdfio/lpdf` is the JavaScript SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme), the PDF engine that renders a document written in XML or built in code to the same PDF in every language.
+`@lpdfio/lpdf` is the [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) JavaScript SDK: render PDF documents from XML or from code.
 
 ## Installation
 
