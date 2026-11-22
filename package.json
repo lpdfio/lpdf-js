@@ -1,7 +1,7 @@
 {
   "name": "@lpdfio/lpdf",
   "version": "0.0.0",
-  "description": "JavaScript SDK for Lpdf, the PDF engine that renders a document written in XML or built in code to the same PDF in every language.",
+  "description": "Lpdf JavaScript SDK: render PDF documents from XML or from code.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
