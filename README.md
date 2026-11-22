@@ -4,6 +4,8 @@
 
 `@lpdfio/lpdf` is the [Lpdf](https://lpdf.io?utm_campaign=sdk-node&utm_medium=referral&utm_source=readme) JavaScript SDK: render PDF documents from XML or from code.
 
+With data binding, PDF/A, PDF/UA, PDF/X and Factur-X / ZUGFeRD.
+
 ## Installation
 
 ```bash

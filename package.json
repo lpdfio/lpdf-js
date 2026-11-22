@@ -1,7 +1,7 @@
 {
   "name": "@lpdfio/lpdf",
   "version": "0.0.0",
-  "description": "Lpdf JavaScript SDK: render PDF documents from XML or from code.",
+  "description": "Lpdf JavaScript SDK: render PDF documents from XML or from code. With data binding, PDF/A, PDF/UA, PDF/X and Factur-X / ZUGFeRD.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
