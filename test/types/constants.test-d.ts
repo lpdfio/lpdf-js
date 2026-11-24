@@ -8,10 +8,10 @@ import {
 
 // The constant and the schema's own word both pass, and so does a width and a height.
 L.document({ orientation: Orientation.Landscape, size: PageSize.A4 }, []);
-L.document({ orientation: 'landscape', size: 'a4' }, []);
+L.document({ orientation: 'landscape', size: 'A4' }, []);
 L.document({ size: PageSize.A2 }, []);
 L.document({ size: PageSize.Tabloid }, []);
-L.document({ size: 'b5' }, []);
+L.document({ size: 'B5' }, []);
 L.document({ size: '100pt 200pt' }, []);
 L.document({ size: '210mm 297mm' }, []);
 L.document({ size: '80.5mm 200in' }, []);
@@ -19,7 +19,7 @@ const custom: PageSizeCustom = '100pt 200pt';
 L.document({ size: custom }, []);
 L.document({ output: { pdfa: PdfALevel.Level2a, encrypt: Cipher.Aes256 } }, []);
 L.document({ output: { pdfa: '2a' } }, []);
-L.section({ size: 'letter', orientation: 'portrait', pageFormat: 'lower-roman', grow: 'width height' }, []);
+L.section({ size: 'Letter', orientation: 'portrait', pageFormat: 'lower-roman', grow: 'width height' }, []);
 L.text({ align: 'center', role: 'h1', paginate: 'keep-next' }, ['x']);
 L.barcode({ type: BarcodeType.Qr, data: 'x', ec: 'H' });
 L.barcode({ type: 'pdf417', data: 'x', ec: '3' });

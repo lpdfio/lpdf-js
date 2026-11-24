@@ -3,18 +3,18 @@
 
 /** The named values of the `size` attribute of a document or a section. A width and a height, such as 100pt 200pt, is a string. */
 export const PageSize = {
-  A0: 'a0',
-  A1: 'a1',
-  A2: 'a2',
-  A3: 'a3',
-  A4: 'a4',
-  A5: 'a5',
-  A6: 'a6',
-  B4: 'b4',
-  B5: 'b5',
-  Letter: 'letter',
-  Legal: 'legal',
-  Tabloid: 'tabloid',
+  A0: 'A0',
+  A1: 'A1',
+  A2: 'A2',
+  A3: 'A3',
+  A4: 'A4',
+  A5: 'A5',
+  A6: 'A6',
+  B4: 'B4',
+  B5: 'B5',
+  Letter: 'Letter',
+  Legal: 'Legal',
+  Tabloid: 'Tabloid',
 } as const;
 
 export type PageSize = (typeof PageSize)[keyof typeof PageSize];

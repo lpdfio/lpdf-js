@@ -17,7 +17,7 @@ const { L, NoAttr } = require('@lpdfio/lpdf')
 
 const engine = L.engine()
 
-const doc = L.document({ size: 'letter' }, [
+const doc = L.document({ size: 'Letter' }, [
     L.section(NoAttr, [
         L.layout({ margin: '48pt' }, [
             L.column({ gap: '24pt' }, [
