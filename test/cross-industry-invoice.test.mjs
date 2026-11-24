@@ -38,7 +38,7 @@ const RECHNUNG_MAP = '<cross-industry-invoice-map prefix="rechnung"><value name=
 
 /** A template that binds the invoice under `rechnung:`, with the font the engine loads. */
 const rechnungTemplate = (path) => `<lpdf version="1"><assets><font name="body" src="../assets/fonts/SourceSans3-Regular.otf"/></assets>
-  <document size="a4" font="body"><section><layout margin="48pt"><text data-value="${path}">0000</text></layout></section></document></lpdf>`;
+  <document size="A4" font="body"><section><layout margin="48pt"><text data-value="${path}">0000</text></layout></section></document></lpdf>`;
 const template = () => readFileSync(path.join(FIXTURES, 'showcase-cross-industry-invoice.xml'), 'utf8');
 
 /** An unlicensed engine with the template's font loaded under its name. */
@@ -70,7 +70,7 @@ function documentInCode(invoiceData) {
   const total      = { fontSize: '14pt' };
   const { totals } = invoiceData;
   return L.document({
-    size: 'a4',
+    size: 'A4',
     font: 'body',
     assets: { fonts: [{ name: 'body', src: '../assets/fonts/SourceSans3-Regular.otf' }] },
     meta: { title: 'Invoice', author: 'Northwind Paper SAS', lang: 'en' },

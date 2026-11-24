@@ -799,7 +799,7 @@ describe('kitToXml', () => {
   it('renders a bulk table from data as the table without bulk, emits bulk, and rejects a bulk table built with L, which has no data', async () => {
     const table = (bulk) => `<table cols="1fr 2fr"${bulk}><thead><td><text bold="true">Date</text></td><td><text bold="true">Amount</text></td></thead>`
       + '<tr data-source="entries"><td><text data-value="date">-</text></td><td><text data-value="amount">-</text></td></tr></table>';
-    const xml = (bulk) => `<lpdf version="1"><document size="a4"><section><layout margin="36pt">${table(bulk)}`
+    const xml = (bulk) => `<lpdf version="1"><document size="A4"><section><layout margin="36pt">${table(bulk)}`
       + '<region pin="bottom"><text align="right">Page {page} of {pages}</text></region></layout></section></document></lpdf>';
     const entries = Array.from({ length: 2000 }, (_, i) => ({ date: `2026-01-${String(i % 28 + 1).padStart(2, '0')}`, amount: `$${i}.00` }));
 
@@ -1282,10 +1282,10 @@ describe('LpdfKit section model', () => {
 
   it('LpdfKit.section options are serialised to attrs', () => {
     const sec = L.section(
-      { size: 'a4', background: '#ffffff', title: 'My Page' },
+      { size: 'A4', background: '#ffffff', title: 'My Page' },
       [L.layout(null, [])],
     );
-    assert.equal(sec.attrs.size, 'a4');
+    assert.equal(sec.attrs.size, 'A4');
     assert.equal(sec.attrs.background, '#ffffff');
     assert.equal(sec.attrs.title, 'My Page');
   });
@@ -1535,7 +1535,7 @@ describe('attributes follow the schema', () => {
   });
 
   it('a built document renders the same as its XML', async () => {
-    const built = L.document({ size: 'a4' }, [
+    const built = L.document({ size: 'A4' }, [
       L.section(null, [
         L.layout(null, [
           L.column({ gap: '12pt' }, [
@@ -1615,7 +1615,7 @@ describe('attributes follow the schema', () => {
   it('every closed enumeration of the schema has a constant that the package exports', async () => {
     const constants = await import('../dist/index.js');
     for (const [name, value] of Object.entries({
-      PageSize: 'a4', TextAlign: 'center', Paginate: 'keep-next', Anchor: 'top-left', LineCap: 'round', BarcodeType: 'qr',
+      PageSize: 'A4', TextAlign: 'center', Paginate: 'keep-next', Anchor: 'top-left', LineCap: 'round', BarcodeType: 'qr',
       QrEcLevel: 'H', Pdf417EcLevel: '0', ListType: 'bullet', ListBullet: 'dash', ListFormat: 'lower-alpha', BoxAlign: 'stretch',
       BoxJustify: 'between', Align: 'start', CellVAlign: 'middle', DividerDirection: 'vertical', ShapeType: 'ellipse', TextRole: 'h1',
       CaptureMode: 'last', RowKeep: 'with-next', FillRule: 'evenodd', GradientType: 'radial', RulingOrigin: 'margin', Ocg: 'screen',

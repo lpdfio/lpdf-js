@@ -42,7 +42,7 @@ describe('the main entry', () => {
 
   it('renders a document built from the ES module import', async () => {
     const { L, NoAttr } = await import('@lpdfio/lpdf');
-    const doc = L.document({ size: 'a4' }, [
+    const doc = L.document({ size: 'A4' }, [
       L.section(NoAttr, [L.layout({ margin: '48pt' }, [L.text(NoAttr, ['Hello, Lpdf'])])]),
     ]);
 

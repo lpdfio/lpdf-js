@@ -11,7 +11,7 @@
  * import { L, NoAttr } from '@lpdfio/lpdf';
  *
  * const doc = L.document({ meta: { title: 'My Doc' } }, [
- *   L.section({ size: 'a4' }, [
+ *   L.section({ size: 'A4' }, [
  *     L.layer(NoAttr, [ L.rect({ x: '0pt', y: '0pt', width: '595pt', height: '842pt', fill: '#f5f5f5' }) ]),
  *     L.layout({ margin: '28pt' }, [ L.text(NoAttr, ['Hello']) ]),
  *   ]),
