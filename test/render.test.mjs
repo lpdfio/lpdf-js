@@ -11,7 +11,7 @@ import fs, { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  PdfEngine, L, LMarkdown, LpdfRenderError, CanvasTransform,
+  PdfEngine, L, LMarkdown, LChart, LpdfRenderError, CanvasTransform, ChartType, ChartDirection, ChartLegend,
   FieldType, Pin, Orientation, SectionType, FootnoteCounter, ColumnFill, PageScope, BuiltinFont, Cipher, Permission, FileRelationship, Grow,
   PdfALevel, PdfUaPart, PdfXVersion, Pdf417EcLevel, BarcodeType,
   NoAttr,
@@ -1730,6 +1730,58 @@ describe('attributes follow the schema', () => {
     assert.notEqual(bold, plain);
   });
 
+});
+
+describe('chart', () => {
+  async function renderText(input, engine = new PdfEngine().setLicenseKey('test-key')) {
+    return Buffer.from(await engine.render(input)).toString('latin1');
+  }
+
+  const revenue = () => kitDoc([
+    L.chart({ type: ChartType.Bar, height: '180pt', prefix: '$', legend: ChartLegend.Top, thousandsMark: '.', decimalMark: ',' }, [
+      LChart.series({ label: 'Revenue', color: '#1763cf' }),
+      LChart.series({ label: 'Costs' }),
+      LChart.category({ label: 'Q1' }, [LChart.value(NoAttr, [120000]), LChart.value(NoAttr, [95000.5])]),
+      LChart.category({ label: 'Q2' }, [LChart.value(NoAttr, ['131000']), LChart.value(NoAttr)]),
+    ]),
+  ]);
+
+  it('builds a chart, its series, its categories and their values as nodes', () => {
+    assert.deepEqual(L.chart({ type: ChartType.Bar, height: '100pt', valueLabels: true, direction: ChartDirection.Horizontal }, []), {
+      type: 'chart', attrs: { type: 'bar', height: '100pt', 'value-labels': true, direction: 'horizontal' }, nodes: [],
+    });
+    assert.deepEqual(LChart.series({ label: 'Revenue' }), { type: 'series', attrs: { label: 'Revenue' } });
+    assert.deepEqual(LChart.category({ label: 'Q1' }, [LChart.value(NoAttr, [41200])]), {
+      type: 'category', attrs: { label: 'Q1' }, nodes: [{ type: 'value', attrs: {}, nodes: ['41200'] }],
+    });
+    assert.deepEqual(LChart.value(NoAttr), { type: 'value', attrs: {}, nodes: [] });
+  });
+
+  it('writes a number of a value in full, with no exponent and no culture', () => {
+    const written = (n) => LChart.value(NoAttr, [n]).nodes[0];
+    assert.equal(written(0.25), '0.25');
+    assert.equal(written(-3.5), '-3.5');
+    assert.equal(written(1e21), '1000000000000000000000');
+    assert.equal(written(1.5e-7), '0.00000015');
+    assert.equal(written(-0), '0');
+    assert.equal(written('0.250'), '0.250', 'a string is taken as written');
+    assert.throws(() => LChart.value(NoAttr, [NaN]), RangeError);
+    assert.throws(() => LChart.value(NoAttr, [Infinity]), RangeError);
+  });
+
+  it('renders the same PDF from the tree as from its XML', async () => {
+    const xml = L.toXml(revenue());
+    assert.match(xml, /<value>120000<\/value>/, xml);
+    assert.match(xml, /<value\/>/, xml);
+    assert.equal(await renderText(revenue()), await renderText(xml));
+  });
+
+  it('refuses a category with the wrong count of values', async () => {
+    const document = kitDoc([L.chart({ type: ChartType.Bar, height: '100pt' }, [
+      LChart.series(), LChart.series(), LChart.category({ label: 'Q1' }, [LChart.value(NoAttr, [1])]),
+    ])]);
+    await assert.rejects(renderText(document), /category 'Q1' has 1 value, and the chart has 2 series/);
+  });
 });
 
 describe('markdown', () => {

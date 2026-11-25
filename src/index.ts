@@ -21,7 +21,7 @@ export type {
 export type {
     ColumnAttr, RowAttr, GridAttr, ListAttr, LiAttr, FrameAttr, LinkAttr,
     TableAttr, TheadAttr, TrAttr, TdAttr, TextAttr, CodeAttr, SpanAttr, CodeSpanAttr, DividerAttr,
-    ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr,
+    ImgAttr, ShapeAttr, BarcodeAttr, RegionAttr, FieldAttr, BookmarkAttr, ChartAttr, ChartSeriesAttr, ChartCategoryAttr,
     LayerAttr, RectAttr, CircleAttr, EllipseAttr, LineAttr, PathAttr, TextAtAttr, ImgAtAttr, BarcodeAtAttr,
     FontAttr, ImageAttr, FileAttr, ProfileAttr, LayoutAttr, SpotToken, GradientToken, GradientStop, RulingToken, RulingLines,
     MarkdownAttr, MarkdownStylesAttr, MarkdownH1Attr, MarkdownH2Attr, MarkdownH3Attr, MarkdownH4Attr, MarkdownH5Attr,
@@ -41,6 +41,10 @@ export { LMarkdown } from './markdown';
 export type {
     LpdfMarkdownNode, LpdfMarkdownStylesNode, LpdfMarkdownContentNode, LpdfMarkdownRuleNode,
 } from './markdown';
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+export { LChart } from './chart';
+export type { LpdfChartNode, LpdfChartSeriesNode, LpdfChartCategoryNode, LpdfChartValueNode } from './chart';
 
 // ── Factur-X / ZUGFeRD from the invoice XML ───────────────────────────────────
 export { LCrossIndustryInvoice } from './cross-industry-invoice';
