@@ -20,10 +20,10 @@
  * worker starts from a Blob URL: a page with a Content-Security-Policy allows
  * `blob:` in `worker-src`.
  */
-import initWasm, { check_license, type InitInput } from '../wasm/lpdf-web.js';
+import initWasm, { check_license } from '../wasm/lpdf-web.js';
 import { encryptionArguments, maxMemoryMb, type EngineOptions, type RenderOptions } from './_shared';
 import type { PdfDocument } from './kit';
-import type { LicenseCheck } from './engine';
+import type { LicenseCheck } from './license';
 import type { RenderJob, RenderReply } from './render-job';
 import { RenderQueue, renderTimeout, type RenderWorker, type RenderWorkerEvents } from './render-queue';
 import { stampRequest, type StampAttr } from './stamp';
@@ -58,7 +58,7 @@ export type { LpdfCanvasLayerNode, LpdfCanvasPrimitiveNode } from './canvas';
 /** Pass as `attrs` when a node has no attributes. Equivalent to `null`. */
 export const NoAttr = null;
 
-export type { LicenseCheck, LicenseStatus } from './engine';
+export type { LicenseCheck, LicenseStatus } from './license';
 
 /**
  * The clock the engine checks a key's expiry against. WebAssembly has none of its own, and an
@@ -74,9 +74,11 @@ function secureRandomBytes(count: number): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(count));
 }
 
+// Spelled out rather than taken from the engine's glue (`InitInput`): the declarations of this entry reach
+// consumers, who have no glue file to resolve it in.
 /** Where `initLpdf` loads the engine from: a URL, a response, the bytes or the compiled module, or by default the
  * `lpdf_bg.wasm` next to this file. */
-type WasmSource = InitInput | null | undefined;
+type WasmSource = string | URL | Request | Response | BufferSource | WebAssembly.Module | null | undefined;
 
 /**
  * The engine compiled from `source`, once, for this thread and each worker: a worker started after a timeout

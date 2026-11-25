@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "noEmit": true
+    },
+    "include": ["src/browser-worker.ts", "src/lpdf-web.d.ts"],
+    "exclude": []
+}
