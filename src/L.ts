@@ -3,6 +3,7 @@ import { LpdfKit } from './kit';
 import { LpdfLayout } from './layout';
 import { LpdfCanvas } from './canvas';
 import { LpdfMarkdown } from './markdown';
+import { LpdfChart } from './chart';
 import type { EngineOptions } from './_shared';
 import { PdfEngine } from './engine';
 import { kitToXml } from './kit-to-xml';
@@ -73,6 +74,7 @@ export const L = Object.freeze({
     img:     LpdfLayout.img,
     shape:   LpdfLayout.shape,
     barcode: LpdfLayout.barcode,
+    chart:   LpdfChart.chart,
     region:  LpdfLayout.region,
     field:   LpdfLayout.field,
     bookmark: LpdfLayout.bookmark,

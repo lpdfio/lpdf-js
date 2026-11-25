@@ -4,6 +4,7 @@ import type {
   ImgAttr, ShapeAttr, BarcodeAttr, FieldAttr, RegionAttr, BookmarkAttr,
 } from './attrs';
 import { buildAttrs, type AttrValue } from './_shared';
+import type { LpdfChartNode } from './chart';
 
 // ── Output node interfaces ────────────────────────────────────────────────────
 
@@ -131,6 +132,7 @@ export type LpdfNode =
   | LpdfImgNode
   | LpdfShapeNode
   | LpdfBarcodeNode
+  | LpdfChartNode
   | LpdfRegionNode
   | LpdfFieldNode
   | LpdfBookmarkNode;

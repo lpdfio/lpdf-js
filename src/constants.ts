@@ -383,6 +383,31 @@ export const FieldType = {
 
 export type FieldType = (typeof FieldType)[keyof typeof FieldType];
 
+/** The values of the `type` attribute of a chart: the kind of chart. bar draws a bar for each value. */
+export const ChartType = {
+  Bar: 'bar',
+} as const;
+
+export type ChartType = (typeof ChartType)[keyof typeof ChartType];
+
+/** The values of the `direction` attribute of a chart: which way its bars run. */
+export const ChartDirection = {
+  Vertical: 'vertical',
+  Horizontal: 'horizontal',
+} as const;
+
+export type ChartDirection = (typeof ChartDirection)[keyof typeof ChartDirection];
+
+/** The values of the `legend` attribute of a chart: where its legend goes, or none. */
+export const ChartLegend = {
+  Bottom: 'bottom',
+  Top: 'top',
+  Right: 'right',
+  None: 'none',
+} as const;
+
+export type ChartLegend = (typeof ChartLegend)[keyof typeof ChartLegend];
+
 /** The values of the `core` attribute of a font: the built-in PDF fonts, which need no file. */
 export const BuiltinFont = {
   Courier: 'Courier',
