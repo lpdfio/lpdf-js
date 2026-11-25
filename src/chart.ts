@@ -53,7 +53,7 @@ function chart(attrs: ChartAttr, nodes: (LpdfChartSeriesNode | LpdfChartCategory
  *
  * @throws {RangeError} when the number is not finite.
  */
-export function plainNumber(value: number): string {
+function plainNumber(value: number): string {
   if (!Number.isFinite(value)) {
     throw new RangeError(`a chart's value is a finite number, not ${value}`);
   }
@@ -85,9 +85,9 @@ function category(attrs: ChartCategoryAttr | null, nodes: LpdfChartValueNode[] =
 }
 
 /**
- * A value of a category: a number, or a string that is one, such as `'41200'` or `'0.250'`, whose decimals its label
- * keeps. A number is written in full, as `plainNumber` does. No value, `[]`, draws no bar. It has no attributes: pass
- * `NoAttr`.
+ * A value of a category: one number, or a string that is one, such as `'41200'` or `'0.250'`, whose decimals its label
+ * keeps. A number is written in full, with no culture's marks and no exponent. No value, `[]`, draws no bar. It has no
+ * attributes: pass `NoAttr`.
  */
 function value(attrs: null, nodes: (number | string)[] = []): LpdfChartValueNode {
   return { type: 'value', attrs: {}, nodes: nodes.map((n) => (typeof n === 'number' ? plainNumber(n) : n)) };
