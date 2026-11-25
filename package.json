@@ -11,15 +11,15 @@
       "default": "./dist/index.js"
     },
     "./browser": {
-      "import": "./dist/browser.js",
-      "types":  "./dist/browser.d.ts"
+      "types":  "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
     }
   },
   "scripts": {
-    "build":         "tsc && node build-browser.mjs && node -e \"require('node:fs').cpSync('./wasm', './dist/wasm', {recursive:true})\"",
+    "build":         "tsc && npm run build:browser && node -e \"require('node:fs').cpSync('./wasm', './dist/wasm', {recursive:true})\"",
     "build:node":    "tsc",
-    "build:browser": "node build-browser.mjs",
-    "test":          "tsc -p test/types && node --test test/render.test.mjs test/cross-industry-invoice.test.mjs test/package-entry.test.mjs test/timeout.test.mjs test/memory.test.mjs test/stamp.test.mjs test/merge.test.mjs test/third-party-licenses.test.mjs"
+    "build:browser": "tsc -p tsconfig.browser.json && node build-browser.mjs",
+    "test":          "tsc -p test/types && node --test test/render.test.mjs test/cross-industry-invoice.test.mjs test/package-entry.test.mjs test/browser-types.test.mjs test/timeout.test.mjs test/memory.test.mjs test/stamp.test.mjs test/merge.test.mjs test/third-party-licenses.test.mjs"
   },
   "author": "lpdf.io",
   "homepage": "https://lpdf.io",

@@ -5,6 +5,7 @@ import { Worker } from 'node:worker_threads';
 import { encryptionArguments, maxMemoryMb, type EngineOptions, type RenderOptions } from './_shared';
 import type { FileAttr } from './attrs';
 import type { DocumentAssets, PdfDocument } from './kit';
+import type { LicenseCheck } from './license';
 import { LpdfRenderError } from './render-error';
 import type { RenderJob, RenderReply } from './render-job';
 import { stampRequest, type StampAttr } from './stamp';
@@ -38,38 +39,6 @@ function startNodeWorker(events: RenderWorkerEvents): RenderWorker {
 
 // One worker for the process, as renders ran one at a time on the calling thread before they moved to a worker.
 let renderQueue: RenderQueue | undefined;
-
-/** How a license key stands with this build of the engine. */
-export type LicenseStatus =
-  | 'licensed'
-  | 'no_key'
-  | 'expired'
-  | 'version_mismatch'
-  | 'wrong_product'
-  | 'unknown_key'
-  | 'bad_signature'
-  | 'malformed';
-
-/**
- * What the engine makes of a license key — see {@link PdfEngine.checkLicenseKey}.
- *
- * Everything but `status` is present only once the key's signature verified, so an expired or
- * wrong-version key still names its license while an unreadable one says nothing further: an
- * unverified token's contents are its author's claims, not facts.
- */
-export interface LicenseCheck {
-  status: LicenseStatus;
-  /** Which Codesense product the key was issued for. */
-  product?: string;
-  /** `community`, `professional` or `enterprise`. */
-  tier?: string;
-  /** When the key stops validating, ISO 8601 UTC. Absent on a version-locked key. */
-  expires?: string;
-  /** The license number, as the customer reads it: `L-7K3M9Q`. */
-  license?: string;
-  /** Which key this is on its license — 1, 2, 3 in issue order. */
-  key?: number;
-}
 
 /**
  * The clock the engine checks a key's expiry against.

@@ -1,9 +1,12 @@
 /**
  * Type shim for the wasm-pack web build.
- * Used by src/browser.ts so the import is typed without needing to reference
- * the actual generated dist file from TypeScript.
+ * Used by src/browser.ts and src/browser-worker.ts so the import is typed without needing to reference
+ * the actual generated file from TypeScript.
+ *
+ * A pattern, since an ambient module can't be named by a relative path: it types `'../wasm/lpdf-web.js'`
+ * whether or not the generated file is there.
  */
-declare module '../wasm/lpdf-web.js' {
+declare module '*/wasm/lpdf-web.js' {
   export class LpdfEngine {
     constructor(license_key: string): LpdfEngine;
     /** Register raw font bytes for a custom font name. */
