@@ -46,6 +46,19 @@ declare module '*/wasm/lpdf-web.js' {
      * list that cuts them up (`[{ "name": "a.pdf", "length": 1234 }, …]`), and `options` the JSON of the options.
      */
     merge(pdfs: Uint8Array, sources: string, options: string): Uint8Array;
+    /**
+     * Render XML with the values of a Factur-X invoice bound under the prefix of `invoice_map`, and make the file a
+     * Factur-X invoice with `invoice_xml` attached. `invoice_data` is the JSON of the values read from the invoice.
+     */
+    render_invoice_pdf(
+      xml: string, json_data: string | null, invoice_xml: Uint8Array, invoice_map: string | null, invoice_data: string,
+    ): Uint8Array;
+    /** Render a `PdfDocument` tree, as JSON, and make the file a Factur-X invoice with `invoice_xml` attached. */
+    render_invoice_tree_pdf(json: string, invoice_xml: Uint8Array): Uint8Array;
+    /** Read the values of a Factur-X invoice's XML with `invoice_map`, as JSON, under this engine's memory cap. */
+    extract_invoice_data(invoice_xml: Uint8Array, invoice_map: string | null): string;
+    /** Set the megabytes a render may allocate, 1024 when it isn't set. */
+    set_max_memory_mb(mb: number): void;
     free(): void;
     [Symbol.dispose](): void;
   }
