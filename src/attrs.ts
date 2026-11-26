@@ -1417,16 +1417,21 @@ export interface RegionAttr {
  * and what still doesn't fit ends in an ellipsis, so a chart always renders. A line or an area
  * writes every 2nd, 3rd or 5th label where they don't all fit, and every point keeps its place. A
  * missing value breaks a line, an area and a sparkline, and counts as zero in a stacked area. A
- * sparkline draws no axis, labels or legend. A chart is a leaf, with no padding, background or
- * border: a column around it gives them, and a text above it is its title.
+ * sparkline draws no axis, labels or legend. A pie or a donut draws no axis either: a slice for
+ * each category, clockwise from the top, as wide as its share of the whole, in the largest circle
+ * the plot holds, and a legend at the right that lists each slice's label, color and share; a donut
+ * has a hole, with a text of the author's in it, and a negative value, or values that add up to
+ * zero, are refused. A chart is a leaf, with no padding, background or border: a column around it
+ * gives them, and a text above it is its title.
  */
 export interface ChartAttr {
   /**
    * The kind of chart. bar draws a bar for each value, side by side within a category, or stacked
    * with stacked="true". line draws a line through the values of each series, on an axis that fits
    * them. area draws a line filled down to zero, or with stacked="true" each series filled down to
-   * the one under it. sparkline draws one small line through the whole box, with no axis, labels or
-   * legend, for a table cell.
+   * the one under it. pie draws a slice for each category, as wide as its share of the whole, with
+   * no axis. donut is a pie with a hole, which hole sizes and hole-text writes in. sparkline draws
+   * one small line through the whole box, with no axis, labels or legend, for a table cell.
    */
   type: ChartType;
   /**
@@ -1464,8 +1469,9 @@ export interface ChartAttr {
    */
   suffix?: string;
   /**
-   * The decimals of the value labels, 0 to 6. Left out, a value is written with the decimals it
-   * has. The steps of the axis take the decimals their size needs.
+   * The decimals of the value labels, 0 to 6, and of the shares in the legend of a pie or a donut,
+   * which are whole percents unless it says otherwise. Left out, a value is written with the
+   * decimals it has. The steps of the axis take the decimals their size needs.
    */
   decimals?: number;
   /**
@@ -1504,8 +1510,9 @@ export interface ChartAttr {
    */
   categoryGap?: string;
   /**
-   * Where the legend goes, which lists each series with its label and its color: bottom, top,
-   * right, or none. Default bottom with two series or more, and none with one.
+   * Where the legend goes, which lists each series with its label and its color, or each slice of a
+   * pie or a donut with its label, its color and its share of the whole, 22%: bottom, top, right,
+   * or none. Default bottom with two series or more, and none with one; right for a pie or a donut.
    */
   legend?: ChartLegend;
   /**
@@ -1521,6 +1528,17 @@ export interface ChartAttr {
    * series' color.
    */
   strokeWidth?: string;
+  /**
+   * The hole of a donut as a share of its size, from 0.1 to 0.9: 0.8 is a thin ring and 0.5 a thick
+   * one. Default 0.6. Donuts only: refused on any other kind.
+   */
+  hole?: number;
+  /**
+   * A text in the middle of a donut's hole, as it should read: a total, $11,100, or a share, 72%.
+   * The engine adds nothing up. Too wide for the hole, it wraps at spaces, and what still doesn't
+   * fit ends in an ellipsis. Donuts only: refused on any other kind.
+   */
+  holeText?: string;
   font?: string;
   fontSize?: string;
   /**
@@ -1541,8 +1559,8 @@ export interface ChartAttr {
 /**
  * A series of a chart: one value in each category, in the order of the series. Left out, the chart
  * has one series. data-source repeats it for each item of a list, so the data can set how many
- * series there are. A chart holds 100 series at most, counted after the data is bound. A sparkline
- * has one series and takes none.
+ * series there are. A chart holds 100 series at most, counted after the data is bound. A pie, a
+ * donut and a sparkline have one series and take none.
  */
 export interface ChartSeriesAttr {
   /** The series' entry in the legend. */
@@ -1555,20 +1573,22 @@ export interface ChartSeriesAttr {
 }
 
 /**
- * A category of a chart: a bar for each series, or a stack of them, or a point on each line, with
- * its label beside the axis. It holds a value for each series of the chart, after the data is
- * bound. data-source repeats it for each item of a list. A chart holds 10,000 categories at most,
- * counted after the data is bound.
+ * A category of a chart: a bar for each series, or a stack of them, or a point on each line, or a
+ * slice of a pie or a donut, with its label beside the axis, or in the legend of a pie or a donut.
+ * It holds a value for each series of the chart, after the data is bound. data-source repeats it
+ * for each item of a list. A chart holds 10,000 categories at most, counted after the data is
+ * bound.
  */
 export interface ChartCategoryAttr {
   /**
    * The category's label, under its bars or its point, or beside the bars with
-   * direction="horizontal".
+   * direction="horizontal", or in the legend of a pie or a donut, before the slice's share.
    */
   label?: string;
   /**
    * The color of the category's bar, in a bar chart of one series, where the series' color is the
-   * default.
+   * default, or of its slice in a pie or a donut, where the default is the next color of the
+   * palette.
    */
   color?: string;
 }
