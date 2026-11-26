@@ -1410,33 +1410,42 @@ export interface RegionAttr {
  * each value a cell, a value for each series in the series' order. A chart with one series needs no
  * series. It takes its box in the flow as an image does, never splits across pages, and moves whole
  * to the next page when it doesn't fit. The engine draws its axis, steps, gridlines, labels and
- * legend by fixed rules: the value axis starts at zero and runs in round steps, each 1, 2 or 5
- * times a power of ten, written in full; a negative value takes the axis below zero, where a zero
- * line is drawn; a label wider than its room wraps at spaces onto three lines at most, and what
- * still doesn't fit ends in an ellipsis, so a chart always renders. A chart is a leaf, with no
- * padding, background or border: a column around it gives them, and a text above it is its title.
+ * legend by fixed rules: the value axis of bars and areas starts at zero, and a line's fits its
+ * values, from a round step under the lowest to one over the highest; the axis runs in round steps,
+ * each 1, 2 or 5 times a power of ten, written in full; a negative value takes the axis below zero,
+ * where a zero line is drawn; a label wider than its room wraps at spaces onto three lines at most,
+ * and what still doesn't fit ends in an ellipsis, so a chart always renders. A line or an area
+ * writes every 2nd, 3rd or 5th label where they don't all fit, and every point keeps its place. A
+ * missing value breaks a line, an area and a sparkline, and counts as zero in a stacked area. A
+ * sparkline draws no axis, labels or legend. A chart is a leaf, with no padding, background or
+ * border: a column around it gives them, and a text above it is its title.
  */
 export interface ChartAttr {
   /**
    * The kind of chart. bar draws a bar for each value, side by side within a category, or stacked
-   * with stacked="true".
+   * with stacked="true". line draws a line through the values of each series, on an axis that fits
+   * them. area draws a line filled down to zero, or with stacked="true" each series filled down to
+   * the one under it. sparkline draws one small line through the whole box, with no axis, labels or
+   * legend, for a table cell.
    */
   type: ChartType;
   /**
    * Height of the whole chart, a length or a name from the height row of the tokens. The axis, the
-   * labels and the legend take room inside it and the width, and the bars get the rest. The width
+   * labels and the legend take room inside it and the width, and the plot gets the rest. The width
    * is fill unless it is set.
    */
   height: string;
   /**
    * Which way the bars run. vertical, the default, puts the categories along the bottom and the
    * value axis on the left; horizontal lists the categories down the left side, which suits long
-   * labels, with the value axis along the bottom.
+   * labels, with the value axis along the bottom. Bars only: refused on any other kind.
    */
   direction?: ChartDirection;
   /**
-   * Stacks the bars of a category on each other, in the order of the series, so the axis runs to
-   * the largest total. A stacked value can't be negative. Default false: side by side.
+   * Stacks the bars of a category on each other, in the order of the series, or the areas of the
+   * series, each filled down to the one under it, so the axis runs to the largest total. A stacked
+   * value can't be negative, and a missing one counts as zero. Default false: side by side, or
+   * areas filled down to zero. Bars and areas only: refused on any other kind.
    */
   stacked?: boolean;
   /**
@@ -1461,12 +1470,14 @@ export interface ChartAttr {
   decimals?: number;
   /**
    * A number the value axis reaches down to at least, which takes it below zero: min="-50". It only
-   * widens the axis: a value below it still fits.
+   * widens the axis: a value below it still fits. On a line, whose axis fits its values, min="0"
+   * brings the axis down to zero. A sparkline reaches it too, though it draws no axis.
    */
   min?: number;
   /**
    * A number the value axis reaches at least: max="100" for percentages, or the same max on charts
-   * meant to be compared side by side. It only widens the axis: a value above it still fits.
+   * meant to be compared side by side, such as the sparklines of a table. It only widens the axis:
+   * a value above it still fits.
    */
   max?: number;
   /**
@@ -1479,7 +1490,7 @@ export interface ChartAttr {
    */
   decimalMark?: string;
   /**
-   * The space between the bars and the axis labels, and between them and the legend. Default s,
+   * The space between the plot and the axis labels, and between them and the legend. Default s,
    * from the space row of the tokens.
    */
   gap?: string;
@@ -1498,15 +1509,24 @@ export interface ChartAttr {
    */
   legend?: ChartLegend;
   /**
-   * Writes each value at the end of its bar, and the total of a stack at the end of the stack.
-   * Default false.
+   * Writes each value at the end of its bar or over its point. A point lower than the points beside
+   * it has its value under it, where its line doesn't run. The total of a stack goes at the end of
+   * the stack or over its top. Default false. A sparkline writes none.
    */
   valueLabels?: boolean;
+  /**
+   * The width of every line of a line, an area or a sparkline chart, a length such as 2pt: 1.5pt by
+   * default, and 1pt for a sparkline. 0 draws no line, so an area is its fill alone. Every line
+   * takes the same width: which line is the current one and which the comparison is told by the
+   * series' color.
+   */
+  strokeWidth?: string;
   font?: string;
   fontSize?: string;
   /**
    * The color of the chart's text, its labels, steps and legend, and of its zero line. Default the
-   * color of the text around it.
+   * color of the text around it. A sparkline, which has no text, draws its line in it, and without
+   * it in the first color of the palette.
    */
   color?: string;
   /**
@@ -1521,31 +1541,33 @@ export interface ChartAttr {
 /**
  * A series of a chart: one value in each category, in the order of the series. Left out, the chart
  * has one series. data-source repeats it for each item of a list, so the data can set how many
- * series there are. A chart holds 100 series at most, counted after the data is bound.
+ * series there are. A chart holds 100 series at most, counted after the data is bound. A sparkline
+ * has one series and takes none.
  */
 export interface ChartSeriesAttr {
   /** The series' entry in the legend. */
   label?: string;
   /**
-   * The color of the series' bars and its swatch in the legend. Without it, the series takes the
-   * next color of a fixed palette of eight, which starts over past the eighth.
+   * The color of the series' bars, line or area, and its swatch in the legend. Without it, the
+   * series takes the next color of a fixed palette of eight, which starts over past the eighth.
    */
   color?: string;
 }
 
 /**
- * A category of a chart: a bar for each series, or a stack of them, with its label beside the axis.
- * It holds a value for each series of the chart, after the data is bound. data-source repeats it
- * for each item of a list. A chart holds 10,000 categories at most, counted after the data is
- * bound.
+ * A category of a chart: a bar for each series, or a stack of them, or a point on each line, with
+ * its label beside the axis. It holds a value for each series of the chart, after the data is
+ * bound. data-source repeats it for each item of a list. A chart holds 10,000 categories at most,
+ * counted after the data is bound.
  */
 export interface ChartCategoryAttr {
   /**
-   * The category's label, under its bars, or beside them with direction="horizontal".
+   * The category's label, under its bars or its point, or beside the bars with
+   * direction="horizontal".
    */
   label?: string;
   /**
-   * The color of the category's bar, in a chart of one series, where the series' color is the
+   * The color of the category's bar, in a bar chart of one series, where the series' color is the
    * default.
    */
   color?: string;
