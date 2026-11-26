@@ -383,11 +383,13 @@ export const FieldType = {
 
 export type FieldType = (typeof FieldType)[keyof typeof FieldType];
 
-/** The values of the `type` attribute of a chart: the kind of chart. bar draws a bar for each value, line a line through the values of each series, area a line filled down to zero, or stacked, and sparkline a small line with no axis, labels or legend. */
+/** The values of the `type` attribute of a chart: the kind of chart. bar draws a bar for each value, line a line through the values of each series, area a line filled down to zero, or stacked, pie a slice for each category, donut a pie with a hole, and sparkline a small line with no axis, labels or legend. */
 export const ChartType = {
   Bar: 'bar',
   Line: 'line',
   Area: 'area',
+  Pie: 'pie',
+  Donut: 'donut',
   Sparkline: 'sparkline',
 } as const;
 

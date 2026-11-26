@@ -74,7 +74,10 @@ function plainNumber(value: number): string {
   return `${sign}${digits.slice(0, point)}.${digits.slice(point)}`;
 }
 
-/** A series of a chart: its entry in the legend and the color of its bars, line or area. */
+/**
+ * A series of a chart: its entry in the legend and the color of its bars, line or area. A pie, a donut and a sparkline
+ * take none.
+ */
 function series(attrs: ChartSeriesAttr | null = null): LpdfChartSeriesNode {
   return { type: 'series', attrs: buildAttrs(attrs) };
 }
@@ -86,8 +89,8 @@ function category(attrs: ChartCategoryAttr | null, nodes: LpdfChartValueNode[] =
 
 /**
  * A value of a category: one number, or a string that is one, such as `'41200'` or `'0.250'`, whose decimals its label
- * keeps. A number is written in full, with no culture's marks and no exponent. No value, `[]`, draws no bar and breaks
- * a line, an area or a sparkline; a stacked area counts it as zero. It has no attributes: pass `NoAttr`.
+ * keeps. A number is written in full, with no culture's marks and no exponent. No value, `[]`, draws no bar or slice
+ * and breaks a line, an area or a sparkline; a stacked area counts it as zero. It has no attributes: pass `NoAttr`.
  */
 function value(attrs: null, nodes: (number | string)[] = []): LpdfChartValueNode {
   return { type: 'value', attrs: {}, nodes: nodes.map((n) => (typeof n === 'number' ? plainNumber(n) : n)) };
